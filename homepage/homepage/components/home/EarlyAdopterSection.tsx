@@ -6,6 +6,7 @@ import { SectionHeader } from "@garden-co/design-system/src/components/molecules
 import { Testimonial } from "@garden-co/design-system/src/components/molecules/Testimonial";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+import clsx from "clsx";
 
 const testimonials = [
   {
@@ -67,7 +68,7 @@ function TestimonialSlider({ className }: { className?: string }) {
   );
 
   return (
-    <div className={className} ref={emblaRef}>
+    <div className={clsx("overflow-hidden", className)} ref={emblaRef}>
       <div className="flex items-start">
         {testimonials.map((testimonial, index) => (
           <div key={index} className="min-w-0 flex-[0_0_100%]">
@@ -90,7 +91,6 @@ function TestimonialSlider({ className }: { className?: string }) {
 export function EarlyAdopterSection() {
   return (
     <div className="grid grid-cols-3 items-center gap-y-12">
-      <TestimonialSlider className="col-span-3 lg:hidden" />
       <div className="col-span-3 lg:col-span-2">
         <div className="max-w-3xl space-y-6">
           <SectionHeader

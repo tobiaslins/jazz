@@ -10,19 +10,23 @@ import { JazzSyncs } from "@/components/icons/JazzSyncs";
 import NpxCreateJazzApp from "@/components/home/NpxCreateJazzApp.mdx";
 import { Button } from "@garden-co/design-system/src/components/atoms/Button";
 import { CopyButton } from "@garden-co/design-system/src/components/molecules/CodeGroup";
+import { ChatDemoSection } from "@/components/home/ChatDemoSection";
 import clsx from "clsx";
 import { track } from "@vercel/analytics";
 
 export function HeroSection() {
   return (
-    <section className="container grid min-h-[80vh] items-start py-12 md:grid-cols-12 md:py-24">
+    <section className="container grid min-h-[80vh] items-start py-12 md:grid-cols-12 md:py-16">
       <div className="md:col-span-5">
         <Kicker className="mb-6">Ship Better Apps, Faster.</Kicker>
         <H1>
           <JazzSyncs className="max-w-full" />
           <span className="sr-only">{marketingCopy.headline}</span>
         </H1>
-        <Prose size="lg" className="mt-6 prose-p:leading-normal">
+        <Prose
+          size="lg"
+          className="mt-6 prose-p:leading-normal dark:text-white"
+        >
           <p>
             A new kind of distributed database that runs across your frontend,
             containers, serverless functions and its own cloud.
@@ -45,7 +49,7 @@ export function HeroSection() {
           </p>
         </Prose>
 
-        <div className="mt-8 flex gap-4">
+        <div className="mt-8 grid gap-4 lg:flex">
           <div className="relative col-span-2 w-full flex-1 overflow-hidden rounded-lg border-2 border-primary text-sm md:text-base lg:col-span-3">
             <NpxCreateJazzApp />
             <CopyButton
@@ -62,8 +66,19 @@ export function HeroSection() {
           </Button>
         </div>
       </div>
-      <div className="md:col-span-6 md:col-start-7">
-        <CodeTabs className="mt-12" />
+      <div className="grid gap-8 md:col-span-6 md:col-start-7">
+        <div>
+          <p className="mb-4 text-sm">
+            A chat app with image upload in ~300 lines of{" "}
+            <Link href="https://github.com/garden-co/jazz/tree/main/examples/chat">
+              client-side code.
+            </Link>
+          </p>
+
+          <CodeTabs />
+        </div>
+
+        <ChatDemoSection />
       </div>
     </section>
   );

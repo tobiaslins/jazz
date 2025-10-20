@@ -1,11 +1,14 @@
 "use client";
 
 import { Card } from "@garden-co/design-system/src/components/atoms/Card";
+import { GappedGrid } from "@garden-co/design-system/src/components/molecules/GappedGrid";
+import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
+import Link from "next/link";
 import { H3 } from "@garden-co/design-system/src/components/atoms/Headings";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
-import { GappedGrid } from "@garden-co/design-system/src/components/molecules/GappedGrid";
-import { SectionHeader } from "@garden-co/design-system/src/components/molecules/SectionHeader";
-import Link from "next/link";
+import { Input } from "@garden-co/design-system/src/components/molecules/Input";
+import { Label } from "@garden-co/design-system/src/components/atoms/Label";
+import { Button } from "@garden-co/design-system/src/components/atoms/Button";
 import QRCode from "qrcode";
 import {
   IframeHTMLAttributes,
@@ -14,16 +17,22 @@ import {
   useMemo,
   useState,
 } from "react";
+import clsx from "clsx";
 
 function Iframe(
   props: IframeHTMLAttributes<HTMLIFrameElement> & {
     user: string;
   },
 ) {
-  const { src, user } = props;
+  const { src, user, className } = props;
 
   return (
-    <Card className="relative col-span-2 w-full overflow-hidden lg:col-span-2 dark:bg-black">
+    <Card
+      className={clsx(
+        "relative col-span-2 w-full overflow-hidden dark:bg-black lg:col-span-2",
+        className,
+      )}
+    >
       <iframe
         {...props}
         src={src}
@@ -47,6 +56,7 @@ export function ChatDemoSection() {
   const [server2, setServer2] = useState<string | null>();
   const [shareUrl, setShareUrl] = useState<string | null>();
   const [qrCode, setQrCode] = useState<string | null>();
+  const [isFlipped, setIsFlipped] = useState(false);
 
   let [copyCount, setCopyCount] = useState(0);
   let copied = copyCount > 0;
@@ -128,72 +138,120 @@ export function ChatDemoSection() {
   };
 
   return (
-    <div>
-      <SectionHeader
-        kicker="Demo"
-        title="See it for yourself"
-        slogan={
-          <>
-            A chat app with image upload in ~300 lines of client-side code.{" "}
-            <Link href="https://github.com/garden-co/jazz/tree/main/examples/chat">
-              View code
-            </Link>
-          </>
-        }
-      />
-      <GappedGrid className="gap-y-8">
-        <Iframe src={server1} user={user1} title="Jazz chat demo user 1" />
-        {server2WithSameChatId && (
-          <Iframe src={server2WithSameChatId} user={user2} title="Jazz chat demo user 2" />
-        )}
-        <div className="col-span-2 md:col-span-full lg:col-span-2">
-          {chatId && shareUrl && (
-            <div className="flex h-full flex-col justify-between gap-3 text-center">
-              <H3 className="font-medium text-highlight !mb-0">
-                Join the chat
-              </H3>
-              <p>Scan the QR code</p>
+    <div className="relative" style={{ perspective: "1000px" }}>
+      <div
+        className="relative transition-transform duration-700"
+        style={{
+          transformStyle: "preserve-3d",
+          transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+        }}
+      >
+        {/* Front side - Chat iframes + Join button */}
+        <div
+          style={{
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+          }}
+        >
+          <div className="chats perspective-distant perspective-origin-center flex gap-4 md:gap-8">
+            <Iframe
+              className="chat-1"
+              src={server1}
+              user={user1}
+              title="Jazz chat demo user 1"
+            />
+            {server2WithSameChatId && (
+              <Iframe
+                className="chat-2"
+                src={server2WithSameChatId}
+                user={user2}
+                title="Jazz chat demo user 2"
+              />
+            )}
+          </div>
 
-              {qrCode && (
-                <img
-                  src={qrCode}
-                  className="size-48 border mx-auto rounded-lg"
-                  alt="Scan this QR code to join the chat"
-                />
-              )}
-              <div className="flex items-center gap-2">
-                <div className="h-px w-full border-t" />
-                <p className="whitespace-nowrap">or copy the URL</p>
-                <div className="h-px w-full border-t" />
-              </div>
-              <div>
-                <div className="border rounded shadow-sm p-2 overflow-hidden leading-none flex-1 flex gap-2">
-                  <input
-                    className="flex-1"
-                    type="text"
-                    value={shareUrl}
-                    onClick={(e) => e.currentTarget.select()}
-                    onBlur={(e) => e.currentTarget.setSelectionRange(0, 0)}
-                    readOnly
-                  />
-                  <button
-                    type="button"
-                    className="text-primary dark:text-blue-400"
-                    onClick={copyUrl}
-                  >
-                    {copied ? (
-                      <Icon name="check" size="xs" />
-                    ) : (
-                      <Icon name="copy" size="xs" />
-                    )}
-                    <span className="sr-only">Copy URL</span>
-                  </button>
-                </div>
-              </div>
+          {/* Join the chat button */}
+          {chatId && shareUrl && (
+            <div className="mt-4 text-center md:mt-8">
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => setIsFlipped(true)}
+                icon="qrcode"
+              >
+                Join the chat
+              </Button>
             </div>
           )}
         </div>
-      </GappedGrid>
+
+        {/* Back side - QR Code + Back button */}
+        {chatId && shareUrl && (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4"
+            style={{
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+              transform: "rotateY(180deg)",
+            }}
+          >
+            <H3 className="!mb-0 font-medium text-highlight">Join the chat</H3>
+            <p>Scan the QR code</p>
+
+            {qrCode && (
+              <img
+                src={qrCode}
+                className="mx-auto size-48 rounded-lg border"
+                alt="Scan this QR code to join the chat"
+              />
+            )}
+            <div className="flex w-full max-w-md items-center gap-2">
+              <div className="h-px w-full border-t" />
+              <p className="whitespace-nowrap">or copy the URL</p>
+              <div className="h-px w-full border-t" />
+            </div>
+            <div className="relative w-full max-w-md">
+              <Label
+                label="To join the chat, copy the URL"
+                htmlFor="shareUrl"
+                className="sr-only"
+              />
+              <input
+                id="shareUrl"
+                className="h-10 w-full rounded-md border bg-transparent px-3"
+                type="text"
+                value={shareUrl}
+                onClick={(e) => e.currentTarget.select()}
+                onBlur={(e) => e.currentTarget.setSelectionRange(0, 0)}
+                readOnly
+              />
+              <button
+                type="button"
+                className="absolute right-0 top-0 p-3 text-primary dark:text-blue-400"
+                onClick={copyUrl}
+              >
+                {copied ? (
+                  <Icon name="check" size="xs" />
+                ) : (
+                  <Icon name="copy" size="xs" />
+                )}
+                <span className="sr-only">Copy URL</span>
+              </button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="lg"
+              icon="previous"
+              iconPosition="left"
+              onClick={() => setIsFlipped(false)}
+              className="mt-4"
+            >
+              Back to chat
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
