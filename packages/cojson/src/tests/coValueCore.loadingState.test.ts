@@ -1,16 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { PeerState } from "../PeerState";
-import { CoValueCore, idforHeader } from "../coValueCore/coValueCore";
-import { CoValueHeader, VerifiedState } from "../coValueCore/verifiedState";
-import { RawCoID } from "../ids";
-import { LocalNode } from "../localNode";
 import { Peer } from "../sync";
 import {
   createTestMetricReader,
   createTestNode,
+  createUnloadedCoValue,
   tearDownTestMetricReader,
 } from "./testUtils";
-import { WasmCrypto } from "../crypto/WasmCrypto";
 
 let metricReader: ReturnType<typeof createTestMetricReader>;
 
@@ -25,18 +21,9 @@ afterEach(() => {
 function setup() {
   const node = createTestNode();
 
-  const header = {
-    type: "comap",
-    ruleset: { type: "ownedByGroup", group: "co_ztest123" },
-    meta: null,
-    ...node.crypto.createdNowUnique(),
-  } as CoValueHeader;
+  const { coValue, id, header } = createUnloadedCoValue(node);
 
-  const id = idforHeader(header, node.crypto);
-
-  const state = CoValueCore.fromID(id, node);
-
-  return { node, state, id, header };
+  return { node, state: coValue, id, header };
 }
 
 describe("CoValueCore loading state", () => {

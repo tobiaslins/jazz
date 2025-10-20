@@ -1,12 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { CoValueCore, idforHeader } from "../coValueCore/coValueCore";
-import { CoValueHeader } from "../coValueCore/verifiedState";
 import { RawCoID } from "../ids";
-import { LocalNode } from "../localNode";
 import { StorageAPI } from "../storage/types";
 import {
   createTestMetricReader,
   createTestNode,
+  createUnloadedCoValue,
   tearDownTestMetricReader,
 } from "./testUtils";
 
@@ -23,18 +21,9 @@ afterEach(() => {
 function setup() {
   const node = createTestNode();
 
-  const header = {
-    type: "comap",
-    ruleset: { type: "ownedByGroup", group: "co_ztest123" },
-    meta: null,
-    ...node.crypto.createdNowUnique(),
-  } as CoValueHeader;
+  const { coValue, id, header } = createUnloadedCoValue(node);
 
-  const id = idforHeader(header, node.crypto);
-
-  const state = CoValueCore.fromID(id, node);
-
-  return { node, state, id, header };
+  return { node, state: coValue, id, header };
 }
 
 function createMockStorage(

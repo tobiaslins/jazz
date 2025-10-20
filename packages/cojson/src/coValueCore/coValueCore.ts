@@ -183,7 +183,7 @@ export class CoValueCore {
   }
 
   private readonly loadingStatuses = new Map<
-    string,
+    PeerID | "storage",
     | {
         type: "unknown" | "pending" | "available" | "unavailable";
       }
@@ -199,18 +199,10 @@ export class CoValueCore {
     new Set();
   private counter: UpDownCounter;
 
-  private constructor(
-    init: { header: CoValueHeader } | { id: RawCoID },
-    node: LocalNode,
-  ) {
+  constructor(id: RawCoID, node: LocalNode) {
     this.crypto = node.crypto;
-    if ("header" in init) {
-      this.id = idforHeader(init.header, node.crypto);
-      this._verified = new VerifiedState(this.id, node.crypto, init.header);
-    } else {
-      this.id = init.id;
-      this._verified = null;
-    }
+    this.id = id;
+    this._verified = null;
     this.node = node;
 
     this.counter = metrics
@@ -222,17 +214,6 @@ export class CoValueCore {
       });
 
     this.updateCounter(null);
-  }
-
-  static fromID(id: RawCoID, node: LocalNode): CoValueCore {
-    return new CoValueCore({ id }, node);
-  }
-
-  static fromHeader(
-    header: CoValueHeader,
-    node: LocalNode,
-  ): AvailableCoValueCore {
-    return new CoValueCore({ header }, node) as AvailableCoValueCore;
   }
 
   get loadingState() {
