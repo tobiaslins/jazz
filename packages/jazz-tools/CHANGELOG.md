@@ -1,5 +1,18 @@
 # jazz-tools
 
+## 0.18.28
+
+### Patch Changes
+
+- 8cbbe0e: Fixed a race condition on upsertUnique that was leading to a "provideHeader" error
+- 14806c8: Add `useLogOut` hook
+- Updated dependencies [e8880dc]
+- Updated dependencies [d83b5e3]
+- Updated dependencies [5320349]
+  - cojson@0.18.28
+  - cojson-storage-indexeddb@0.18.28
+  - cojson-transport-ws@0.18.28
+
 ## 0.18.27
 
 ### Patch Changes
