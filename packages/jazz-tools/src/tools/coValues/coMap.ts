@@ -492,7 +492,6 @@ export class CoMap extends CoValueBase implements CoValue {
       unique: CoValueUniqueness["uniqueness"];
       owner: Account | Group;
       resolve?: RefsToResolveStrict<M, R>;
-      upsert?: boolean;
     },
   ): Promise<Resolved<M, R> | null> {
     const header = CoMap._getUniqueHeader(
