@@ -44,7 +44,7 @@ describe("PeerState", () => {
     expect(peerState.closed).toBe(true);
   });
 
-  test("should clone the knownStates into optimisticKnownStates and knownStates when passed as argument", () => {
+  test("should clone the knownStates and reset the optimistic known state when using newPeerStateFrom", () => {
     const { peerState, mockPeer } = setup();
     peerState.setKnownState("co_z1", {
       id: "co_z1",
@@ -65,8 +65,11 @@ describe("PeerState", () => {
     expect(newPeerState.getKnownState("co_z1")).toEqual(
       peerState.getKnownState("co_z1"),
     );
-    expect(newPeerState.getOptimisticKnownState("co_z1")).toEqual(
+    expect(newPeerState.getKnownState("co_z1")).not.toBe(
       peerState.getKnownState("co_z1"),
+    );
+    expect(newPeerState.getOptimisticKnownState("co_z1")).toBe(
+      newPeerState.getKnownState("co_z1"),
     );
   });
 

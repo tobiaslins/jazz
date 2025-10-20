@@ -8,13 +8,21 @@ import {
 import { PeerID } from "../sync.js";
 
 export class PeerKnownState {
+  readonly id: RawCoID;
   readonly peerId: PeerID;
   private knownState: CoValueKnownState;
   private optimisticKnownState?: CoValueKnownState;
 
   constructor(id: RawCoID, peerId: PeerID) {
+    this.id = id;
     this.peerId = peerId;
     this.knownState = emptyKnownState(id);
+  }
+
+  clone() {
+    const clone = new PeerKnownState(this.id, this.peerId);
+    clone.set(this.knownState);
+    return clone;
   }
 
   updateHeader(header: boolean) {

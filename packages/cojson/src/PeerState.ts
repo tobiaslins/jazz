@@ -42,13 +42,14 @@ export class PeerState {
       this.gracefulShutdown();
     }
 
+    const knownStates = new Map<RawCoID, PeerKnownState>();
     // On reconnect, we reset all the optimistic known states
     // because we can't know if those syncs were successful or not
     for (const knownState of this._knownStates.values()) {
-      knownState.resetOptimisticState();
+      knownStates.set(knownState.id, knownState.clone());
     }
 
-    return new PeerState(peer, this._knownStates);
+    return new PeerState(peer, knownStates);
   }
 
   readonly toldKnownState: Set<RawCoID> = new Set();
