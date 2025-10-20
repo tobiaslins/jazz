@@ -90,41 +90,43 @@ function TestimonialSlider({ className }: { className?: string }) {
 
 export function EarlyAdopterSection() {
   return (
-    <div className="grid grid-cols-3 items-center gap-y-12">
-      <div className="col-span-3 lg:col-span-2">
-        <div className="max-w-3xl space-y-6">
-          <SectionHeader
-            kicker="Get started"
-            title="Let's build your next app together"
-          />
+    <section className="bg-stone-100 dark:bg-black/30">
+      <div className="container grid grid-cols-3 items-center gap-y-12">
+        <div className="col-span-3 lg:col-span-2">
+          <div className="max-w-3xl space-y-6">
+            <SectionHeader
+              kicker="Get started"
+              title="Let's build your next app together"
+            />
 
-          <Prose className="mb-6 md:text-pretty">
-            <p>
-              Whether you're building something big with Jazz or just trying
-              things out, we've got a team of developers who have seen and built
-              everything.
-            </p>
-            <p>
-              We're happy to help you hands-on with your app, and ready to
-              tailor Jazz features to your needs.
-            </p>
-          </Prose>
+            <Prose className="mb-6 md:text-pretty">
+              <p>
+                Whether you're building something big with Jazz or just trying
+                things out, we've got a team of developers who have seen and
+                built everything.
+              </p>
+              <p>
+                We're happy to help you hands-on with your app, and ready to
+                tailor Jazz features to your needs.
+              </p>
+            </Prose>
 
-          <div className="flex gap-3">
-            <Button href="/docs" intent="primary">
-              Read docs
-            </Button>
-            <Button
-              href="https://discord.gg/utDMjHYg42"
-              intent="primary"
-              variant="outline"
-            >
-              Join Discord
-            </Button>
+            <div className="flex gap-3">
+              <Button href="/docs" intent="primary">
+                Read docs
+              </Button>
+              <Button
+                href="https://discord.gg/utDMjHYg42"
+                intent="primary"
+                variant="outline"
+              >
+                Join Discord
+              </Button>
+            </div>
           </div>
         </div>
+        <TestimonialSlider className="hidden overflow-hidden lg:block lg:border-l lg:py-8 lg:pl-8" />
       </div>
-      <TestimonialSlider className="hidden overflow-hidden lg:block lg:border-l lg:py-8 lg:pl-8" />
-    </div>
+    </section>
   );
 }

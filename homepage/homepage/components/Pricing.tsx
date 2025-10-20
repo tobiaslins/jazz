@@ -15,6 +15,7 @@ import {
   LucideImagePlay,
 } from "lucide-react";
 import { IndieTierLogo, ProTierLogo, StarterTierLogo } from "./TierLogos";
+import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
 
 export function ListItem({
   variant = "blue",
@@ -55,6 +56,37 @@ export function ListItem({
 export function Pricing() {
   return (
     <>
+      {/* Self-hosted option banner */}
+      <div className="rounded-xl border bg-gradient-to-r from-stone-50 to-gray-50 p-6 shadow-sm shadow-gray-900/5 dark:from-stone-925 dark:to-stone-950">
+        <div className="flex items-start gap-4">
+          <div className="grid w-full items-center gap-4 md:flex">
+            <div className="grid flex-grow gap-2">
+              <h3 className="flex w-full items-center justify-between text-xl font-semibold text-stone-900 dark:text-white">
+                <span className="flex items-center gap-1.5">
+                  <Icon name="server" />
+                  Self-Hosted
+                </span>
+              </h3>
+
+              <p className="text-base text-stone-600 dark:text-stone-400">
+                Self-host Jazz for complete control. From hybrid to fully
+                private deployments — it's your infrastructure.
+              </p>
+            </div>
+
+            <Button
+              href="/docs/react/core-concepts/sync-and-storage#self-hosting-your-sync-server"
+              variant="outline"
+              intent="primary"
+              className="whitespace-nowrap"
+            >
+              Learn more
+              <Icon name="chevronRight" className="text-primary" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="mb-10 grid gap-4 md:grid-cols-3">
         <div className="flex flex-col items-start gap-3 rounded-xl border bg-gray-100 p-6 shadow-sm shadow-gray-900/5 dark:bg-stone-925">
           <h3 className="flex w-full items-center justify-between text-xl font-semibold text-stone-900 dark:text-white">

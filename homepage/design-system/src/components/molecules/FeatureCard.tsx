@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { Card } from "../atoms/Card";
 import { Icon, IconName } from "../atoms/Icon";
 import { Prose } from "./Prose";
+import { H3 } from "@garden-co/design-system/src/components/atoms/Headings";
 
 export function FeatureCard({
   label,
@@ -27,9 +28,7 @@ export function FeatureCard({
           size="3xl"
         />
       )}
-      <div className="text-stone-900 font-medium md:text-base dark:text-stone-100 mb-2">
-        {label}
-      </div>
+      <H3 className="text-base">{label}</H3>
       {explanation && <Prose>{explanation}</Prose>}
       {children}
     </Card>

@@ -1,12 +1,10 @@
 import { ServerWorkersDiagram } from "@/components/home/ServerWorkersDiagram";
 import { ClerkLogo } from "@/components/icons/ClerkLogo";
-import { Button } from "@garden-co/design-system/src/components/atoms/Button";
 import { Card } from "@garden-co/design-system/src/components/atoms/Card";
-import { H3 } from "@garden-co/design-system/src/components/atoms/Headings";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
 import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
 import { SectionHeader } from "@garden-co/design-system/src/components/molecules/SectionHeader";
-import Link from "next/link";
+import { H3 } from "@garden-co/design-system/src/components/atoms/Headings";
 
 const features = [
   {
@@ -93,31 +91,33 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <div>
-      <SectionHeader
-        title="Everything else you need to ship quickly"
-        slogan={
-          <>
-            <p>
-              We take care of the groundwork that every app needs, so you can
-              focus on building the cool stuff that makes your app unique.
-            </p>
-          </>
-        }
-      />
+    <div className="bg-stone-100 py-12 dark:bg-black/30 lg:py-16">
+      <div className="container">
+        <SectionHeader
+          title="Everything else you need to ship quickly"
+          slogan={
+            <>
+              <p>
+                We take care of the groundwork that every app needs, so you can
+                focus on building the cool stuff that makes your app unique.
+              </p>
+            </>
+          }
+        />
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:gap-8">
-        {features.map(({ title, description, illustration }) => (
-          <Card key={title} className="col-span-3 overflow-hidden">
-            <div className="flex h-48 w-full items-center justify-center">
-              {illustration}
-            </div>
-            <div className="p-4">
-              <h3 className="mb-1 font-medium text-highlight">{title}</h3>
-              <Prose size="sm">{description}</Prose>
-            </div>
-          </Card>
-        ))}
+        <div className="grid gap-4 sm:grid-cols-2 lg:gap-8">
+          {features.map(({ title, description, illustration }) => (
+            <Card key={title}>
+              <div className="flex h-48 w-full items-center justify-center px-3">
+                {illustration}
+              </div>
+              <div className="p-4">
+                <H3 className="mb-1">{title}</H3>
+                <Prose size="sm">{description}</Prose>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

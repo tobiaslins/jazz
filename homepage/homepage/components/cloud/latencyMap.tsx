@@ -5,14 +5,14 @@ import { H2 } from "@garden-co/design-system/src/components/atoms/Headings";
 
 export const LatencyMap = () => {
   return (
-    <div className="container space-y-12 overflow-hidden">
+    <div className="container mb-12 overflow-hidden">
       <H2>Jazz Cloud</H2>
       <p>
         Real-time sync and storage infrastructure that scales up to millions of
         users.
       </p>
 
-      <div className="relative mb-4 rounded-lg">
+      <div className="relative mb-4 mt-8">
         <div className="relative aspect-[12/4] xl:-mx-[10%] xl:w-[120%]">
           <MapTooltip />
         </div>

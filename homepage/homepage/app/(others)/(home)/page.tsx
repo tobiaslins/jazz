@@ -15,23 +15,26 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <div className="container flex flex-col gap-12 lg:gap-20">
-        <SupportedEnvironmentsSection />
 
+      <SupportedEnvironmentsSection />
+
+      <ChatDemoSection />
+
+      <div className="container grid gap-8 pt-12">
         <ProblemStatementSection />
         <LocalFirstFeaturesSection />
+      </div>
 
+      <FeaturesSection />
+
+      <div className="container space-y-5 py-8 lg:py-16">
         <LatencyMap />
 
-        <div className="container space-y-5 py-8 lg:py-16">
-          <H2>Pricing</H2>
-          <Pricing />
-        </div>
-
-        <FeaturesSection />
-
-        <EarlyAdopterSection />
+        <H2>Pricing</H2>
+        <Pricing />
       </div>
+
+      <EarlyAdopterSection />
     </>
   );
 }

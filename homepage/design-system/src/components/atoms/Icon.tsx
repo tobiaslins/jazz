@@ -47,6 +47,7 @@ import {
   WifiOffIcon,
   XIcon,
   QrCodeIcon,
+  ServerIcon,
 } from "lucide-react";
 
 import clsx from "clsx";
@@ -106,7 +107,7 @@ export const icons = {
   qrcode: QrCodeIcon,
   previous: ChevronLeftIcon,
   next: ChevronRightIcon,
-
+  server: ServerIcon,
   // text editor icons
   bold: BoldIcon,
   italic: ItalicIcon,

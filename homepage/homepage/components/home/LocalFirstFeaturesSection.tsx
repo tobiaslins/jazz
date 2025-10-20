@@ -1,7 +1,6 @@
 import type { IconName } from "@garden-co/design-system/src/components/atoms/Icon";
 import { FeatureCard } from "@garden-co/design-system/src/components/molecules/FeatureCard";
 import { GappedGrid } from "@garden-co/design-system/src/components/molecules/GappedGrid";
-import { SectionHeader } from "@garden-co/design-system/src/components/molecules/SectionHeader";
 
 const randomChars = [
   "SFPOHVKNPDKETOMQLMJKX#QDI=TFFFMRJDSJ",
@@ -104,7 +103,7 @@ export function LocalFirstFeaturesSection() {
     },
   ];
   return (
-    <GappedGrid cols={4}>
+    <GappedGrid cols={4} className="mb-12 lg:mb-16">
       {features.map(({ title, icon, description }) => (
         <FeatureCard
           label={title}

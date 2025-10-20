@@ -2,8 +2,6 @@ export function JazzSyncs(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="342"
-      height="142"
       fill="none"
       viewBox="0 0 342 142"
       className="text-stone-900 dark:text-white"
