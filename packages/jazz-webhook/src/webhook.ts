@@ -262,10 +262,9 @@ class WebhookEmitter {
 
     const scheduleRetry = (delayMs?: number) => {
       const delay =
-        (delayMs ||
-          this.options.baseDelayMs ||
-          DEFAULT_JazzWebhookOptions.baseDelayMs) *
-        2 ** (entry?.nRetries || 0);
+        delayMs ??
+        (this.options.baseDelayMs || DEFAULT_JazzWebhookOptions.baseDelayMs) *
+          2 ** (entry?.nRetries || 0);
       console.log(`Will retry ${this.webhook.webhookUrl} in ${delay}ms...`);
 
       entry.timeout = setTimeout(() => {
