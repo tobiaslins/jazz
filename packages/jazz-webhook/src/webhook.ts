@@ -264,6 +264,7 @@ class WebhookEmitter {
     let entry = this.pending.get(txIdKey);
 
     if (entry && entry.nRetries >= this.getMaxRetries()) {
+      // TODO: should we track failed transactions?
       this.pending.delete(txIdKey);
       clearTimeout(entry.timeout);
       console.error(
