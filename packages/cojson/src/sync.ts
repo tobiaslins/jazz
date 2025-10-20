@@ -343,7 +343,7 @@ export class SyncManager {
     const prevPeer = this.peers[peer.id];
 
     const peerState = prevPeer
-      ? prevPeer.newStateFrom(peer)
+      ? prevPeer.newPeerStateFrom(peer)
       : new PeerState(peer, undefined);
 
     this.peers[peer.id] = peerState;

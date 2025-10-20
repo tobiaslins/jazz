@@ -90,7 +90,7 @@ export class SyncStateManager {
     const entry = this.syncManager.local.getCoValue(id);
 
     if (!entry.hasVerifiedContent()) {
-      return false; // TODO: Shall we return true?
+      return false;
     }
 
     // Accessing verified knownState to skip the immutability

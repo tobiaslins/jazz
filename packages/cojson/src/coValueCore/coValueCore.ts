@@ -452,8 +452,7 @@ export class CoValueCore {
       new SessionMap(this.id, this.node.crypto, streamingKnownState),
     );
 
-    this._cachedKnownState = undefined;
-    this._cachedKnownStateWithStreaming = undefined;
+    this.resetKnownStateCache();
 
     return true;
   }
@@ -624,14 +623,18 @@ export class CoValueCore {
       );
 
       if (result.isOk()) {
-        this._cachedKnownState = undefined;
-        this._cachedKnownStateWithStreaming = undefined;
+        this.resetKnownStateCache();
         this.processNewTransactions();
         this.scheduleNotifyUpdate();
       }
 
       return result;
     });
+  }
+
+  private resetKnownStateCache() {
+    this._cachedKnownState = undefined;
+    this._cachedKnownStateWithStreaming = undefined;
   }
 
   private processNewTransactions() {
@@ -781,8 +784,7 @@ export class CoValueCore {
     const session = this.verified.sessions.get(sessionID);
     const txIdx = session ? session.transactions.length - 1 : 0;
 
-    this._cachedKnownState = undefined;
-    this._cachedKnownStateWithStreaming = undefined;
+    this.resetKnownStateCache();
     this.processNewTransactions();
     this.addDependenciesFromNewTransaction(transaction);
 

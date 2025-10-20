@@ -31,7 +31,13 @@ export class PeerState {
     return this._knownStates.has(id);
   }
 
-  newStateFrom(peer: Peer) {
+  /**
+   * Closes the current peer state and creates a new one from a given peer,
+   * keeping the same known states.
+   *
+   * This is used to create a new peer state when a peer reconnects.
+   */
+  newPeerStateFrom(peer: Peer) {
     if (!this.closed) {
       this.gracefulShutdown();
     }
@@ -92,6 +98,12 @@ export class PeerState {
     this.triggerUpdate(id, knownState);
   }
 
+  /**
+   * Emit a change event for a given coValue.
+   *
+   * This is used to notify subscribers that the known state of a coValue has changed,
+   * but the known state of the peer has not.
+   */
   emitCoValueChange(id: RawCoID) {
     if (this.peer.role === "client" && !this.isCoValueSubscribedToPeer(id)) {
       return;
