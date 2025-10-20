@@ -615,8 +615,11 @@ To manipulate images (like placeholders, resizing, etc.), `createImage()` uses d
 <ContentByFramework framework={['react', 'svelte']}>
 On the browser, image manipulation is done using the `canvas` API.
 </ContentByFramework>
-<ContentByFramework framework={['react-native', 'react-native-expo']}>
+<ContentByFramework framework="react-native">
 On React Native, image manipulation is done using the `@bam.tech/react-native-image-resizer` library.
+</ContentByFramework>
+<ContentByFramework framework="react-native-expo">
+On Expo, image manipulation is done using the `expo-image-manipulator` library.
 </ContentByFramework>
 
 If you want to use a custom implementation, you can use the `createImageFactory` function in order create your own `createImage` function and use your preferred image manipulation library.
