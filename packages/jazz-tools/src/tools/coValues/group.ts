@@ -9,6 +9,7 @@ import {
   type Role,
 } from "cojson";
 import {
+  AnonymousJazzAgent,
   BranchDefinition,
   CoValue,
   CoValueClass,
@@ -272,7 +273,10 @@ export class Group extends CoValueBase implements CoValue {
   static load<G extends Group, const R extends RefsToResolve<G>>(
     this: CoValueClass<G>,
     id: ID<G>,
-    options?: { resolve?: RefsToResolveStrict<G, R>; loadAs?: Account },
+    options?: {
+      resolve?: RefsToResolveStrict<G, R>;
+      loadAs?: Account | AnonymousJazzAgent;
+    },
   ): Promise<Resolved<G, R> | null> {
     return loadCoValueWithoutMe(this, id, options);
   }
