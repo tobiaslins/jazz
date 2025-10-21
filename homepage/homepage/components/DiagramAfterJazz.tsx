@@ -215,22 +215,10 @@ function DarkMode(props: SVGProps<SVGSVGElement>) {
           className="fill-stone-900 dark:fill-white"
         />
         <path
-          d="M98 137v73"
-          strokeOpacity={0.25}
-          strokeWidth={2}
-          className="stroke-primary"
-        />
-        <path
           data-arrow-up
           className="arrow-up-1"
           d="M98.707 154.293a1 1 0 00-1.414 0l-6.364 6.364a1 1 0 101.414 1.414L98 156.414l5.657 5.657a.999.999 0 101.414-1.414l-6.364-6.364zM97 155v55h2v-55h-2z"
           fill="url(#paint0_linear_0_94)"
-        />
-        <path
-          d="M117 137v73"
-          strokeOpacity={0.25}
-          strokeWidth={2}
-          className="stroke-primary"
         />
         <path
           data-arrow-down
@@ -239,22 +227,10 @@ function DarkMode(props: SVGProps<SVGSVGElement>) {
           fill="url(#paint1_linear_0_94)"
         />
         <path
-          d="M252 137v73"
-          strokeOpacity={0.25}
-          strokeWidth={2}
-          className="stroke-primary"
-        />
-        <path
           data-arrow-up
           className="arrow-up-2"
           d="M252.707 154.293a.999.999 0 00-1.414 0l-6.364 6.364a.999.999 0 101.414 1.414l5.657-5.657 5.657 5.657a.999.999 0 101.414-1.414l-6.364-6.364zM251 155v55h2v-55h-2z"
           fill="url(#paint2_linear_0_94)"
-        />
-        <path
-          d="M271 137v73"
-          strokeOpacity={0.25}
-          strokeWidth={2}
-          className="stroke-primary"
         />
         <path
           data-arrow-down
@@ -263,22 +239,10 @@ function DarkMode(props: SVGProps<SVGSVGElement>) {
           fill="url(#paint3_linear_0_94)"
         />
         <path
-          d="M403 137v73"
-          strokeOpacity={0.25}
-          strokeWidth={2}
-          className="stroke-primary"
-        />
-        <path
           data-arrow-up
           className="arrow-up-3"
           d="M403.707 154.293a.999.999 0 00-1.414 0l-6.364 6.364a.999.999 0 101.414 1.414l5.657-5.657 5.657 5.657a.999.999 0 101.414-1.414l-6.364-6.364zM402 155v55h2v-55h-2z"
           fill="url(#paint4_linear_0_94)"
-        />
-        <path
-          d="M422 137v73"
-          strokeOpacity={0.25}
-          strokeWidth={2}
-          className="stroke-primary"
         />
         <path
           data-arrow-down
