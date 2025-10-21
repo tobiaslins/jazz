@@ -104,8 +104,11 @@ export function BubbleImage(props: { image: ImageDefinition }) {
 
 export function BubbleInfo(props: { by: string | undefined; madeAt: Date }) {
   return (
-    <div className="text-xs text-neutral-500 mt-1.5">
-      {props.by} · {props.madeAt.toLocaleTimeString()}
+    <div className="text-xs text-neutral-500 mb-1.5">
+      {props.by} ·{" "}
+      {props.madeAt.toLocaleTimeString("en-US", {
+        hour12: false,
+      })}
     </div>
   );
 }
