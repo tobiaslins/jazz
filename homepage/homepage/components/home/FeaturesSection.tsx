@@ -1,6 +1,5 @@
 import { ServerWorkersDiagram } from "@/components/home/ServerWorkersDiagram";
 import { ClerkLogo } from "@/components/icons/ClerkLogo";
-import { Card } from "@garden-co/design-system/src/components/atoms/Card";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
 import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
 import { SectionHeader } from "@garden-co/design-system/src/components/molecules/SectionHeader";

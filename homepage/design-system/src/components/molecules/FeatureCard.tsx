@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { Card } from "../atoms/Card";
 import { Icon, IconName } from "../atoms/Icon";
 import { Prose } from "./Prose";
-import { H3 } from "@garden-co/design-system/src/components/atoms/Headings";
 
 export function FeatureCard({
   label,
@@ -19,16 +18,18 @@ export function FeatureCard({
 }) {
   return (
     <Card className={clsx(className, "p-4")}>
-      {icon && (
-        <Icon
-          name={icon}
-          intent="primary"
-          hasBackground
-          className="p-1.5 rounded-lg mb-2.5"
-          size="3xl"
-        />
-      )}
-      <H3 className="text-base">{label}</H3>
+      <h3 className="flex items-center gap-2 md:gap-3 text-stone-950 dark:text-white font-display mb-2 font-semibold tracking-tight">
+        {icon && (
+          <Icon
+            name={icon}
+            intent="primary"
+            hasBackground
+            className="p-1.5"
+            size="2xl"
+          />
+        )}
+        {label}
+      </h3>
       {explanation && <Prose>{explanation}</Prose>}
       {children}
     </Card>
