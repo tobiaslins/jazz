@@ -519,32 +519,28 @@ export async function internalLoadUnique<
   // retrying failures
   // This way when we want to upsert we are sure that, if the load failed
   // it failed because the unique value was missing
-  let result = await loadCoValueWithoutMe(cls, id, {
+  await loadCoValueWithoutMe(cls, id, {
     skipRetry: true,
     loadAs,
   });
 
-  if (options.onCreateWhenMissing) {
-    // if load returns unavailable, we check the state in localNode
-    // to ward against race conditions that would happen when
-    // running the same upsert unique concurrently
-    if (!result && node.getCoValue(id).hasVerifiedContent()) {
-      result = await loadCoValueWithoutMe(cls, id, {
-        loadAs,
-      });
-    }
+  const isAvailable = node.getCoValue(id).hasVerifiedContent();
 
-    if (!result) {
-      options.onCreateWhenMissing();
+  // if load returns unavailable, we check the state in localNode
+  // to ward against race conditions that would happen when
+  // running the same upsert unique concurrently
+  if (options.onCreateWhenMissing && !isAvailable) {
+    options.onCreateWhenMissing();
 
-      return loadCoValueWithoutMe(cls, id, {
-        loadAs,
-        resolve: options.resolve,
-      });
-    }
+    return loadCoValueWithoutMe(cls, id, {
+      loadAs,
+      resolve: options.resolve,
+    });
   }
 
-  if (!result) return result;
+  if (!isAvailable) {
+    return null;
+  }
 
   if (options.onUpdateWhenFound) {
     // we deeply load the value, retrying any failures

@@ -184,6 +184,51 @@ describe("Creating and finding unique CoMaps", async () => {
     });
   });
 
+  test("upserting a existent value without enough permissions should not throw", async () => {
+    const Event = co.map({
+      title: z.string(),
+      identifier: z.string(),
+      external_id: z.string(),
+    });
+
+    const sourceData = {
+      title: "Test Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+    const workspace = Group.create();
+
+    const initialEvent = await Event.upsertUnique({
+      value: {
+        title: sourceData.title,
+        identifier: sourceData.identifier,
+        external_id: sourceData._id,
+      },
+      unique: sourceData.identifier,
+      owner: workspace,
+    });
+
+    const alice = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const workspaceOnAlice = await Group.load(workspace.$jazz.id, {
+      loadAs: alice,
+    });
+    assert(workspaceOnAlice);
+
+    const eventOnAlice = await Event.upsertUnique({
+      value: {
+        title: sourceData.title,
+        identifier: sourceData.identifier,
+        external_id: sourceData._id,
+      },
+      unique: sourceData.identifier,
+      owner: workspaceOnAlice,
+    });
+    expect(eventOnAlice).toBeNull();
+  });
+
   test("upserting without an active account", async () => {
     const account = activeAccountContext.get();
 
