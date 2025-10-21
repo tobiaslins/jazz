@@ -1,4 +1,4 @@
-import { CodeGroup, ContentByFramework, ExpoLogo, ReactLogo, RNLogo, SvelteLogo, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
+import { CodeGroup, ContentByFramework, ExpoLogo, ReactLogo, RNLogo, SvelteLogo, TabbedCodeGroup, TabbedCodeGroupItem, VanillaLogo } from "@/components/forMdx";
 
 export const metadata = {
   description: "ImageDefinition is a CoValue for storing images with built-in UX features."
@@ -7,10 +7,6 @@ export const metadata = {
 # ImageDefinition
 
 `ImageDefinition` is a specialized CoValue designed specifically for managing images in Jazz applications. It extends beyond basic file storage by supporting a blurry placeholder, built-in resizing, and progressive loading patterns.
-
-<ContentByFramework framework={['react-native', 'react-native-expo']}>
-**Note**: This guide applies to both Expo and framework-less React Native implementations.
-</ContentByFramework>
 
 Beyond `ImageDefinition`, Jazz offers higher-level functions and components that make it easier to use images:
 - [`createImage()`](#creating-images) - function to create an `ImageDefinition` from a file
@@ -42,6 +38,41 @@ Jazz's images implementation is based on `expo-image-manipulator`. Check the [in
 The easiest way to create and use images in your Jazz application is with the `createImage()` function:
 
 <TabbedCodeGroup id="create-image" default="react" savedPreferenceKey="framework">
+<TabbedCodeGroupItem label="Vanilla" icon={<VanillaLogo />} value="vanilla" preferWrap>
+```ts twoslash
+import { type Account, type Group, type ImageDefinition } from "jazz-tools";
+
+declare const me: {
+  $jazz: {
+    owner: Account | Group;
+  };
+  profile: {
+    image: ImageDefinition;
+  };
+};
+
+// ---cut---
+import { createImage } from "jazz-tools/media";
+
+// Create an image from a file input
+async function handleFileUpload(event: Event) {
+  const input = event.target as HTMLInputElement | null;
+  const file = input?.files?.[0];
+  if (file) {
+    // Creates ImageDefinition with a blurry placeholder, limited to 1024px on the longest side, and multiple resolutions automatically
+    const image = await createImage(file, {
+      owner: me.$jazz.owner,
+      maxSize: 1024,
+      placeholder: "blur",
+      progressive: true,
+    });
+
+    // Store the image in your application data
+    me.profile.image = image;
+  }
+}
+```
+</TabbedCodeGroupItem>
 <TabbedCodeGroupItem label="React" icon={<ReactLogo />} value="react" preferWrap>
 ```ts twoslash
 import { type Account, type Group, type ImageDefinition } from "jazz-tools";
@@ -205,7 +236,7 @@ The `createImage()` function:
 
 <CodeGroup>
 ```ts twoslash
-import type { ImageDefinition, Group, Account } from "jazz-tools";
+import type { ImageDefinition, Group, Account, Loaded } from "jazz-tools";
 // ---cut---
 declare function createImage(
   image: Blob | File | string,
@@ -214,7 +245,10 @@ declare function createImage(
     placeholder?: "blur" | false;
     maxSize?: number;
     progressive?: boolean;
-  }): Promise<ImageDefinition>
+  }): Loaded<
+    typeof ImageDefinition,
+    { original: true }
+  >
 ```
 </CodeGroup>
 
