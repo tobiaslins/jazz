@@ -3,6 +3,7 @@ import { CoPlainText, ImageDefinition } from "jazz-tools";
 import { Image } from "jazz-tools/react";
 import { ImageIcon, SendIcon } from "lucide-react";
 import { useId, useRef } from "react";
+import { inIframe } from "@/util.ts";
 
 export function AppContainer(props: { children: React.ReactNode }) {
   return (
@@ -14,7 +15,13 @@ export function AppContainer(props: { children: React.ReactNode }) {
 
 export function TopBar(props: { children: React.ReactNode }) {
   return (
-    <div className="px-3 pt-2 pb-3 bg-stone-100 w-full flex justify-center items-center gap-2 dark:bg-transparent dark:border-stone-900">
+    <div
+      className={clsx(
+        " px-3 pt-2 pb-3 bg-stone-100  w-full flex justify-center items-center gap-2 dark:bg-transparent dark:border-stone-900",
+        inIframe &&
+          "absolute top-0 left-0 right-0 z-100 from-25% from-stone-100 to-stone-100/0 dark:from-stone-925 dark:to-stone-925/0 bg-gradient-to-b",
+      )}
+    >
       {props.children}
     </div>
   );
@@ -23,7 +30,10 @@ export function TopBar(props: { children: React.ReactNode }) {
 export function ChatBody(props: { children: React.ReactNode }) {
   return (
     <div
-      className="flex-1 overflow-y-auto flex flex-col-reverse bg-stone-100 dark:bg-stone-925"
+      className={clsx(
+        "flex-1 overflow-y-auto flex flex-col-reverse",
+        inIframe && "no-scrollbar",
+      )}
       role="application"
     >
       {props.children}
