@@ -1087,11 +1087,12 @@ export class RawGroup<
 
     this.set(memberKey, "revoked", "trusting");
 
-    if (this.get(memberKey) !== "revoked") {
-      throw new Error(
-        `Failed to revoke role to ${memberKey} (role of current account is ${this.myRole()})`,
-      );
-    }
+    // TODO: removeMember fails silently. Uncomment this will be a breaking change
+    // if (this.get(memberKey) !== "revoked") {
+    //   throw new Error(
+    //     `Failed to revoke role to ${memberKey} (role of current account is ${this.myRole()})`,
+    //   );
+    // }
   }
 
   /**

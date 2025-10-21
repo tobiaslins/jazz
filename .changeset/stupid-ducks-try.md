@@ -1,6 +1,6 @@
 ---
-"jazz-tools": minor
-"cojson": minor
+"jazz-tools": patch
+"cojson": patch
 ---
 
-feat: introduced new "manager" role who can invite and remove members, and being removed by admins. Group.removeMember() now throws in case of invalid permissions.
+feat: introduced new "manager" role who can invite and remove members, and being removed by admins.
