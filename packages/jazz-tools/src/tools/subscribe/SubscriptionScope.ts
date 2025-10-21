@@ -17,6 +17,26 @@ import { JazzError, type JazzErrorIssue } from "./JazzError.js";
 import type { BranchDefinition, SubscriptionValue, Unloaded } from "./types.js";
 import { createCoValue, myRoleForRawValue } from "./utils.js";
 
+function isGroupStreaming(value: RawCoValue) {
+  const group = value.core.safeGetGroup();
+
+  if (!group) {
+    return false;
+  }
+
+  if (group.core.verified.isStreaming()) {
+    return true;
+  }
+
+  return group
+    .getParentGroups()
+    .some((group) => group.core.verified.isStreaming());
+}
+
+function isStreaming(value: RawCoValue) {
+  return value.core.verified.isStreaming() || isGroupStreaming(value);
+}
+
 export class SubscriptionScope<D extends CoValue> {
   childNodes = new Map<string, SubscriptionScope<CoValue>>();
   childValues: Map<string, SubscriptionValue<any, any>> = new Map<
@@ -79,11 +99,7 @@ export class SubscriptionScope<D extends CoValue> {
         // - Run the migration only once
         // - Skip all the updates until the migration is done
         // - Trigger handleUpdate only with the final value
-        if (
-          !this.migrated &&
-          value !== "unavailable" &&
-          !value.core.verified.isStreaming()
-        ) {
+        if (!this.migrated && value !== "unavailable" && !isStreaming(value)) {
           if (this.migrating) {
             return;
           }
@@ -138,7 +154,7 @@ export class SubscriptionScope<D extends CoValue> {
       ruleset.type !== "ownedByGroup" ||
       myRoleForRawValue(update) !== undefined;
 
-    if (!hasAccess) {
+    if (!hasAccess && !isGroupStreaming(update)) {
       if (this.value.type !== "unauthorized") {
         this.updateValue(
           new JazzError(this.id, "unauthorized", [
@@ -309,7 +325,7 @@ export class SubscriptionScope<D extends CoValue> {
       return false;
     }
 
-    return this.value.value.$jazz.raw.core.verified.isStreaming();
+    return isStreaming(this.value.value.$jazz.raw);
   }
 
   isFileStream() {

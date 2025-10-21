@@ -484,7 +484,7 @@ export class CoValueCore {
 
   groupInvalidationSubscription?: () => void;
 
-  subscribeToGroupInvalidation() {
+  subscribeToGroupInvalidation(newContent: RawCoValue) {
     if (!this.verified) {
       return;
     }
@@ -511,6 +511,24 @@ export class CoValueCore {
           groupId,
         });
       }
+    } else if (header.ruleset.type === "group") {
+      const group = newContent as RawGroup;
+
+      const subscriptions = new Set<() => void>();
+
+      for (const parentGroup of group.getParentGroups()) {
+        subscriptions.add(
+          parentGroup.core.subscribe((_groupUpdate) => {
+            this.scheduleNotifyUpdate();
+          }, false),
+        );
+      }
+
+      this.groupInvalidationSubscription = () => {
+        for (const unsubscribe of subscriptions) {
+          unsubscribe();
+        }
+      };
     }
   }
 
@@ -801,9 +819,9 @@ export class CoValueCore {
       return this._cachedContent;
     }
 
-    this.subscribeToGroupInvalidation();
-
     const newContent = coreToCoValue(this as AvailableCoValueCore, options);
+
+    this.subscribeToGroupInvalidation(newContent);
 
     if (!options?.ignorePrivateTransactions) {
       this._cachedContent = newContent;
