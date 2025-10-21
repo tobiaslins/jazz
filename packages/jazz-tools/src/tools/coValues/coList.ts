@@ -23,6 +23,8 @@ import {
   SubscribeRestArgs,
   TypeSym,
   BranchDefinition,
+  getIdFromHeader,
+  unstable_loadUnique,
   CoValueLoadingState,
 } from "../internal.js";
 import {
@@ -326,19 +328,17 @@ export class CoList<out Item = any>
     ownerID: ID<Account> | ID<Group>,
     as?: Account | Group | AnonymousJazzAgent,
   ) {
-    return CoList._findUnique(unique, ownerID, as);
+    const header = CoList._getUniqueHeader(unique, ownerID);
+
+    return getIdFromHeader(header, as);
   }
 
   /** @internal */
-  static _findUnique<L extends CoList>(
-    this: CoValueClass<L>,
+  static _getUniqueHeader(
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
-    as?: Account | Group | AnonymousJazzAgent,
   ) {
-    as ||= activeAccountContext.get();
-
-    const header = {
+    return {
       type: "colist" as const,
       ruleset: {
         type: "ownedByGroup" as const,
@@ -347,9 +347,6 @@ export class CoList<out Item = any>
       meta: null,
       uniqueness: unique,
     };
-    const crypto =
-      as[TypeSym] === "Anonymous" ? as.node.crypto : as.$jazz.localNode.crypto;
-    return cojsonInternals.idforHeader(header, crypto) as ID<L>;
   }
 
   /**
@@ -384,33 +381,24 @@ export class CoList<out Item = any>
       resolve?: RefsToResolveStrict<L, R>;
     },
   ): Promise<MaybeLoaded<Resolved<L, R>>> {
-    const listId = CoList._findUnique(
+    const header = CoList._getUniqueHeader(
       options.unique,
       options.owner.$jazz.id,
-      options.owner.$jazz.loadedAs,
     );
-    let list: MaybeLoaded<Resolved<L, R>> = await loadCoValueWithoutMe(
-      this,
-      listId,
-      {
-        ...options,
-        loadAs: options.owner.$jazz.loadedAs,
-        skipRetry: true,
-      },
-    );
-    if (!list.$isLoaded) {
-      list = (this as any).create(options.value, {
-        owner: options.owner,
-        unique: options.unique,
-      }) as Resolved<L, R>;
-    } else {
-      list.$jazz.applyDiff(options.value);
-    }
 
-    return await loadCoValueWithoutMe(this, listId, {
-      ...options,
-      loadAs: options.owner.$jazz.loadedAs,
-      skipRetry: true,
+    return unstable_loadUnique(this, {
+      header,
+      owner: options.owner,
+      resolve: options.resolve,
+      onCreateWhenMissing: () => {
+        (this as any).create(options.value, {
+          owner: options.owner,
+          unique: options.unique,
+        });
+      },
+      onUpdateWhenFound(value) {
+        value.$jazz.applyDiff(options.value);
+      },
     });
   }
 
@@ -421,7 +409,10 @@ export class CoList<out Item = any>
    * @param options Additional options for loading the CoList.
    * @returns The loaded CoList, or an not-loaded value if unavailable.
    */
-  static loadUnique<L extends CoList, const R extends RefsToResolve<L> = true>(
+  static async loadUnique<
+    L extends CoList,
+    const R extends RefsToResolve<L> = true,
+  >(
     this: CoValueClass<L>,
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
@@ -430,11 +421,18 @@ export class CoList<out Item = any>
       loadAs?: Account | AnonymousJazzAgent;
     },
   ): Promise<MaybeLoaded<Resolved<L, R>>> {
-    return loadCoValueWithoutMe(
-      this,
-      CoList._findUnique(unique, ownerID, options?.loadAs),
-      { ...options, skipRetry: true },
-    );
+    const header = CoList._getUniqueHeader(unique, ownerID);
+
+    const owner = await Group.load(ownerID, {
+      loadAs: options?.loadAs,
+    });
+    if (!owner.$isLoaded) return owner;
+
+    return unstable_loadUnique(this, {
+      header,
+      owner,
+      resolve: options?.resolve,
+    });
   }
 
   // Override mutation methods defined on Array, as CoLists aren't meant to be mutated directly

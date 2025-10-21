@@ -31,6 +31,8 @@ import {
   SubscribeRestArgs,
   TypeSym,
   BranchDefinition,
+  getIdFromHeader,
+  unstable_loadUnique,
   Account,
   CoValueBase,
   CoValueJazzApi,
@@ -435,19 +437,17 @@ export class CoMap extends CoValueBase implements CoValue {
     ownerID: ID<Account> | ID<Group>,
     as?: Account | Group | AnonymousJazzAgent,
   ) {
-    return CoMap._findUnique(unique, ownerID, as);
+    const header = CoMap._getUniqueHeader(unique, ownerID);
+
+    return getIdFromHeader(header, as);
   }
 
   /** @internal */
-  static _findUnique<M extends CoMap>(
-    this: CoValueClass<M>,
+  static _getUniqueHeader(
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
-    as?: Account | Group | AnonymousJazzAgent,
   ) {
-    as ||= activeAccountContext.get();
-
-    const header = {
+    return {
       type: "comap" as const,
       ruleset: {
         type: "ownedByGroup" as const,
@@ -456,9 +456,6 @@ export class CoMap extends CoValueBase implements CoValue {
       meta: null,
       uniqueness: unique,
     };
-    const crypto =
-      as[TypeSym] === "Anonymous" ? as.node.crypto : as.$jazz.localNode.crypto;
-    return cojsonInternals.idforHeader(header, crypto) as ID<M>;
   }
 
   /**
@@ -498,34 +495,24 @@ export class CoMap extends CoValueBase implements CoValue {
       resolve?: RefsToResolveStrict<M, R>;
     },
   ): Promise<MaybeLoaded<Resolved<M, R>>> {
-    const mapId = CoMap._findUnique(
+    const header = CoMap._getUniqueHeader(
       options.unique,
       options.owner.$jazz.id,
-      options.owner.$jazz.loadedAs,
     );
-    let map: MaybeLoaded<Resolved<M, R>> = await loadCoValueWithoutMe(
-      this,
-      mapId,
-      {
-        ...options,
-        loadAs: options.owner.$jazz.loadedAs,
-        skipRetry: true,
-      },
-    );
-    if (!map.$isLoaded) {
-      const instance = new this();
-      map = CoMap._createCoMap(instance, options.value, {
-        owner: options.owner,
-        unique: options.unique,
-      }) as Resolved<M, R>;
-    } else {
-      map.$jazz.applyDiff(options.value as unknown as Partial<CoMapInit<M>>);
-    }
 
-    return await loadCoValueWithoutMe(this, mapId, {
-      ...options,
-      loadAs: options.owner.$jazz.loadedAs,
-      skipRetry: true,
+    return unstable_loadUnique(this, {
+      header,
+      owner: options.owner,
+      resolve: options.resolve,
+      onCreateWhenMissing: () => {
+        (this as any).create(options.value, {
+          owner: options.owner,
+          unique: options.unique,
+        });
+      },
+      onUpdateWhenFound(value) {
+        value.$jazz.applyDiff(options.value);
+      },
     });
   }
 
@@ -538,7 +525,10 @@ export class CoMap extends CoValueBase implements CoValue {
    *
    * @deprecated Use `co.map(...).loadUnique` instead.
    */
-  static loadUnique<M extends CoMap, const R extends RefsToResolve<M> = true>(
+  static async loadUnique<
+    M extends CoMap,
+    const R extends RefsToResolve<M> = true,
+  >(
     this: CoValueClass<M>,
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
@@ -547,11 +537,19 @@ export class CoMap extends CoValueBase implements CoValue {
       loadAs?: Account | AnonymousJazzAgent;
     },
   ): Promise<MaybeLoaded<Resolved<M, R>>> {
-    return loadCoValueWithoutMe(
-      this,
-      CoMap._findUnique(unique, ownerID, options?.loadAs),
-      { ...options, skipRetry: true },
-    );
+    const header = CoMap._getUniqueHeader(unique, ownerID);
+
+    const owner = await Group.load(ownerID, {
+      loadAs: options?.loadAs,
+    });
+
+    if (!owner.$isLoaded) return owner;
+
+    return unstable_loadUnique(this, {
+      header,
+      owner,
+      resolve: options?.resolve,
+    });
   }
 }
 

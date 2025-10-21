@@ -39,6 +39,7 @@ export type {
   AccountClass,
   AccountCreationProps,
   BaseProfileShape,
+  unstable_loadUnique,
 } from "./internal.js";
 
 export {
