@@ -7,7 +7,6 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { LocalFirstFeaturesSection } from "@/components/home/LocalFirstFeaturesSection";
 import ProblemStatementSection from "@/components/home/ProblemStatementSection";
 import { SupportedEnvironmentsSection } from "@/components/home/SupportedEnvironmentsSection";
-import { H2 } from "@garden-co/design-system/src/components/atoms/Headings";
 import { LatencyMap } from "@/components/cloud/latencyMap";
 import { Pricing } from "@/components/Pricing";
 
@@ -27,10 +26,9 @@ export default function Home() {
 
       <FeaturesSection />
 
-      <div className="container space-y-5 py-8 lg:py-16">
+      <div className="container space-y-4 py-8 lg:py-16">
         <LatencyMap />
 
-        <H2>Pricing</H2>
         <Pricing />
       </div>
 

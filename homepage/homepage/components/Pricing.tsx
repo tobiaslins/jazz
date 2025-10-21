@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { IndieTierLogo, ProTierLogo, StarterTierLogo } from "./TierLogos";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
+import { H2 } from "@garden-co/design-system/src/components/atoms/Headings";
 
 export function ListItem({
   variant = "blue",
@@ -56,6 +57,7 @@ export function ListItem({
 export function Pricing() {
   return (
     <>
+      <H2>Pricing</H2>
       {/* Self-hosted option banner */}
       <div className="rounded-xl border bg-gradient-to-r from-stone-50 to-gray-50 p-6 shadow-sm shadow-gray-900/5 dark:from-stone-925 dark:to-stone-950">
         <div className="flex items-start gap-4">
@@ -106,7 +108,7 @@ export function Pricing() {
 
           <p className="text-sm">Everything you need to get started.</p>
 
-          <ul className="my-4 mb-auto flex flex-col text-sm lg:text-base">
+          <ul className="my-4 mb-auto flex w-full flex-col text-sm lg:text-base">
             <ListItem icon={LucideCloud}>Optimal cloud routing</ListItem>
             <ListItem icon={LucideDatabaseZap}>Smart caching</ListItem>
             <ListItem icon={LucideImagePlay}>
@@ -155,7 +157,7 @@ export function Pricing() {
             Get robust real-time infra at predictable costs.
           </p>
 
-          <ul className="my-4 mb-auto flex flex-col text-sm lg:text-base">
+          <ul className="my-4 mb-auto flex w-full flex-col text-sm lg:text-base">
             <ListItem icon={LucideCloud}>Optimal cloud routing</ListItem>
             <ListItem icon={LucideDatabaseZap}>Smart caching</ListItem>
             <ListItem icon={LucideImagePlay}>
@@ -209,7 +211,7 @@ export function Pricing() {
             Get our best infra and move quickly with our help.
           </p>
 
-          <ul className="my-4 flex flex-col text-sm lg:text-base">
+          <ul className="my-4 flex w-full flex-col text-sm lg:text-base">
             <ListItem icon={LucideCloud}>Optimal cloud routing</ListItem>
             <ListItem icon={LucideDatabaseZap}>Smart caching</ListItem>
             <ListItem icon={LucideImagePlay}>
