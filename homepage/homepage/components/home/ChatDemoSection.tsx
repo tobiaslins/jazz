@@ -59,7 +59,7 @@ function Iframe(
   const { src, user } = props;
 
   return (
-    <div className="relative col-span-2 w-full overflow-hidden rounded-[28px] border-[6px] border-black shadow-[0px_0px_0px_3px_rgba(255,_255,_255,_0.2)] dark:bg-black lg:col-span-2">
+    <div className="relative col-span-2 w-full overflow-hidden rounded-[28px] border-[6px] border-black shadow-[0px_0px_0px_3px_rgba(0,0,0,_0.15)] dark:bg-black dark:shadow-[0px_0px_0px_3px_rgba(255,_255,_255,_0.2)] lg:col-span-2">
       <StatusBar />
       <iframe
         {...props}
