@@ -17,26 +17,6 @@ import { JazzError, type JazzErrorIssue } from "./JazzError.js";
 import type { BranchDefinition, SubscriptionValue, Unloaded } from "./types.js";
 import { createCoValue, myRoleForRawValue } from "./utils.js";
 
-function isGroupStreaming(value: RawCoValue) {
-  const group = value.core.safeGetGroup();
-
-  if (!group) {
-    return false;
-  }
-
-  if (group.core.verified.isStreaming()) {
-    return true;
-  }
-
-  return group
-    .getParentGroups()
-    .some((group) => group.core.verified.isStreaming());
-}
-
-function isStreaming(value: RawCoValue) {
-  return value.core.verified.isStreaming() || isGroupStreaming(value);
-}
-
 export class SubscriptionScope<D extends CoValue> {
   childNodes = new Map<string, SubscriptionScope<CoValue>>();
   childValues: Map<string, SubscriptionValue<any, any>> = new Map<
@@ -99,7 +79,7 @@ export class SubscriptionScope<D extends CoValue> {
         // - Run the migration only once
         // - Skip all the updates until the migration is done
         // - Trigger handleUpdate only with the final value
-        if (!this.migrated && value !== "unavailable" && !isStreaming(value)) {
+        if (!this.migrated && value !== "unavailable") {
           if (this.migrating) {
             return;
           }
@@ -154,7 +134,7 @@ export class SubscriptionScope<D extends CoValue> {
       ruleset.type !== "ownedByGroup" ||
       myRoleForRawValue(update) !== undefined;
 
-    if (!hasAccess && !isGroupStreaming(update)) {
+    if (!hasAccess) {
       if (this.value.type !== "unauthorized") {
         this.updateValue(
           new JazzError(this.id, "unauthorized", [
@@ -288,10 +268,6 @@ export class SubscriptionScope<D extends CoValue> {
     // If the value is in error, we send the update regardless of the children statuses
     if (this.value.type !== "loaded") return true;
 
-    if (this.isStreaming() && !this.isFileStream()) {
-      return false;
-    }
-
     return this.pendingLoadedChildren.size === 0;
   }
 
@@ -318,24 +294,6 @@ export class SubscriptionScope<D extends CoValue> {
     }
 
     return undefined;
-  }
-
-  isStreaming() {
-    if (this.value.type !== "loaded") {
-      return false;
-    }
-
-    return isStreaming(this.value.value.$jazz.raw);
-  }
-
-  isFileStream() {
-    if (this.value.type !== "loaded") {
-      return false;
-    }
-
-    return (
-      this.value.value.$jazz.raw.core.verified.header.meta?.type === "binary"
-    );
   }
 
   triggerUpdate() {

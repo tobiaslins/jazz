@@ -260,6 +260,40 @@ export class CoValueCore {
     return this.hasVerifiedContent();
   }
 
+  /**
+   * True if the coValue is completely downloaded:
+   * - the current coValue is available and not streaming
+   * - the group is available and not streaming
+   * - all the parent groups are available and not streaming
+   */
+  isCompletelyDownloaded(): this is AvailableCoValueCore {
+    if (!this.hasVerifiedContent()) {
+      return false;
+    }
+
+    if (this.verified.isStreaming()) {
+      return false;
+    }
+
+    const group = this.safeGetGroup();
+
+    if (!group) {
+      return true;
+    }
+
+    if (group.core.verified.isStreaming()) {
+      return false;
+    }
+
+    for (const parentGroup of group.getParentGroups()) {
+      if (parentGroup.core.verified.isStreaming()) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   hasVerifiedContent(): this is AvailableCoValueCore {
     return !!this.verified;
   }

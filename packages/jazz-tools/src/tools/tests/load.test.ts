@@ -295,6 +295,7 @@ test("should wait for the full streaming of the group", async () => {
     group,
   );
 
+  // Make the group to grow big enough to trigger the streaming
   for (let i = 0; i <= 300; i++) {
     group.$jazz.raw.rotateReadKey();
   }
@@ -351,7 +352,6 @@ test("should wait for the full streaming of the parent groups", async () => {
 
   const parentGroup = Group.create();
   const group = Group.create();
-  group.addMember(parentGroup);
 
   const person = Person.create(
     {
@@ -361,10 +361,12 @@ test("should wait for the full streaming of the parent groups", async () => {
     group,
   );
 
+  // Make the parent group to grow big enough to trigger the streaming
   for (let i = 0; i <= 300; i++) {
     parentGroup.$jazz.raw.rotateReadKey();
   }
 
+  group.addMember(parentGroup);
   parentGroup.addMember("everyone", "reader");
 
   const bob = await createJazzTestAccount({
@@ -430,7 +432,7 @@ test("should correctly reject the load if after the group streaming the account 
 
   group.addMember("everyone", "reader");
 
-  for (let i = 0; i <= 300; i++) {
+  for (let i = 0; i <= 150; i++) {
     group.$jazz.raw.rotateReadKey();
   }
 
