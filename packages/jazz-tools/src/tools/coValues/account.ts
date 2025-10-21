@@ -196,7 +196,7 @@ export class Account extends CoValueBase implements CoValue {
     );
   }
 
-  canAdmin(value: CoValue): boolean {
+  canManage(value: CoValue): boolean {
     const valueOwner = value.$jazz.owner;
     if (!valueOwner) {
       if (value[TypeSym] === "Group") {
@@ -213,6 +213,22 @@ export class Account extends CoValueBase implements CoValue {
       valueOwner.getRoleOf(this.$jazz.id) === "admin" ||
       valueOwner.getRoleOf(this.$jazz.id) === "manager"
     );
+  }
+
+  canAdmin(value: CoValue): boolean {
+    const valueOwner = value.$jazz.owner;
+    if (!valueOwner) {
+      if (value[TypeSym] === "Group") {
+        const roleInGroup = (value as Group).getRoleOf(this.$jazz.id);
+        return roleInGroup === "admin";
+      }
+      if (value[TypeSym] === "Account") {
+        return value.$jazz.id === this.$jazz.id;
+      }
+      return false;
+    }
+
+    return valueOwner.getRoleOf(this.$jazz.id) === "admin";
   }
 
   /** @private */
