@@ -207,7 +207,7 @@ export function ChatDemoSection() {
         </Prose>
       </div>
       {chatId && shareUrl && (
-        <div className="mt-6 flex flex-col justify-between gap-3 text-center md:col-span-4 md:col-start-9 md:mt-0 md:h-full">
+        <div className="mt-6 flex flex-col justify-between gap-6 text-center md:col-span-4 md:col-start-9 md:mt-0">
           <div>
             <h2 className="mb-2 hidden font-display text-xl font-semibold tracking-tight text-stone-950 dark:text-white md:block md:text-2xl">
               Scan the QR code
