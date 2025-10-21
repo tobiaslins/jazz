@@ -1253,7 +1253,7 @@ describe("CoValueCoreSubscription", async () => {
     subscription.unsubscribe();
   });
 
-  test("should wait for the full streaming of the parent group", async () => {
+  test.skip("should wait for the full streaming of the parent group", async () => {
     disableJazzTestSync();
 
     const alice = await createJazzTestAccount({

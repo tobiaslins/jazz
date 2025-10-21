@@ -989,11 +989,6 @@ export class RawGroup<
       childReadKeySecret,
       { revealAllWriteOnlyKeys: true },
     );
-
-    // Update the group invalidation subscription to propagate the changes in the parent group to the child group
-    this.core.groupInvalidationSubscription?.();
-    this.core.groupInvalidationSubscription = undefined;
-    this.core.subscribeToGroupInvalidation(this);
   }
 
   private revealReadKeyToParentGroup(

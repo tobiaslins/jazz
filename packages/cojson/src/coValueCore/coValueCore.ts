@@ -277,21 +277,12 @@ export class CoValueCore {
 
     const group = this.safeGetGroup();
 
+    // TODO: Group coValues should be completely downloaded when all their parent groups are completely downloaded
     if (!group) {
       return true;
     }
 
-    if (group.core.verified.isStreaming()) {
-      return false;
-    }
-
-    for (const parentGroup of group.getParentGroups()) {
-      if (parentGroup.core.verified.isStreaming()) {
-        return false;
-      }
-    }
-
-    return true;
+    return group.core.isCompletelyDownloaded();
   }
 
   hasVerifiedContent(): this is AvailableCoValueCore {
@@ -545,24 +536,6 @@ export class CoValueCore {
           groupId,
         });
       }
-    } else if (header.ruleset.type === "group") {
-      const group = newContent as RawGroup;
-
-      const subscriptions = new Set<() => void>();
-
-      for (const parentGroup of group.getParentGroups()) {
-        subscriptions.add(
-          parentGroup.core.subscribe((_groupUpdate) => {
-            this.scheduleNotifyUpdate();
-          }, false),
-        );
-      }
-
-      this.groupInvalidationSubscription = () => {
-        for (const unsubscribe of subscriptions) {
-          unsubscribe();
-        }
-      };
     }
   }
 
