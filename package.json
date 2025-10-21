@@ -68,7 +68,8 @@
       "react": "catalog:react",
       "react-dom": "catalog:react",
       "vite": "catalog:default",
-      "esbuild": "0.24.0"
+      "esbuild": "0.24.0",
+      "rfc6902": ">=5.0.0"
     },
     "onlyBuiltDependencies": [
       "@biomejs/biome",

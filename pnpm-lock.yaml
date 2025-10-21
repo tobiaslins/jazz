@@ -77,6 +77,7 @@ overrides:
   react-dom: 19.1.0
   vite: 6.3.5
   esbuild: 0.24.0
+  rfc6902: '>=5.0.0'
 
 importers:
 
@@ -15059,8 +15060,8 @@ packages:
     resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}
     engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
 
-  rfc6902@3.1.1:
-    resolution: {integrity: sha512-aHiEm2S4mQSyyIaK7NVotfmVkgOOn1K9iuuSCIKJ8eIAte/8o06Vp06Z2NcLrmMahDmA+2F6oHx33P4NOQ1JnQ==}
+  rfc6902@5.1.2:
+    resolution: {integrity: sha512-zxcb+PWlE8PwX0tiKE6zP97THQ8/lHmeiwucRrJ3YFupWEmp25RmFSlB1dNTqjkovwqG4iq+u1gzJMBS3um8mA==}
 
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
@@ -21529,7 +21530,7 @@ snapshots:
       prosemirror-state: 1.4.3
       prosemirror-transform: 1.10.4
       prosemirror-view: 1.39.2
-      rfc6902: 3.1.1
+      rfc6902: 5.1.2
 
   '@manypkg/find-root@1.1.0':
     dependencies:
@@ -32531,7 +32532,7 @@ snapshots:
 
   reusify@1.0.4: {}
 
-  rfc6902@3.1.1: {}
+  rfc6902@5.1.2: {}
 
   rfdc@1.4.1: {}
 
