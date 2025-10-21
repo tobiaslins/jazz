@@ -1,12 +1,12 @@
 "use client";
 
-import { Card } from "@garden-co/design-system/src/components/atoms/Card";
-import { H3 } from "@garden-co/design-system/src/components/atoms/Headings";
 import { Icon } from "@garden-co/design-system/src/components/atoms/Icon";
-import { GappedGrid } from "@garden-co/design-system/src/components/molecules/GappedGrid";
-import { SectionHeader } from "@garden-co/design-system/src/components/molecules/SectionHeader";
 import { Label } from "@garden-co/design-system/src/components/atoms/Label";
 import QRCode from "qrcode";
+import clsx from "clsx";
+import Link from "next/link";
+import { Prose } from "@garden-co/design-system/src/components/molecules/Prose";
+
 import {
   IframeHTMLAttributes,
   useEffect,
@@ -54,12 +54,18 @@ function StatusBar() {
 function Iframe(
   props: IframeHTMLAttributes<HTMLIFrameElement> & {
     user: string;
+    className?: string;
   },
 ) {
-  const { src, user } = props;
+  const { src, user, className } = props;
 
   return (
-    <div className="relative col-span-2 w-full overflow-hidden rounded-[28px] border-[6px] border-black shadow-[0px_0px_0px_3px_rgba(0,0,0,_0.15)] dark:bg-black dark:shadow-[0px_0px_0px_3px_rgba(255,_255,_255,_0.2)] lg:col-span-2">
+    <div
+      className={clsx(
+        "relative w-full overflow-hidden rounded-[28px] border-[6px] border-black shadow-[0px_0px_0px_3px_rgba(0,0,0,_0.15)] dark:bg-black dark:shadow-[0px_0px_0px_3px_rgba(255,_255,_255,_0.2)]",
+        className,
+      )}
+    >
       <StatusBar />
       <iframe
         {...props}
@@ -165,79 +171,95 @@ export function ChatDemoSection() {
   };
 
   return (
-    <div className="bg-stone-100 py-12 dark:bg-black/30 lg:py-16">
-      <div className="container">
-        <SectionHeader
-          title="See it for yourself"
-          slogan={
-            <>
-              Two chat windows are shown to demo real-time sync, you can join
-              from another device with the QR code or link.
-            </>
-          }
-        />
-        <GappedGrid className="b-12 gap-y-8">
-          <Iframe src={server1} user={user1} title="Jazz chat demo user 1" />
+    <div className="container grid items-start md:grid-cols-12">
+      <div className="md:col-span-7">
+        <div className="grid items-start gap-4 sm:grid-cols-2 sm:gap-0">
+          <Iframe
+            src={server1}
+            user={user1}
+            title="Jazz chat demo user 1"
+            className="chat-1 md:-mt-12"
+          />
           {server2WithSameChatId && (
             <Iframe
               src={server2WithSameChatId}
               user={user2}
               title="Jazz chat demo user 2"
+              className="chat-2 md:-mt-2"
             />
           )}
-          <div className="col-span-2 md:col-span-full lg:col-span-2">
-            {chatId && shareUrl && (
-              <div className="flex h-full flex-col justify-between gap-3 text-center">
-                <H3 className="!mb-0 font-medium text-highlight">
-                  Join the chat
-                </H3>
-                <p className="hidden md:block">Scan the QR code</p>
+        </div>
 
-                {qrCode && (
-                  <img
-                    src={qrCode}
-                    className="mx-auto hidden size-48 rounded-lg border md:block"
-                    alt="Scan this QR code to join the chat"
-                  />
-                )}
-                <div className="hidden items-center gap-2 md:flex">
-                  <div className="h-px w-full border-t" />
-                  <p className="whitespace-nowrap">or copy the URL</p>
-                  <div className="h-px w-full border-t" />
-                </div>
-                <div className="relative w-full sm:mx-auto sm:max-w-xl">
-                  <Label
-                    label="To join the chat, copy the URL"
-                    htmlFor="shareUrl"
-                    className="sr-only"
-                  />
-                  <input
-                    id="shareUrl"
-                    className="h-10 w-full rounded-md border bg-transparent pl-3 pr-10"
-                    type="text"
-                    value={shareUrl}
-                    onClick={(e) => e.currentTarget.select()}
-                    onBlur={(e) => e.currentTarget.setSelectionRange(0, 0)}
-                    readOnly
-                  />
-                  <button
-                    type="button"
-                    className="absolute right-0 top-0 p-3 text-primary dark:text-blue-400"
-                    onClick={copyUrl}
-                  >
-                    {copied ? (
-                      <Icon name="check" size="xs" />
-                    ) : (
-                      <Icon name="copy" size="xs" />
-                    )}
-                    <span className="sr-only">Copy URL</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </GappedGrid>
+        <Prose className="hidden md:block">
+          <p className="mt-4 text-center text-sm">
+            A chat app with image upload in ~300 lines of{" "}
+            <Link
+              href="https://github.com/garden-co/jazz/tree/main/examples/chat"
+              target="_blank"
+            >
+              client-side code
+              <span className="relative -left-0.5 -top-0.5 -mr-2 inline-block text-muted">
+                ⌝
+              </span>
+            </Link>
+            .
+          </p>
+        </Prose>
       </div>
+      {chatId && shareUrl && (
+        <div className="mt-6 flex flex-col justify-between gap-3 text-center md:col-span-4 md:col-start-9 md:mt-0 md:h-full">
+          <div>
+            <h2 className="mb-2 hidden font-display text-xl font-semibold tracking-tight text-stone-950 dark:text-white md:block md:text-2xl">
+              Scan the QR code
+            </h2>
+            <p className="text-balance">
+              Add your device to the live demo. Messages update everywhere
+              instantly.
+            </p>
+          </div>
+
+          {qrCode && (
+            <img
+              src={qrCode}
+              className="mx-auto hidden size-48 rounded-lg border md:block"
+              alt="Scan this QR code to join the chat"
+            />
+          )}
+          <div className="hidden items-center gap-2 md:flex">
+            <div className="h-px w-full border-t" />
+            <p className="whitespace-nowrap">or copy the URL</p>
+            <div className="h-px w-full border-t" />
+          </div>
+          <div className="relative w-full sm:mx-auto sm:max-w-xl">
+            <Label
+              label="To join the chat, copy the URL"
+              htmlFor="shareUrl"
+              className="sr-only"
+            />
+            <input
+              id="shareUrl"
+              className="h-10 w-full rounded-md border bg-transparent pl-3 pr-10"
+              type="text"
+              value={shareUrl}
+              onClick={(e) => e.currentTarget.select()}
+              onBlur={(e) => e.currentTarget.setSelectionRange(0, 0)}
+              readOnly
+            />
+            <button
+              type="button"
+              className="absolute right-0 top-0 p-3 text-primary dark:text-blue-400"
+              onClick={copyUrl}
+            >
+              {copied ? (
+                <Icon name="check" size="xs" />
+              ) : (
+                <Icon name="copy" size="xs" />
+              )}
+              <span className="sr-only">Copy URL</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

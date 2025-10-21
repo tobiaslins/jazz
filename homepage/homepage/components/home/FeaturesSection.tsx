@@ -17,17 +17,17 @@ const features = [
       </>
     ),
     illustration: (
-      <div className="grid gap-6 pt-4">
+      <div className="grid gap-6">
         <pre className="lg:px-5">
-          <code className="text-xs text-highlight lg:text-sm">
+          <code className="text-xxs text-xs text-highlight lg:text-sm">
             BinaryCoStream.createFromBlob(file);
           </code>
         </pre>
 
         <div className="flex w-full items-center gap-4 rounded-xl border bg-white px-3 py-3 shadow-lg shadow-stone-500/10 dark:bg-stone-925">
-          <Icon size="2xl" name="file" className="text-primary" />
-          <div className="flex-1 text-2xl text-primary">file.pdf</div>
-          <Icon size="2xl" name="delete" className="text-stone-500" />
+          <Icon size="lg" name="file" />
+          <div className="flex-1 text-xl">file.pdf</div>
+          <Icon size="lg" name="delete" className="text-stone-500" />
         </div>
       </div>
     ),
@@ -69,7 +69,7 @@ const features = [
         and update existing databases or third-party APIs.
       </>
     ),
-    illustration: <ServerWorkersDiagram className="w-auto pt-8" />,
+    illustration: <ServerWorkersDiagram className="w-auto" />,
   },
   {
     title: "Authentication",
@@ -107,15 +107,18 @@ export function FeaturesSection() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:gap-8">
           {features.map(({ title, description, illustration }) => (
-            <Card key={title}>
-              <div className="flex h-48 w-full items-center justify-center px-3">
+            <div
+              key={title}
+              className="grid rounded-xl border p-4 shadow-sm sm:p-6"
+            >
+              <div className="pb flex min-h-48 w-full items-center justify-center">
                 {illustration}
               </div>
-              <div className="p-4">
+              <div className="mt-auto">
                 <H3 className="mb-1">{title}</H3>
-                <Prose size="sm">{description}</Prose>
+                <Prose size="md">{description}</Prose>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>

@@ -57,7 +57,7 @@ const environments = [
 
 export function SupportedEnvironmentsSection() {
   return (
-    <div className="container flex flex-wrap justify-center gap-6 pb-12">
+    <div className="container flex flex-wrap justify-center gap-4 py-12 md:gap-6 lg:pt-24">
       {environments.map(({ name, icon: Icon, href }) => {
         if (href) {
           return (
@@ -67,7 +67,7 @@ export function SupportedEnvironmentsSection() {
               className="flex items-center gap-2 grayscale hover:grayscale-0"
             >
               <Icon className="size-6" />
-              {name}
+              <span className="hidden md:block">{name}</span>
             </Link>
           );
         }
@@ -77,7 +77,7 @@ export function SupportedEnvironmentsSection() {
             className="flex items-center justify-center gap-2 grayscale"
           >
             <Icon className="size-6" />
-            {name}
+            <span className="hidden md:block">{name}</span>
           </div>
         );
       })}

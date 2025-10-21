@@ -16,9 +16,9 @@ export default function Home() {
     <>
       <HeroSection />
 
-      <SupportedEnvironmentsSection />
-
       <ChatDemoSection />
+
+      <SupportedEnvironmentsSection />
 
       <div className="container grid gap-8 pt-12">
         <ProblemStatementSection />

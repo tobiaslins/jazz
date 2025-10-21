@@ -16,7 +16,7 @@ import { track } from "@vercel/analytics";
 
 export function HeroSection() {
   return (
-    <section className="container grid min-h-[80vh] items-start gap-8 py-12 md:grid-cols-12 md:gap-0 md:py-16">
+    <section className="container grid items-start gap-8 py-12 md:grid-cols-12 md:gap-0 md:py-16">
       <div className="md:col-span-4">
         <Kicker className="mb-6">Ship Better Apps, Faster.</Kicker>
         <H1>
@@ -69,13 +69,6 @@ export function HeroSection() {
         </div>
       </div>
       <div className="md:col-span-7 md:col-start-6">
-        <p className="mb-4 text-sm">
-          A chat app with image upload in ~300 lines of{" "}
-          <Link href="https://github.com/garden-co/jazz/tree/main/examples/chat">
-            client-side code.
-          </Link>
-        </p>
-
         <CodeTabs />
       </div>
     </section>
