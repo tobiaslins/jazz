@@ -461,6 +461,41 @@ export function getIdFromHeader(
 }
 
 export async function unstable_loadUnique<
+  S extends CoValueClassOrSchema,
+  const R extends ResolveQuery<S>,
+>(
+  schema: S,
+  options: {
+    unique: CoValueUniqueness["uniqueness"];
+    onCreateWhenMissing?: () => void;
+    onUpdateWhenFound?: (value: Loaded<S, R>) => void;
+    owner: Account | Group;
+    resolve?: ResolveQueryStrict<S, R>;
+  },
+): Promise<Loaded<S, R> | null> {
+  const cls = coValueClassFromCoValueClassOrSchema(schema);
+
+  if (
+    !("_getUniqueHeader" in cls) ||
+    typeof cls._getUniqueHeader !== "function"
+  ) {
+    throw new Error("CoValue class does not support unique headers");
+  }
+
+  const header = cls._getUniqueHeader(options.unique, options.owner.$jazz.id);
+
+  return internalLoadUnique(cls, {
+    header,
+    onCreateWhenMissing: options.onCreateWhenMissing,
+    // @ts-expect-error loaded is not compatible with Resolved at type level, but they are the same thing
+    onUpdateWhenFound: options.onUpdateWhenFound,
+    owner: options.owner,
+    // @ts-expect-error loaded is not compatible with Resolved at type level, but they are the same thing
+    resolve: options.resolve,
+  }) as unknown as Loaded<S, R> | null;
+}
+
+export async function internalLoadUnique<
   V extends CoValue,
   R extends RefsToResolve<V>,
 >(

@@ -5,7 +5,12 @@ import {
   createJazzTestAccount,
   runWithoutActiveAccount,
 } from "../testing";
-import { Group, co, activeAccountContext } from "../internal";
+import {
+  Group,
+  co,
+  activeAccountContext,
+  unstable_loadUnique,
+} from "../internal";
 import { z } from "../exports";
 
 beforeEach(async () => {
@@ -45,6 +50,61 @@ describe("Creating and finding unique CoMaps", async () => {
       group.$jazz.id,
     );
     expect(foundAlice).toEqual(alice);
+  });
+
+  test("should work with unstable_loadUnique", async () => {
+    const group = Group.create();
+
+    const Person = co.map({
+      name: z.string(),
+      _height: z.number(),
+      birthday: z.date(),
+      color: z.string(),
+    });
+
+    const alice = Person.create(
+      {
+        name: "Alice",
+        _height: 100,
+        birthday: new Date("1990-01-01"),
+        color: "red",
+      },
+      { owner: group, unique: { name: "Alice" } },
+    );
+
+    const foundAlice = await unstable_loadUnique(Person, {
+      unique: { name: "Alice" },
+      owner: group,
+    });
+    expect(foundAlice).toEqual(alice);
+  });
+
+  test("should upsert with unstable_loadUnique", async () => {
+    const group = Group.create();
+
+    const Person = co.map({
+      name: z.string(),
+      _height: z.number(),
+      birthday: z.date(),
+      color: z.string(),
+    });
+
+    const alice = await unstable_loadUnique(Person, {
+      unique: { name: "Alice" },
+      onCreateWhenMissing: () => {
+        Person.create(
+          {
+            name: "Alice",
+            _height: 100,
+            birthday: new Date("1990-01-01"),
+            color: "red",
+          },
+          { owner: group, unique: { name: "Alice" } },
+        );
+      },
+      owner: group,
+    });
+    expect(alice?.name).toEqual("Alice");
   });
 
   test("manual upserting pattern", async () => {

@@ -22,7 +22,7 @@ import {
   TypeSym,
   BranchDefinition,
   getIdFromHeader,
-  unstable_loadUnique,
+  internalLoadUnique,
 } from "../internal.js";
 import {
   AnonymousJazzAgent,
@@ -380,7 +380,7 @@ export class CoList<out Item = any>
       options.owner.$jazz.id,
     );
 
-    return unstable_loadUnique(this, {
+    return internalLoadUnique(this, {
       header,
       owner: options.owner,
       resolve: options.resolve,
@@ -423,7 +423,7 @@ export class CoList<out Item = any>
 
     if (!owner) return owner;
 
-    return unstable_loadUnique(this, {
+    return internalLoadUnique(this, {
       header,
       owner,
       resolve: options?.resolve,
