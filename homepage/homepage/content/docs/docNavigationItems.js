@@ -225,9 +225,9 @@ export const docNavigationItems = [
           name: "Quickstart",
           href: "/docs/key-features/authentication/quickstart",
           done: {
-          react: 100,
-          svelte: 100
-        },
+            react: 100,
+            svelte: 100
+          },
         },
 
         {
@@ -280,9 +280,9 @@ export const docNavigationItems = [
           name: "Sharing",
           href: "/docs/permissions-and-sharing/sharing",
           done: {
-          react: 100,
-          svelte: 100
-        }
+            react: 100,
+            svelte: 100
+          }
         },
         {
           name: "Cascading Permissions",
@@ -310,9 +310,9 @@ export const docNavigationItems = [
       name: "Quickstart",
       href: "/docs/server-side/quickstart",
       done: {
-          react: 100,
-          svelte: 100
-        }
+        react: 100,
+        svelte: 100
+      }
     },
     {
       name: "Setup",
@@ -329,7 +329,7 @@ export const docNavigationItems = [
         name: "Overview",
         href: "/docs/server-side/communicating-with-workers/overview",
         done: 100,
-      },{
+      }, {
         name: "JazzRPC",
         href: "/docs/server-side/jazz-rpc",
         done: 100,
