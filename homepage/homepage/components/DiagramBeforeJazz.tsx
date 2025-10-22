@@ -23,7 +23,7 @@ export function DiagramBeforeJazz({ className }: { className?: string }) {
       opacity: 0,
     });
 
-    gsap.to(groups, {
+    const scrollTriggerInstance = gsap.to(groups, {
       y: 0,
       opacity: 1,
       duration: 1.4,
@@ -34,10 +34,10 @@ export function DiagramBeforeJazz({ className }: { className?: string }) {
       },
       scrollTrigger: {
         trigger: svg,
-        start: "center top",
+        start: "top 85%",
         once: true,
       },
-    });
+    }).scrollTrigger;
 
     // Get center position of each group (cache it)
     const elementCenters = groups.map((el) => {
@@ -124,12 +124,9 @@ export function DiagramBeforeJazz({ className }: { className?: string }) {
         gsap.killTweensOf(group);
       });
 
-      // Clean up ScrollTrigger instances
-      ScrollTrigger.getAll().forEach((trigger) => {
-        if (trigger.trigger === svg) {
-          trigger.kill();
-        }
-      });
+      if (scrollTriggerInstance) {
+        scrollTriggerInstance.kill();
+      }
     };
   }, []);
 

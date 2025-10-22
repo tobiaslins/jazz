@@ -11,7 +11,7 @@ const features = [
     description: (
       <>
         Just use <code>{`<input type="file"/>`}</code>, and easily convert from
-        and to Browser <code>Blobs</code> using a <code>BinaryCoStream</code>{" "}
+        and to Browser <code>Blobs</code> using a <code>FileStream</code>{" "}
         CoValue.
       </>
     ),
@@ -19,7 +19,7 @@ const features = [
       <div className="grid gap-6">
         <pre className="lg:px-5">
           <code className="text-xxs text-xs text-highlight lg:text-sm">
-            BinaryCoStream.createFromBlob(file);
+            co.fileStream().createFromBlob(file);
           </code>
         </pre>
 
@@ -35,9 +35,8 @@ const features = [
     title: "Progressive image loading",
     description: (
       <>
-        Using Jazz&apos;s <code>ImageDefinition</code> component, you get
-        progressive image up & downloading, super fast blur preview, and image
-        size info.
+        Using Jazz&apos;s <code>Image</code> component, you get progressive
+        image up & downloading, super fast blur preview, and image size info.
       </>
     ),
     illustration: (
@@ -75,7 +74,7 @@ const features = [
     description: (
       <>
         Plug and play different kinds of auth like Passkeys (Touch ID, Face ID),
-        and Clerk. Auth0, Okta, NextAuth coming soon.
+        and Clerk, and BetterAuth.
       </>
     ),
     illustration: (

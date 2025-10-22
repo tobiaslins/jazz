@@ -41,11 +41,7 @@ export function HeroSection() {
           </p>
 
           <p className="text-base text-stone-600 dark:text-stone-400">
-            Self-host or use{" "}
-            <Link className="text-reset" href="/cloud">
-              Jazz Cloud
-            </Link>{" "}
-            Open source (MIT)
+            Self-host or use Jazz Cloud for zero-config magic. Open source (MIT)
           </p>
         </Prose>
 
