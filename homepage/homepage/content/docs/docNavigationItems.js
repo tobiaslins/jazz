@@ -13,7 +13,10 @@ export const docNavigationItems = [
       }, {
         name: "Quickstart",
         href: "/docs/quickstart",
-        done: 100,
+        done: {
+          react: 100,
+          svelte: 100
+        }
       },
       {
         name: "Installation",
@@ -221,7 +224,10 @@ export const docNavigationItems = [
         {
           name: "Quickstart",
           href: "/docs/key-features/authentication/quickstart",
-          done: 100,
+          done: {
+          react: 100,
+          svelte: 100
+        },
         },
 
         {
@@ -273,7 +279,10 @@ export const docNavigationItems = [
         {
           name: "Sharing",
           href: "/docs/permissions-and-sharing/sharing",
-          done: 100,
+          done: {
+          react: 100,
+          svelte: 100
+        }
         },
         {
           name: "Cascading Permissions",
@@ -300,7 +309,10 @@ export const docNavigationItems = [
     items: [{
       name: "Quickstart",
       href: "/docs/server-side/quickstart",
-      done: 100,
+      done: {
+          react: 100,
+          svelte: 100
+        }
     },
     {
       name: "Setup",
