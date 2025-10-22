@@ -13,7 +13,7 @@ Jazz provides some key helpers that you can use to simplify writing complex test
 
 ### `setupJazzTestSync`
 
-This should normally be the first thing you call in your test setup, for example in a `beforeEach` or `beforeAll` block. This function creates and returns a plain `Account`, which will also act as an in-memory sync node for the test session. You'll often pair this with `createJazzTestAccount()` for more complex testing. Test data is not persisted, and no clean-up is needed between test runs. 
+This should normally be the first thing you call in your test setup, for example in a `beforeEach` or `beforeAll` block. This function sets up an in-memory sync node for the test session, which is needed in case you want to test data synchronisation functionality. Test data is not persisted, and no clean-up is needed between test runs. 
 
 <CodeGroup>
 ```ts twoslash
@@ -42,10 +42,6 @@ describe("My app's tests", () => {
 });
 ```
 </CodeGroup>
-
-<Alert variant="info" title="Important" className="mt-4">
-  The account returned by `setupJazzTestSync` is not created based on any custom schemas you may have defined, and no migrations will be run on this account.
-</Alert>
 
 ### `createJazzTestAccount`
 After you've created the initial account using `setupJazzTestSync`, you'll typically want to create user accounts for running your tests. 
@@ -145,39 +141,11 @@ runWithoutActiveAccount(() => {
 ```
 </CodeGroup>
 
-### `linkAccounts`
-To test multi-user functionality, you can use `linkAccounts()` utility to link and synchronise two accounts directly, bypassing the virtual sync server and ensuring that both accounts have the same data.
-
-<CodeGroup preferWrap>
-```ts twoslash
-import { co, z } from 'jazz-tools';
-import { createJazzTestAccount, linkAccounts } from 'jazz-tools/testing';
-
-function expect (actual?: any) {
-    return { 
-      toBe (expected?: any) {
-        return null;
-      },
-    }
-};
-// ---cut---
-const account1 = await createJazzTestAccount({ 
-  isCurrentActiveAccount: true 
-});
-const account2 = await createJazzTestAccount({ 
-  isCurrentActiveAccount: false 
-});
-
-// Sync directly between accounts
-await linkAccounts(account1, account2); 
-```
-</CodeGroup>
-
 ## Managing Context
 To test UI components, you may need to create a mock Jazz context. 
 
 <ContentByFramework framework="react">
-  In most cases, you'd use this for initialising a provider. You can see how we [initialise a test provider for React tests here](https://github.com/garden-co/jazz/blob/main/packages/jazz-tools/src/react-core/testing.tsx).
+  In most cases, you'd use this for initialising a provider. You can see how we [initialise a test provider for React tests here](https://github.com/garden-co/jazz/blob/main/packages/jazz-tools/src/react-core/testing.tsx), or see how you could [integrate with `@testing-library/react` here](https://github.com/garden-co/jazz/blob/main/packages/jazz-tools/src/react-core/tests/testUtils.tsx).
 </ContentByFramework>
 
 <ContentByFramework framework="svelte">
@@ -186,7 +154,7 @@ To test UI components, you may need to create a mock Jazz context.
  [You can see an example of how we do that here](https://github.com/garden-co/jazz/blob/main/packages/jazz-tools/src/svelte/tests/testUtils.ts).
 </ContentByFramework>
 
-
+<ContentByFramework framework="vanilla">
 The `TestJazzContextManager` mocks the `JazzContextManager` to allow you to instantiate a Jazz context as a user or a guest, allowing you to run tests which depend on an authenticated or a guest session.
 
 You'll normally use either:
@@ -195,6 +163,7 @@ You'll normally use either:
 * `TestJazzContextManager.fromGuest({ guest }, props?)` allows you to simulate a [guest context](/docs/key-features/authentication/authentication-states#guest-mode).
 
 You can also use `TestJazzContextManager.fromAccountOrGuest()` to allow you to pass either.
+</ContentByFramework>
 
 ### Simulating connection state changes
 You can use `MockConnectionStatus.setIsConnected(isConnected: boolean)` to simulate disconnected and connected states (depending on whether `isConnected` is set to `true` or `false`).
