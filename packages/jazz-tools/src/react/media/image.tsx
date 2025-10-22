@@ -51,6 +51,13 @@ export type ImageProps = Omit<
    * ```
    */
   height?: number | "original";
+  /**
+   * A custom placeholder to display while an image is loading. This will
+   * be passed as the src of the img tag, so a data URL works well here.
+   * This will be used as a fallback if no images are ready and no placeholder
+   * is available otherwise.
+   */
+  placeholder?: string;
 };
 
 /**
@@ -69,11 +76,13 @@ export type ImageProps = Omit<
  *       height={100}
  *       alt="Avatar"
  *       style={{ borderRadius: "50%", objectFit: "cover" }}
+         placeholder={myPlaceholder}
  *     />
  *   );
  * }
  * ```
  */
+
 export const Image = forwardRef<HTMLImageElement, ImageProps>(function Image(
   { imageId, width, height, ...props },
   ref,
@@ -150,7 +159,7 @@ export const Image = forwardRef<HTMLImageElement, ImageProps>(function Image(
       dimensions.height || dimensions.width || 9999,
     );
 
-    if (!bestImage) return image.placeholderDataURL;
+    if (!bestImage) return image.placeholderDataURL ?? props?.placeholder;
     if (lastBestImage.current?.[0] === bestImage.image.$jazz.id)
       return lastBestImage.current?.[1];
 
@@ -163,7 +172,7 @@ export const Image = forwardRef<HTMLImageElement, ImageProps>(function Image(
       return url;
     }
 
-    return image.placeholderDataURL;
+    return image.placeholderDataURL ?? props?.placeholder;
   }, [image, dimensions.width, dimensions.height, waitingLazyLoading]);
 
   const onThresholdReached = useCallback(() => {
