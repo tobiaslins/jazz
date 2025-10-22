@@ -17,7 +17,7 @@ export function TopBar(props: { children: React.ReactNode }) {
   return (
     <div
       className={clsx(
-        " px-3 pt-2 pb-3 bg-stone-100  w-full flex justify-center items-center gap-2 dark:bg-transparent dark:border-stone-900",
+        "px-3 pt-2 pb-3 bg-stone-100 w-full flex justify-center items-center gap-2 dark:bg-transparent dark:border-stone-900",
         inIframe &&
           "absolute top-0 left-0 right-0 z-100 from-25% from-stone-100 to-stone-100/0 dark:from-stone-925 dark:to-stone-925/0 bg-gradient-to-b",
       )}
