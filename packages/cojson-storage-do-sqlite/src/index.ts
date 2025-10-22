@@ -1,8 +1,6 @@
 import type { SQLiteDatabaseDriver } from "cojson";
-import { StorageApiSync } from "cojson";
+import { getSqliteStorage } from "cojson";
 import type { DurableObjectStorage } from "@cloudflare/workers-types";
-import { getSQLiteMigrationQueries } from "cojson/src/storage/sqlite/sqliteMigrations.js";
-import { SQLiteClient } from "cojson/dist/storage/sqlite/client.js";
 
 export class DurableObjectSqlDriver implements SQLiteDatabaseDriver {
   private readonly storage: DurableObjectStorage;
@@ -34,42 +32,29 @@ export class DurableObjectSqlDriver implements SQLiteDatabaseDriver {
   closeDb() {
     return;
   }
+
+  getMigrationVersion(): number {
+    this.run(
+      "CREATE TABLE IF NOT EXISTS _migration_version (version INTEGER);",
+      [],
+    );
+    return (
+      this.get<{ version: number }>(
+        "SELECT max(version) as version FROM _migration_version;",
+        [],
+      )?.version ?? 0
+    );
+  }
+
+  saveMigrationVersion(version: number): void {
+    this.run("INSERT INTO _migration_version (version) VALUES (?);", [version]);
+  }
 }
 
 export function getDurableObjectSqlStorage(
   durableObjectStorage: DurableObjectStorage,
 ) {
-  /*
-  Cannot use getSqliteStorage directly due the way migration versions are managed
-  the migration files use PRAGMA user_version = 1; and Cloudflare Durable Objects
-  do not support that so we need to overwrite those with migration table.
-  */
-  const driver = new DurableObjectSqlDriver(durableObjectStorage);
-  driver.run(
-    "CREATE TABLE IF NOT EXISTS _migration_version (version INTEGER);",
-    [],
-  );
-  const version = driver.get<{ version: number }>(
-    "SELECT max(version) as version FROM _migration_version;",
-    [],
-  )?.version;
+  const db = new DurableObjectSqlDriver(durableObjectStorage);
 
-  const migrations = getSQLiteMigrationQueries(version ?? 0);
-  for (const migration of migrations) {
-    if (migration.startsWith("PRAGMA")) {
-      // Is in format of "PRAGMA user_version = 1;"
-      const match = migration.match(/user_version = (\d+)/);
-      if (match && match[1]) {
-        const parsedVersion = parseInt(match[1]);
-        driver.run("INSERT INTO _migration_version (version) VALUES (?);", [
-          parsedVersion,
-        ]);
-      } else {
-        throw new Error(`Unsupported pragma in migration: ${migration}`);
-      }
-    } else {
-      driver.run(migration, []);
-    }
-  }
-  return new StorageApiSync(new SQLiteClient(driver));
+  return getSqliteStorage(db);
 }
