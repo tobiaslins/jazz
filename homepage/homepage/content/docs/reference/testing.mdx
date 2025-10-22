@@ -97,20 +97,47 @@ During your tests, you may need to manage the currently active account after acc
 ### `setActiveAccount`
 Use `setActiveAccount()` to switch between active accounts during a test run.
 
+You can use this to test your app with multiple accounts.
+
 <CodeGroup preferWrap>
 ```ts twoslash
-import { co } from 'jazz-tools';
+import { co, z } from 'jazz-tools';
 import { createJazzTestAccount, setActiveAccount } from 'jazz-tools/testing';
+const MyMap = co.map({
+  text: z.string()
+})
+function expect (actual?: any) {
+    return { 
+      toBe (expected?: any) {
+        return null;
+      },
+      toThrow() {
+        return null;
+      }
+    }
+};
 // ---cut---
 const account1 = await createJazzTestAccount({ 
   isCurrentActiveAccount: true,
 });
-const group1 = co.group().create(); // Group is owned by account1;
-
 const account2 = await createJazzTestAccount();
-const group2 = co.group().create(); // Group is still owned by account1;
+
+const group1 = co.group().create(); // Group is owned by account1;
+group1.addMember(account2, 'reader');
+
+const myMap = MyMap.create({
+  text: "Created by account1"
+}, { owner: group1 });
+const myMapId = myMap.$jazz.id;
+
 setActiveAccount(account2);
-const group3 = co.group().create(); // Group is owned by account2;
+// myMap is still loaded as account1, so we need to load again as account2
+const myMapFromAccount2 = await MyMap.load(myMapId);
+
+expect(myMapFromAccount2?.text)
+  .toBe('Created by account1');
+expect(() => myMapFromAccount2?.$jazz.set('text', 'Updated by account2'))
+  .toThrow();
 ```
 </CodeGroup>
 
