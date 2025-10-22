@@ -1,0 +1,214 @@
+import { Alert, CodeGroup, ContentByFramework } from '@/components/forMdx';
+
+export const metadata = {
+  description: "Guidance on testing Jazz apps."
+};
+
+# Testing Jazz Apps
+
+As you develop your Jazz app, you might find yourself needing to test functionality relating to sync, identities, and offline behaviour. The `jazz-tools/testing` utilities provide helpers to enable you to do so.
+
+## Core test helpers
+Jazz provides some key helpers that you can use to simplify writing complex tests for your app's functionality.
+
+### `setupJazzTestSync`
+
+This should normally be the first thing you call in your test setup, for example in a `beforeEach` or `beforeAll` block. This function creates and returns a plain `Account`, which will also act as an in-memory sync node for the test session. You'll often pair this with `createJazzTestAccount()` for more complex testing. Test data is not persisted, and no clean-up is needed between test runs. 
+
+<CodeGroup>
+```ts twoslash
+import { co } from 'jazz-tools';
+import { beforeEach, describe, expect, test } from "vitest";
+import { createJazzTestAccount, setupJazzTestSync } from 'jazz-tools/testing';
+const MyAccountSchema = co.account({
+  profile: co.profile(),
+  root: co.map({})
+});
+// ---cut---
+describe("My app's tests", () => {
+  beforeEach(async () => {
+    await setupJazzTestSync();
+  });
+
+  test("I can create a test account", async () => {
+    // See below for details on createJazzTestAccount()
+    const account1 = await createJazzTestAccount({
+      AccountSchema: MyAccountSchema,
+      isCurrentActiveAccount: true
+    });
+    expect(account1).not.toBeUndefined();
+    // ...
+  });
+});
+```
+</CodeGroup>
+
+<Alert variant="info" title="Important" className="mt-4">
+  The account returned by `setupJazzTestSync` is not created based on any custom schemas you may have defined, and no migrations will be run on this account.
+</Alert>
+
+### `createJazzTestAccount`
+After you've created the initial account using `setupJazzTestSync`, you'll typically want to create user accounts for running your tests. 
+
+You can use `createJazzTestAccount()` to create an account and link it to the sync node. By default, this account will become the currently active account (effectively the 'logged in' account).
+
+You can use it like this:
+
+<CodeGroup>
+```ts twoslash
+import { co } from 'jazz-tools';
+import { createJazzTestAccount } from 'jazz-tools/testing';
+const MyAccountSchema = co.account({
+  profile: co.profile(),
+  root: co.map({})
+});
+// ---cut---
+const account = await createJazzTestAccount({
+  AccountSchema: MyAccountSchema,
+  isCurrentActiveAccount: true,
+  creationProps: {},
+});
+```
+</CodeGroup>
+
+#### `AccountSchema`
+This option allows you to provide a custom account schema to the utility to be used when creating the account. The account will be created based on the schema, and all attached migrations will run.
+
+#### `isCurrentActiveAccount`
+This option (disabled by default) allows you to quickly switch to the newly created account when it is created.
+
+<CodeGroup preferWrap>
+```ts twoslash
+import { co } from 'jazz-tools';
+import { createJazzTestAccount } from 'jazz-tools/testing';
+// ---cut---
+const account1 = await createJazzTestAccount({ 
+  isCurrentActiveAccount: true,
+});
+const group1 = co.group().create(); // Group is owned by account1;
+
+const account2 = await createJazzTestAccount();
+const group2 = co.group().create(); // Group is still owned by account1;
+```
+</CodeGroup>
+
+#### `creationProps`
+This option allows you to specify `creationProps` for the account which are used during the account creation (and passed to the migration function on creation).
+
+## Managing active Accounts
+During your tests, you may need to manage the currently active account after account creation, or you may want to simulate behaviour where there is no currently active account.
+
+### `setActiveAccount`
+Use `setActiveAccount()` to switch between active accounts during a test run.
+
+<CodeGroup preferWrap>
+```ts twoslash
+import { co } from 'jazz-tools';
+import { createJazzTestAccount, setActiveAccount } from 'jazz-tools/testing';
+// ---cut---
+const account1 = await createJazzTestAccount({ 
+  isCurrentActiveAccount: true,
+});
+const group1 = co.group().create(); // Group is owned by account1;
+
+const account2 = await createJazzTestAccount();
+const group2 = co.group().create(); // Group is still owned by account1;
+setActiveAccount(account2);
+const group3 = co.group().create(); // Group is owned by account2;
+```
+</CodeGroup>
+
+### `runWithoutActiveAccount`
+If you need to test how a particular piece of code behaves when run without an active account.
+
+<CodeGroup preferWrap>
+```ts twoslash
+import { co } from 'jazz-tools';
+import { createJazzTestAccount, runWithoutActiveAccount } from 'jazz-tools/testing';
+function expect (actual?: any) {
+    return { 
+      toBe (expected?: any) {
+        return null;
+      },
+      toThrow() {
+        return null;
+      }
+    }
+};
+// ---cut---
+const account1 = await createJazzTestAccount({
+  isCurrentActiveAccount: true,
+});
+runWithoutActiveAccount(() => {
+  expect(() => co.group().create()).toThrow(); // can't create new group
+});
+```
+</CodeGroup>
+
+### `linkAccounts`
+To test multi-user functionality, you can use `linkAccounts()` utility to link and synchronise two accounts directly, bypassing the virtual sync server and ensuring that both accounts have the same data.
+
+<CodeGroup preferWrap>
+```ts twoslash
+import { co, z } from 'jazz-tools';
+import { createJazzTestAccount, linkAccounts } from 'jazz-tools/testing';
+
+function expect (actual?: any) {
+    return { 
+      toBe (expected?: any) {
+        return null;
+      },
+    }
+};
+// ---cut---
+const account1 = await createJazzTestAccount({ 
+  isCurrentActiveAccount: true 
+});
+const account2 = await createJazzTestAccount({ 
+  isCurrentActiveAccount: false 
+});
+
+// Sync directly between accounts
+await linkAccounts(account1, account2); 
+```
+</CodeGroup>
+
+## Managing Context
+To test UI components, you may need to create a mock Jazz context. 
+
+<ContentByFramework framework="react">
+  In most cases, you'd use this for initialising a provider. You can see how we [initialise a test provider for React tests here](https://github.com/garden-co/jazz/blob/main/packages/jazz-tools/src/react-core/testing.tsx).
+</ContentByFramework>
+
+<ContentByFramework framework="svelte">
+ You can render your components for testing by passing a mocked Jazz context to the `@testing-library/svelte` `render` helper.
+
+ [You can see an example of how we do that here](https://github.com/garden-co/jazz/blob/main/packages/jazz-tools/src/svelte/tests/testUtils.ts).
+</ContentByFramework>
+
+
+The `TestJazzContextManager` mocks the `JazzContextManager` to allow you to instantiate a Jazz context as a user or a guest, allowing you to run tests which depend on an authenticated or a guest session.
+
+You'll normally use either:
+
+* `TestJazzContextManager.fromAccount(account, props?)` to simulate a logged-in context. You can pass `isAuthenticated: false` as an option to simulate an [anonymous user](docs/key-features/authentication/authentication-states#anonymous-authentication).
+* `TestJazzContextManager.fromGuest({ guest }, props?)` allows you to simulate a [guest context](/docs/key-features/authentication/authentication-states#guest-mode).
+
+You can also use `TestJazzContextManager.fromAccountOrGuest()` to allow you to pass either.
+
+### Simulating connection state changes
+You can use `MockConnectionStatus.setIsConnected(isConnected: boolean)` to simulate disconnected and connected states (depending on whether `isConnected` is set to `true` or `false`).
+
+## Next Steps
+You're ready to start writing your own tests for your Jazz apps now. For further details and reference, you can check how we do our testing below.
+
+* [Unit test examples](https://github.com/garden-co/jazz/tree/main/packages/jazz-tools/src/tools/tests)
+* [End-to-end examples](https://github.com/garden-co/jazz/tree/main/tests/e2e/tests)
+
+<ContentByFramework framework="react">
+* [React-specific tests](https://github.com/garden-co/jazz/tree/main/packages/jazz-tools/src/react-core/tests)
+</ContentByFramework>
+
+<ContentByFramework framework="svelte">
+* [Svelte-specific tests](https://github.com/garden-co/jazz/tree/main/packages/jazz-tools/src/svelte/tests)
+</ContentByFramework>
