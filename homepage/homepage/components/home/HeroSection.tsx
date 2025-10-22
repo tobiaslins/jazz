@@ -20,7 +20,7 @@ export function HeroSection() {
       <div className="md:col-span-4">
         <Kicker className="mb-6">Ship Better Apps, Faster.</Kicker>
         <H1>
-          <JazzSyncs className="max-w-96 md:max-w-full" />
+          <JazzSyncs className="max-w-96 md:max-w-full" aria-hidden="true" />
           <span className="sr-only">{marketingCopy.headline}</span>
         </H1>
         <Prose
