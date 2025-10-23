@@ -123,7 +123,7 @@ createRoot(document.getElementById("root")!).render(
         defaultProfileName={defaultProfileName}
       >
         <App />
-        <JazzInspector />
+        {!inIframe && <JazzInspector />}
       </JazzReactProvider>
     </StrictMode>
   </ThemeProvider>,
