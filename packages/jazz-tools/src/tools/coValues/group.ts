@@ -1,5 +1,6 @@
 import {
   RawAccount,
+  isAccountRole,
   type AccountRole,
   type AgentID,
   type Everyone,
@@ -10,7 +11,6 @@ import {
 } from "cojson";
 import {
   AnonymousJazzAgent,
-  BranchDefinition,
   CoValue,
   CoValueClass,
   ID,
@@ -108,13 +108,16 @@ export class Group extends CoValueBase implements CoValue {
    */
   addMember(
     member: Group,
-    role?: "reader" | "writer" | "admin" | "inherit",
+    role?: "reader" | "writer" | "admin" | "manager" | "inherit",
   ): void;
-  addMember(member: Group | Account, role: "reader" | "writer" | "admin"): void;
+  addMember(
+    member: Group | Account,
+    role: "reader" | "writer" | "admin" | "manager",
+  ): void;
   addMember(
     member: Group | Everyone | Account,
     role?: AccountRole | "inherit",
-  ) {
+  ): void {
     if (isGroupValue(member)) {
       if (role === "writeOnly")
         throw new Error("Cannot add group as member with write-only role");
@@ -158,12 +161,7 @@ export class Group extends CoValueBase implements CoValue {
 
       const role = this.$jazz.raw.roleOf(accountID);
 
-      if (
-        role === "admin" ||
-        role === "writer" ||
-        role === "reader" ||
-        role === "writeOnly"
-      ) {
+      if (isAccountRole(role)) {
         const ref = new Ref<Account>(
           accountID,
           this.$jazz.loadedAs,
@@ -249,9 +247,12 @@ export class Group extends CoValueBase implements CoValue {
    */
   extend(
     parent: Group,
-    roleMapping?: "reader" | "writer" | "admin" | "inherit",
+    roleMapping?: "reader" | "writer" | "admin" | "manager" | "inherit",
   ): this {
-    this.$jazz.raw.extend(parent.$jazz.raw, roleMapping);
+    this.$jazz.raw.extend(
+      parent.$jazz.raw,
+      roleMapping as "reader" | "writer" | "admin" | "manager" | "inherit",
+    );
     return this;
   }
 
