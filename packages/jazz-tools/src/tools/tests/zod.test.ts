@@ -414,46 +414,37 @@ describe("co.map and Zod schema compatibility", () => {
       expect(map2.value).toBe(42);
     });
 
-    // it("should handle discriminated unions of primitives", async () => {
-    //   const schema = co.map({
-    //     result: z.discriminatedUnion("status", [
-    //       z.object({ status: z.literal("success"), data: z.string() }),
-    //       z.object({ status: z.literal("failed"), error: z.string() }),
-    //     ]),
-    //   });
-    //   const account = await createJazzTestAccount();
-    //   const successMap = schema.create(
-    //     { result: { status: "success", data: "data" } },
-    //     account,
-    //   );
-    //   const failedMap = schema.create(
-    //     { result: { status: "failed", error: "error" } },
-    //     account,
-    //   );
-    //   expect(successMap.result).toEqual({ status: "success", data: "data" });
-    //   expect(failedMap.result).toEqual({ status: "failed", error: "error" });
-    // });
+    it("should handle discriminated unions of primitives", async () => {
+      const schema = co.map({
+        result: z.discriminatedUnion("status", [
+          z.object({ status: z.literal("success"), data: z.string() }),
+          z.object({ status: z.literal("failed"), error: z.string() }),
+        ]),
+      });
+      const account = await createJazzTestAccount();
+      const successMap = schema.create(
+        { result: { status: "success", data: "data" } },
+        account,
+      );
+      const failedMap = schema.create(
+        { result: { status: "failed", error: "error" } },
+        account,
+      );
+      expect(successMap.result).toEqual({ status: "success", data: "data" });
+      expect(failedMap.result).toEqual({ status: "failed", error: "error" });
+    });
 
-    // it("should handle intersections", async () => {
-    //   const schema = co.map({
-    //     value: z.intersection(
-    //       z.union([z.number(), z.string()]),
-    //       z.union([z.number(), z.boolean()])
-    //     ),
-    //   });
-    //   const account = await createJazzTestAccount();
-    //   const map = schema.create({ value: 42 }, account);
-    //   expect(map.value).toBe(42);
-    // });
-
-    // it("should handle record types", async () => {
-    //   const schema = co.map({
-    //     cache: z.record(z.string(), z.string()),
-    //   });
-    //   const account = await createJazzTestAccount();
-    //   const map = schema.create({ cache: { key1: "value1", key2: "value2" } }, account);
-    //   expect(map.cache).toEqual({ key1: "value1", key2: "value2" });
-    // });
+    it("should handle intersections", async () => {
+      const schema = co.map({
+        value: z.intersection(
+          z.union([z.number(), z.string()]),
+          z.union([z.number(), z.boolean()]),
+        ),
+      });
+      const account = await createJazzTestAccount();
+      const map = schema.create({ value: 42 }, account);
+      expect(map.value).toBe(42);
+    });
 
     it("should handle refined types", async () => {
       const schema = co.map({

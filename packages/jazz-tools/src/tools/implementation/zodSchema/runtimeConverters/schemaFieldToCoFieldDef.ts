@@ -26,6 +26,7 @@ export type SchemaField =
   | z.core.$ZodNullable<z.core.$ZodType>
   | z.core.$ZodUnion<z.core.$ZodType[]>
   | z.core.$ZodDiscriminatedUnion<z.core.$ZodType[]>
+  | z.core.$ZodIntersection<z.core.$ZodType, z.core.$ZodType>
   | z.core.$ZodObject<z.core.$ZodLooseShape>
   | z.core.$ZodRecord<z.core.$ZodRecordKey, z.core.$ZodType>
   | z.core.$ZodArray<z.core.$ZodType>
@@ -149,7 +150,8 @@ export function schemaFieldToCoFieldDef(schema: SchemaField) {
         zodSchemaDef.type === "object" ||
         zodSchemaDef.type === "record" ||
         zodSchemaDef.type === "array" ||
-        zodSchemaDef.type === "tuple"
+        zodSchemaDef.type === "tuple" ||
+        zodSchemaDef.type === "intersection"
       ) {
         return coField.json();
       } else if (zodSchemaDef.type === "union") {
