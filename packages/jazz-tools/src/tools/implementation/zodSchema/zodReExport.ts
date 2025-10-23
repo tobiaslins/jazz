@@ -32,7 +32,7 @@ export {
   int32,
   union,
   discriminatedUnion,
-  // record,
+  record,
   // intersection,
   int,
   codec,

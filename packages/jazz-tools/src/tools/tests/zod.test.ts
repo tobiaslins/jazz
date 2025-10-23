@@ -369,6 +369,18 @@ describe("co.map and Zod schema compatibility", () => {
       expect(map.person).toEqual({ name: "John" });
     });
 
+    it("should handle record fields", async () => {
+      const schema = co.map({
+        record: z.record(z.string(), z.string()),
+      });
+      const account = await createJazzTestAccount();
+      const map = schema.create(
+        { record: { key1: "value1", key2: "value2" } },
+        account,
+      );
+      expect(map.record).toEqual({ key1: "value1", key2: "value2" });
+    });
+
     it("should handle tuple fields", async () => {
       const schema = co.map({
         tuple: z.tuple([z.string(), z.number(), z.boolean()]),

@@ -39,45 +39,52 @@ export type TypeOfZodSchema<S extends z.core.$ZodType> =
                   ? key
                   : never]?: TypeOfZodSchema<Shape[key]>;
               }
-            : S extends z.core.$ZodArray<infer Item extends z.core.$ZodType>
-              ? TypeOfZodSchema<Item>[]
-              : S extends z.core.$ZodTuple<
-                    infer Items extends readonly z.core.$ZodType[]
-                  >
-                ? {
-                    [key in keyof Items]: TypeOfZodSchema<Items[key]>;
-                  }
-                : S extends z.core.$ZodString
-                  ? string
-                  : S extends z.core.$ZodNumber
-                    ? number
-                    : S extends z.core.$ZodBoolean
-                      ? boolean
-                      : S extends z.core.$ZodLiteral<infer Literal>
-                        ? Literal
-                        : S extends z.core.$ZodDate
-                          ? Date
-                          : S extends z.core.$ZodEnum<infer Enum>
-                            ? Enum[keyof Enum]
-                            : S extends z.core.$ZodTemplateLiteral<
-                                  infer pattern
-                                >
-                              ? pattern
-                              : S extends z.core.$ZodReadonly<
-                                    infer Inner extends z.core.$ZodType
+            : S extends z.core.$ZodRecord<
+                  infer Key,
+                  infer Value extends z.core.$ZodType
+                >
+              ? {
+                  [key in z.output<Key>]: TypeOfZodSchema<Value>;
+                }
+              : S extends z.core.$ZodArray<infer Item extends z.core.$ZodType>
+                ? TypeOfZodSchema<Item>[]
+                : S extends z.core.$ZodTuple<
+                      infer Items extends readonly z.core.$ZodType[]
+                    >
+                  ? {
+                      [key in keyof Items]: TypeOfZodSchema<Items[key]>;
+                    }
+                  : S extends z.core.$ZodString
+                    ? string
+                    : S extends z.core.$ZodNumber
+                      ? number
+                      : S extends z.core.$ZodBoolean
+                        ? boolean
+                        : S extends z.core.$ZodLiteral<infer Literal>
+                          ? Literal
+                          : S extends z.core.$ZodDate
+                            ? Date
+                            : S extends z.core.$ZodEnum<infer Enum>
+                              ? Enum[keyof Enum]
+                              : S extends z.core.$ZodTemplateLiteral<
+                                    infer pattern
                                   >
-                                ? TypeOfZodSchema<Inner>
-                                : S extends z.core.$ZodDefault<
-                                      infer Default extends z.core.$ZodType
+                                ? pattern
+                                : S extends z.core.$ZodReadonly<
+                                      infer Inner extends z.core.$ZodType
                                     >
-                                  ? TypeOfZodSchema<Default>
-                                  : S extends z.core.$ZodCodec<
-                                        any,
-                                        infer Out extends z.core.$ZodType
+                                  ? TypeOfZodSchema<Inner>
+                                  : S extends z.core.$ZodDefault<
+                                        infer Default extends z.core.$ZodType
                                       >
-                                    ? Out["_zod"]["output"]
-                                    : S extends z.core.$ZodCatch<
-                                          infer Catch extends z.core.$ZodType
+                                    ? TypeOfZodSchema<Default>
+                                    : S extends z.core.$ZodCodec<
+                                          any,
+                                          infer Out extends z.core.$ZodType
                                         >
-                                      ? TypeOfZodSchema<Catch>
-                                      : never;
+                                      ? Out["_zod"]["output"]
+                                      : S extends z.core.$ZodCatch<
+                                            infer Catch extends z.core.$ZodType
+                                          >
+                                        ? TypeOfZodSchema<Catch>
+                                        : never;
