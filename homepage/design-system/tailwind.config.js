@@ -196,7 +196,6 @@ export const preset = {
           sm: "1rem",
         },
         screens: {
-          md: "960px",
           lg: "1276px",
         },
       },

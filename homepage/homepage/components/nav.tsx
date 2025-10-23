@@ -13,7 +13,10 @@ import {
 export function JazzNav({
   sections,
   hideMobileNav,
-}: { sections?: NavSection[]; hideMobileNav?: boolean }) {
+}: {
+  sections?: NavSection[];
+  hideMobileNav?: boolean;
+}) {
   return (
     <Nav
       sections={sections}
@@ -22,17 +25,14 @@ export function JazzNav({
       items={navigationItems}
       socials={socialsHeader}
       hideMobileNav={hideMobileNav}
-      cta={<div className="flex items-center gap-3 md:mr-2 md:ml-auto">
-        <QuickSearch />
-        <Button
-          intent="primary"
-          href="https://dashboard.jazz.tools"
-          newTab
-        >
-          Dashboard
-        </Button>
-      </div>
-    }
+      cta={
+        <div className="flex items-center gap-3 md:ml-auto md:mr-2">
+          <QuickSearch />
+          <Button variant="ghost" href="https://dashboard.jazz.tools" newTab>
+            Dashboard
+          </Button>
+        </div>
+      }
     ></Nav>
   );
 }
@@ -46,16 +46,14 @@ export function JazzMobileNav({ sections }: { sections?: NavSection[] }) {
       themeToggle={ThemeToggle}
       items={navigationItems}
       socials={socialsHeader}
-      cta={<div className="flex items-center gap-2">
-        <QuickSearch />
-        <Button
-          intent="primary"
-          href="https://dashboard.jazz.tools"
-          newTab
-        >
-          Dashboard
-        </Button>
-      </div>}
+      cta={
+        <div className="flex items-center gap-2">
+          <QuickSearch />
+          <Button intent="primary" href="https://dashboard.jazz.tools" newTab>
+            Dashboard
+          </Button>
+        </div>
+      }
     />
   );
 }
