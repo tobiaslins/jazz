@@ -61,7 +61,7 @@ export function idforHeader(
 }
 
 export class VerifiedTransaction {
-  coValue: CoValueCore;
+  dispatchTransaction: (transaction: VerifiedTransaction) => void;
   // The account or agent that made the transaction
   author: RawAccountID | AgentID;
   // An object containing the session ID and the transaction index
@@ -77,13 +77,13 @@ export class VerifiedTransaction {
   changes: JsonValue[] | undefined;
   // The decoded meta information of the transaction
   meta: JsonObject | undefined;
+  isValidated: boolean = false;
   // Whether the transaction is valid, as per membership rules
   isValid: boolean = false;
   // The previous verified transaction for the same session
   previous: VerifiedTransaction | undefined;
 
   constructor(
-    coValue: CoValueCore,
     sessionID: SessionID,
     txIndex: number,
     tx: Transaction,
@@ -92,8 +92,9 @@ export class VerifiedTransaction {
       | { changes: JsonValue[]; meta: JsonObject | undefined }
       | undefined,
     previous: VerifiedTransaction | undefined,
+    dispatchTransaction: (transaction: VerifiedTransaction) => void,
   ) {
-    this.coValue = coValue;
+    this.dispatchTransaction = dispatchTransaction;
     this.author = accountOrAgentIDfromSessionID(sessionID);
 
     const txID = branchId
@@ -151,10 +152,15 @@ export class VerifiedTransaction {
 
   markValid() {
     this.isValid = true;
-    this.coValue.dispatchValidTransaction(this);
+
+    if (!this.isValidated) {
+      this.isValidated = true;
+      this.dispatchTransaction(this);
+    }
   }
 
   markInvalid() {
+    this.isValidated = true;
     this.isValid = false;
   }
 }
@@ -836,6 +842,10 @@ export class CoValueCore {
     this.branchStart = undefined;
     this.mergeCommits = [];
 
+    for (const transaction of this.verifiedTransactions) {
+      transaction.isValidated = false;
+    }
+
     this.toValidateTransactions = this.verifiedTransactions.slice();
     this.toProcessTransactions = [];
     this.toDecryptTransactions = [];
@@ -895,13 +905,13 @@ export class CoValueCore {
         }
 
         const verifiedTransaction = new VerifiedTransaction(
-          this,
           sessionID,
           txIndex,
           tx,
           isBranched ? this.id : undefined,
           cache,
           this.lastVerifiedTransactionBySessionID[sessionID],
+          this.dispatchTransaction,
         );
 
         if (verifiedTransaction.madeAt > this.latestTxMadeAt) {
@@ -913,7 +923,7 @@ export class CoValueCore {
         }
 
         this.verifiedTransactions.push(verifiedTransaction);
-        this.toValidateTransactions.push(verifiedTransaction);
+        this.dispatchTransaction(verifiedTransaction);
         this.lastVerifiedTransactionBySessionID[sessionID] =
           verifiedTransaction;
       }
@@ -923,7 +933,12 @@ export class CoValueCore {
     }
   }
 
-  dispatchValidTransaction = (transaction: VerifiedTransaction) => {
+  dispatchTransaction = (transaction: VerifiedTransaction) => {
+    if (!transaction.isValidated) {
+      this.toValidateTransactions.push(transaction);
+      return;
+    }
+
     if (transaction.changes) {
       this.toProcessTransactions.push(transaction);
     } else {
@@ -1028,7 +1043,6 @@ export class CoValueCore {
     if (!this.isAvailable()) {
       return;
     }
-
     this.loadVerifiedTransactionsFromLogs();
     this.determineValidTransactions();
 
@@ -1037,7 +1051,7 @@ export class CoValueCore {
       this.toDecryptTransactions = [];
       for (const transaction of toDecryptTransactions) {
         decryptTransactionChangesAndMeta(this, transaction);
-        this.dispatchValidTransaction(transaction);
+        this.dispatchTransaction(transaction);
       }
     }
 
@@ -1104,7 +1118,7 @@ export class CoValueCore {
     }
 
     if (options?.knownTransactions) {
-      options.knownTransactions[this.id] = this.verifiedTransactions.length;
+      options.knownTransactions[this.id] = this.toProcessTransactions.length;
     }
 
     // If this is a branch, we load the valid transactions from the source
