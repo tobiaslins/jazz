@@ -170,7 +170,7 @@ describe("StorageApiAsync", () => {
 
       // Verify that storage known state is updated after load
       const updatedKnownState = storage.getKnownState(group.id);
-      expect(updatedKnownState).toEqual(group.core.verified.knownState());
+      expect(updatedKnownState).toEqual(group.core.knownState());
 
       const groupOnNode = await loadCoValueOrFail(node, group.id);
 
@@ -211,7 +211,7 @@ describe("StorageApiAsync", () => {
 
       // Verify that storage known state is updated after load
       const updatedKnownState = storage.getKnownState(group.id);
-      expect(updatedKnownState).toEqual(group.core.verified.knownState());
+      expect(updatedKnownState).toEqual(group.core.knownState());
 
       const groupOnNode = await loadCoValueOrFail(node, group.id);
       expect(groupOnNode.get("everyone")).toEqual("reader");
@@ -239,7 +239,7 @@ describe("StorageApiAsync", () => {
 
       // Verify that storage known state is updated after store
       const updatedKnownState = storage.getKnownState(group.id);
-      expect(updatedKnownState).toEqual(group.core.verified.knownState());
+      expect(updatedKnownState).toEqual(group.core.knownState());
 
       node.setStorage(storage);
 
@@ -256,7 +256,7 @@ describe("StorageApiAsync", () => {
 
       // Create a real group and add a member to create transactions
       const group = fixturesNode.createGroup();
-      const knownState = group.core.verified.knownState();
+      const knownState = group.core.knownState();
 
       group.addMember("everyone", "reader");
 
@@ -275,7 +275,7 @@ describe("StorageApiAsync", () => {
 
       // Verify that storage known state is updated after store
       const updatedKnownState = storage.getKnownState(group.id);
-      expect(updatedKnownState).toEqual(group.core.verified.knownState());
+      expect(updatedKnownState).toEqual(group.core.knownState());
 
       node.setStorage(storage);
 
@@ -288,7 +288,7 @@ describe("StorageApiAsync", () => {
       const { node, storage } = await createTestNode();
 
       const group = fixturesNode.createGroup();
-      const knownState = group.core.verified.knownState();
+      const knownState = group.core.knownState();
 
       group.addMember("everyone", "reader");
 
@@ -309,7 +309,7 @@ describe("StorageApiAsync", () => {
 
       // Verify that storage known state is updated after store with correction
       const updatedKnownState = storage.getKnownState(group.id);
-      expect(updatedKnownState).toEqual(group.core.verified.knownState());
+      expect(updatedKnownState).toEqual(group.core.knownState());
 
       node.setStorage(storage);
       const groupOnNode = await loadCoValueOrFail(node, group.id);
@@ -355,7 +355,7 @@ describe("StorageApiAsync", () => {
 
       // Verify that storage known state is updated after store with correction
       const finalKnownState = storage.getKnownState(group.id);
-      expect(finalKnownState).toEqual(group.core.verified.knownState());
+      expect(finalKnownState).toEqual(group.core.knownState());
 
       node.setStorage(storage);
       const groupOnNode = await loadCoValueOrFail(node, group.id);
@@ -722,8 +722,8 @@ describe("StorageApiAsync", () => {
       // Verify that storage known states are updated after load
       const updatedGroupKnownState = storage.getKnownState(group.id);
       const updatedMapKnownState = storage.getKnownState(map.id);
-      expect(updatedGroupKnownState).toEqual(group.core.verified.knownState());
-      expect(updatedMapKnownState).toEqual(map.core.verified.knownState());
+      expect(updatedGroupKnownState).toEqual(group.core.knownState());
+      expect(updatedMapKnownState).toEqual(map.core.knownState());
 
       node.setStorage(storage);
       const mapOnNode = await loadCoValueOrFail(node, map.id);
@@ -759,7 +759,7 @@ describe("StorageApiAsync", () => {
 
       // Verify group known state is updated after first load
       const afterGroupLoad = storage.getKnownState(group.id);
-      expect(afterGroupLoad).toEqual(group.core.verified.knownState());
+      expect(afterGroupLoad).toEqual(group.core.knownState());
 
       // Then load the map - the group dependency should already be loaded
       await storage.load(map.id, callback, done);
@@ -776,7 +776,7 @@ describe("StorageApiAsync", () => {
 
       // Verify map known state is updated after second load
       const finalMapKnownState = storage.getKnownState(map.id);
-      expect(finalMapKnownState).toEqual(map.core.verified.knownState());
+      expect(finalMapKnownState).toEqual(map.core.knownState());
 
       node.setStorage(storage);
       const mapOnNode = await loadCoValueOrFail(node, map.id);

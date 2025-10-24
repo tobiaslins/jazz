@@ -2,6 +2,7 @@ import {
   Account,
   AccountCreationProps,
   BranchDefinition,
+  coOptionalDefiner,
   Group,
   RefsToResolveStrict,
   Simplify,
@@ -149,6 +150,7 @@ export function enrichAccountSchema<Shape extends BaseAccountShape>(
     getCoValueClass: () => {
       return coValueClass;
     },
+    optional: () => coOptionalDefiner(enrichedSchema),
   }) as unknown as AccountSchema<Shape>;
   return enrichedSchema;
 }

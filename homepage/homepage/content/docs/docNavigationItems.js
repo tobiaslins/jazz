@@ -13,7 +13,10 @@ export const docNavigationItems = [
       }, {
         name: "Quickstart",
         href: "/docs/quickstart",
-        done: 100,
+        done: {
+          react: 100,
+          svelte: 100
+        }
       },
       {
         name: "Installation",
@@ -221,7 +224,10 @@ export const docNavigationItems = [
         {
           name: "Quickstart",
           href: "/docs/key-features/authentication/quickstart",
-          done: 100,
+          done: {
+            react: 100,
+            svelte: 100
+          },
         },
 
         {
@@ -273,7 +279,10 @@ export const docNavigationItems = [
         {
           name: "Sharing",
           href: "/docs/permissions-and-sharing/sharing",
-          done: 100,
+          done: {
+            react: 100,
+            svelte: 100
+          }
         },
         {
           name: "Cascading Permissions",
@@ -300,7 +309,10 @@ export const docNavigationItems = [
     items: [{
       name: "Quickstart",
       href: "/docs/server-side/quickstart",
-      done: 100,
+      done: {
+        react: 100,
+        svelte: 100
+      }
     },
     {
       name: "Setup",
@@ -317,7 +329,7 @@ export const docNavigationItems = [
         name: "Overview",
         href: "/docs/server-side/communicating-with-workers/overview",
         done: 100,
-      },{
+      }, {
         name: "JazzRPC",
         href: "/docs/server-side/jazz-rpc",
         done: 100,
@@ -380,13 +392,17 @@ export const docNavigationItems = [
         name: "Reference",
         prefix: '/docs/reference',
         items: [{
+          name: "FAQs",
+          href: "/docs/reference/faq",
+          done: 100
+        }, {
           name: "Encryption",
           href: "/docs/reference/encryption",
           done: 100,
         }, {
-          name: "FAQs",
-          href: "/docs/reference/faq",
-          done: 100
+          name: "Testing",
+          href: "/docs/reference/testing",
+          done: 100,
         }, {
           name: "Performance tips",
           href: "/docs/reference/performance",

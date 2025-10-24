@@ -22,6 +22,76 @@ While creating CoValues with Accounts as owners is still technically possible fo
 it will be removed in a future release.
 </Alert>
 
+## Role Matrix
+<table>
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>admin</th>
+      <th>manager</th>
+      <th>writer</th>
+      <th>writeOnly</th>
+      <th>reader</th>
+    </tr>
+  </thead>
+  <tbody>
+  <tr>
+      <th>Summary</th>
+      <td>Full control</td>
+      <td>Delegated management</td>
+      <td>Standard writer</td>
+      <td>Blind submissions</td>
+      <td>Viewer</td>
+    </tr>
+    <tr>
+      <th>Can add admins<sup>*</sup></th>
+      <td>✅</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <th>Can add/remove managers</th>
+      <td>✅</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <th>Can add/remove readers and writers</th>
+      <td>✅</td>
+      <td>✅</td>
+      <td>❌</td>
+      <td>❌</td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <th>Can write</th>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅<sup>*</sup></td>
+      <td>❌</td>
+    </tr>
+    <tr>
+      <th>Can read</th>
+      <td>✅</td>
+      <td>✅</td>
+      <td>✅</td>
+      <td>❌<sup>***</sup></td>
+      <td>✅</td>
+    </tr>
+  </tbody>
+</table>
+
+<sup>*</sup> `admin` users cannot be removed by anyone else, they must leave the group themselves.
+
+<sup>**</sup> `writeOnly` users can only create and edit their own updates/submissions.
+
+<sup>***</sup> `writeOnly` cannot read updates from other users.
+
 ## Creating a Group
 
 Here's how you can create a `Group`.
@@ -98,7 +168,7 @@ group.addMember(bob, "reader");
 
 Bob just went from a writer to a reader.
 
-**Note:** only admins can change a member's role.
+**Note:** only admins and managers can change a member's role.
 
 ## Removing a member
 
@@ -116,10 +186,9 @@ group.removeMember(bob);
 </CodeGroup>
 
 Rules:
-- All roles can remove themselves.
-- Only admins can remove other users.
-- An admin cannot remove other admins.
-- As an admin, you cannot remove yourself if you are the only admin in the Group, because there has to be at least one admin present.
+- All roles can remove themselves
+- Admins can remove all roles (except other admins)
+- Managers can remove users with less privileged roles (writer, writeOnly, reader)
 
 ## Getting the Group of an existing CoValue
 
@@ -146,7 +215,7 @@ const newValue = MyCoMap.create(
 
 ## Checking the permissions
 
-You can check the permissions of an account on a CoValue by using the `canRead`, `canWrite` and `canAdmin` methods.
+You can check the permissions of an account on a CoValue by using the `canRead`, `canWrite`, `canManage` and `canAdmin` methods.
 
 <CodeGroup>
 ```ts twoslash
@@ -160,7 +229,9 @@ const value = await MyCoMap.create({ color: "red"})
 const me = await co.account().getMe();
 
 if (me.canAdmin(value)) {
-  console.log("I can share value with others"); 
+  console.log("I can add users of any role"); 
+} else if (me.canManage(value)) {
+  console.log("I can share value with others");
 } else if (me.canWrite(value)) {
   console.log("I can edit value");
 } else if (me.canRead(value)) {

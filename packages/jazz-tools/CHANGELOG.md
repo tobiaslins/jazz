@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.18.29
+
+### Patch Changes
+
+- cc7efc8: Fix upsertUnique when the account doesn't have access to the value
+- f55d17f: fix inspector component in non-React apps
+  - cojson@0.18.29
+  - cojson-storage-indexeddb@0.18.29
+  - cojson-transport-ws@0.18.29
+
 ## 0.18.28
 
 ### Patch Changes

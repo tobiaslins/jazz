@@ -123,13 +123,13 @@ function ChatBubble(props: { me: Account; msg: Message }) {
 
   return (
     <BubbleContainer fromMe={fromMe}>
+      {lastEdit && (
+        <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />
+      )}
       <BubbleBody fromMe={fromMe}>
         {image && <BubbleImage image={image} />}
         <BubbleText text={text} />
       </BubbleBody>
-      {lastEdit && (
-        <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />
-      )}
     </BubbleContainer>
   );
 }

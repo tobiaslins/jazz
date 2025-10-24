@@ -98,3 +98,11 @@ html.dark {
 .twoslash .twoslash-query-line .twoslash-popup-container {
   display: inline-flex;
 }
+
+.chat-1 {
+  transform: perspective(800px) rotateY(15deg) scale(0.95) rotateX(5deg);
+}
+
+.chat-2 {
+  transform: perspective(800px) rotateY(-15deg) scale(0.95) rotateX(5deg);
+}
