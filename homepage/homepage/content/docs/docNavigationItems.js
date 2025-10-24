@@ -392,13 +392,17 @@ export const docNavigationItems = [
         name: "Reference",
         prefix: '/docs/reference',
         items: [{
+          name: "FAQs",
+          href: "/docs/reference/faq",
+          done: 100
+        }, {
           name: "Encryption",
           href: "/docs/reference/encryption",
           done: 100,
         }, {
-          name: "FAQs",
-          href: "/docs/reference/faq",
-          done: 100
+          name: "Testing",
+          href: "/docs/reference/testing",
+          done: 100,
         }, {
           name: "Performance tips",
           href: "/docs/reference/performance",
