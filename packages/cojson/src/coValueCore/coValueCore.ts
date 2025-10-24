@@ -994,9 +994,7 @@ export class CoValueCore {
     // The range, described as knownState sessions, to filter the transactions returned
     from?: CoValueKnownState["sessions"];
     to?: CoValueKnownState["sessions"];
-
-    // The transactions that have already been processed, used for the incremental builds of the content views
-    knownTransactions?: Set<Transaction>;
+    knownTransactions?: Record<RawCoID, number>;
 
     // If true, the branch source transactions will be skipped. Used to gather the transactions for the merge operation.
     skipBranchSource?: boolean;
@@ -1011,39 +1009,44 @@ export class CoValueCore {
 
     const source = getBranchSource(this);
 
-    for (const transaction of this.verifiedTransactions) {
+    const from = options?.from;
+    const to = options?.to;
+
+    const knownTransactions = options?.knownTransactions?.[this.id] ?? 0;
+
+    for (let i = knownTransactions; i < this.verifiedTransactions.length; i++) {
+      const transaction = this.verifiedTransactions[i]!;
+
       if (!transaction.isValidTransactionWithChanges()) {
         continue;
       }
 
-      if (options?.knownTransactions?.has(transaction.tx)) {
-        continue;
-      }
-
-      options?.knownTransactions?.add(transaction.tx);
-
       // Using the currentTxID to filter the transactions, because the TxID is modified by the merge meta
       const txID = transaction.currentTxID;
 
-      const from = options?.from?.[txID.sessionID] ?? -1;
+      const fromIdx = from?.[txID.sessionID] ?? -1;
 
       // Load the to filter index. Sessions that are not in the to filter will be skipped
-      const to = options?.to ? (options.to[txID.sessionID] ?? -1) : Infinity;
+      const toIdx = to?.[txID.sessionID] ?? Infinity;
 
       // The txIndex starts at 0 and from/to are referring to the count of transactions
-      if (from > txID.txIndex || to < txID.txIndex) {
+      if (fromIdx > txID.txIndex || toIdx < txID.txIndex) {
         continue;
       }
 
       matchingTransactions.push(transaction);
     }
 
+    if (options?.knownTransactions) {
+      options.knownTransactions[this.id] = this.verifiedTransactions.length;
+    }
+
     // If this is a branch, we load the valid transactions from the source
     if (source && this.branchStart && !options?.skipBranchSource) {
       const sourceTransactions = source.getValidTransactions({
+        knownTransactions: options?.knownTransactions,
         to: this.branchStart,
         ignorePrivateTransactions: options?.ignorePrivateTransactions ?? false,
-        knownTransactions: options?.knownTransactions,
       });
 
       for (const transaction of sourceTransactions) {
@@ -1137,7 +1140,7 @@ export class CoValueCore {
     ignorePrivateTransactions: boolean;
 
     // The transactions that have already been processed, used for the incremental builds of the content views
-    knownTransactions?: Set<Transaction>;
+    knownTransactions?: Record<RawCoID, number>;
   }): DecryptedTransaction[] {
     const allTransactions = this.getValidTransactions(options);
 
