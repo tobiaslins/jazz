@@ -1141,12 +1141,10 @@ describe("CoValueCoreSubscription", async () => {
     });
     assert(personContent);
 
-    const lastPiece = personContent.at(-1);
+    const lastPiece = personContent.pop();
     assert(lastPiece);
 
-    for (const content of personContent.filter(
-      (content) => content !== lastPiece,
-    )) {
+    for (const content of personContent) {
       bob.$jazz.localNode.syncManager.handleNewContent(content, "import");
     }
 
