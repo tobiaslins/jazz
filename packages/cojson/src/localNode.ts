@@ -116,7 +116,7 @@ export class LocalNode {
     let entry = this.coValues.get(id);
 
     if (!entry) {
-      entry = CoValueCore.fromID(id, this);
+      entry = new CoValueCore(id, this);
       this.coValues.set(id, entry);
     }
 
@@ -640,11 +640,13 @@ export class LocalNode {
       account,
       inviteRole === "adminInvite"
         ? "admin"
-        : inviteRole === "writerInvite"
-          ? "writer"
-          : inviteRole === "writeOnlyInvite"
-            ? "writeOnly"
-            : "reader",
+        : inviteRole === "managerInvite"
+          ? "manager"
+          : inviteRole === "writerInvite"
+            ? "writer"
+            : inviteRole === "writeOnlyInvite"
+              ? "writeOnly"
+              : "reader",
     );
 
     const contentPieces =

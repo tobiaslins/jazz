@@ -5,7 +5,7 @@
   import { CoState } from "../jazz.class.svelte";
   import type { ImageProps } from "./image.types.js";
 
-  const { imageId, width, height, ...rest }: ImageProps = $props();
+  const { imageId, width, height, placeholder, ...rest }: ImageProps = $props();
 
   const imageState = new CoState(ImageDefinition, () => imageId);
   let lastBestImage: [string, string] | null = null;
@@ -69,7 +69,10 @@
 
     const image = imageState.current;
     if (image === undefined)
-      return "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==";
+      return (
+        placeholder ??
+        "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
+      );
 
     if (!image) return undefined;
 
@@ -79,7 +82,7 @@
       dimensions.height || dimensions.width || 9999,
     );
 
-    if (!bestImage) return image.placeholderDataURL;
+    if (!bestImage) return image.placeholderDataURL ?? placeholder;
     if (lastBestImage?.[0] === bestImage.image.$jazz.id)
       return lastBestImage?.[1];
 
@@ -92,7 +95,7 @@
       return url;
     }
 
-    return image.placeholderDataURL;
+    return image.placeholderDataURL ?? placeholder;
   });
 
   // Cleanup object URL on component destroy

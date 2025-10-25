@@ -56,6 +56,7 @@ export {
   exportCoValue,
   importContentPieces,
   Ref,
+  unstable_loadUnique,
 } from "./internal.js";
 
 export {

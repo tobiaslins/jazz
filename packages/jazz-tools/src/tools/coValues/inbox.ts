@@ -293,12 +293,12 @@ export class Inbox {
 
     const handleNewMessages = () => {
       for (const tx of messagesFeed.getNewItems()) {
-        const accountID = getAccountIDfromSessionID(tx.txID.sessionID);
+        const accountID = getAccountIDfromSessionID(tx.currentTxID.sessionID);
 
         if (!accountID) {
           console.warn(
             "Received message from unknown account",
-            tx.txID.sessionID,
+            tx.currentTxID.sessionID,
           );
           continue;
         }
@@ -309,7 +309,8 @@ export class Inbox {
           continue;
         }
 
-        const txKey = `${tx.txID.sessionID}/${tx.txID.txIndex}` as const;
+        const txKey =
+          `${tx.currentTxID.sessionID}/${tx.currentTxID.txIndex}` as const;
 
         if (processed.has(txKey)) {
           continue;
@@ -430,12 +431,12 @@ export class InboxSender<I extends CoValue, O extends CoValue | undefined> {
       throw new Error("Failed to load the inbox owner profile");
     }
 
+    const inboxOwnerRole = inboxOwnerProfileRaw.group.roleOf(
+      currentAccount.$jazz.raw.id,
+    );
+
     if (
-      inboxOwnerProfileRaw.group.roleOf(currentAccount.$jazz.raw.id) !==
-        "reader" &&
-      inboxOwnerProfileRaw.group.roleOf(currentAccount.$jazz.raw.id) !==
-        "writer" &&
-      inboxOwnerProfileRaw.group.roleOf(currentAccount.$jazz.raw.id) !== "admin"
+      !["reader", "writer", "admin", "manager"].includes(inboxOwnerRole ?? "")
     ) {
       throw new Error(
         "Insufficient permissions to access the inbox, make sure its user profile is publicly readable.",

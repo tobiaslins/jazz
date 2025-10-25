@@ -10,6 +10,7 @@ import { ControlledAccount, ControlledAgent } from "../coValues/account.js";
 import { WasmCrypto } from "../crypto/WasmCrypto.js";
 import {
   type AgentSecret,
+  AnyRawCoValue,
   type CoID,
   type CoValueCore,
   type RawAccount,
@@ -24,6 +25,8 @@ import { expectGroup } from "../typeUtils/expectGroup.js";
 import { toSimplifiedMessages } from "./messagesTestUtils.js";
 import { createAsyncStorage, createSyncStorage } from "./testStorage.js";
 import { PureJSCrypto } from "../crypto/PureJSCrypto.js";
+import { CoValueHeader } from "../coValueCore/verifiedState.js";
+import { idforHeader } from "../coValueCore/coValueCore.js";
 
 let Crypto = await WasmCrypto.create();
 
@@ -721,4 +724,22 @@ export function createAccountInNode(node: LocalNode) {
     accountCoreEntry.getCurrentContent() as RawAccount,
     accountOnTempNode.core.node.agentSecret,
   );
+}
+
+export function createUnloadedCoValue(
+  node: LocalNode,
+  type: AnyRawCoValue["type"] = "comap",
+) {
+  const header = {
+    type,
+    ruleset: { type: "ownedByGroup", group: node.getCurrentAccountOrAgentID() },
+    meta: null,
+    ...node.crypto.createdNowUnique(),
+  } as CoValueHeader;
+
+  const id = idforHeader(header, node.crypto);
+
+  const state = node.getCoValue(id);
+
+  return { coValue: state, id, header };
 }

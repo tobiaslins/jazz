@@ -1,7 +1,6 @@
 import { NavItemProps } from "@garden-co/design-system/src/components/organisms/Nav";
 
 export const navigationItems: NavItemProps[] = [
-  { title: "Jazz Cloud", href: "/cloud" },
   {
     title: "Docs",
     href: "/docs",
@@ -21,4 +20,3 @@ export const navigationItems: NavItemProps[] = [
     newTab: true,
   },
 ];
-
