@@ -264,7 +264,7 @@ export class CoValueCore {
    * True if the coValue is completely downloaded:
    * - the current coValue is available and not streaming
    * - the group is available and not streaming
-   * - all the parent groups are available and not streaming
+   * - TODO: all the parent groups are available and not streaming
    */
   isCompletelyDownloaded(): this is AvailableCoValueCore {
     if (!this.hasVerifiedContent()) {
@@ -509,7 +509,7 @@ export class CoValueCore {
 
   groupInvalidationSubscription?: () => void;
 
-  subscribeToGroupInvalidation(newContent: RawCoValue) {
+  subscribeToGroupInvalidation() {
     if (!this.verified) {
       return;
     }
@@ -828,7 +828,7 @@ export class CoValueCore {
 
     const newContent = coreToCoValue(this as AvailableCoValueCore, options);
 
-    this.subscribeToGroupInvalidation(newContent);
+    this.subscribeToGroupInvalidation();
 
     if (!options?.ignorePrivateTransactions) {
       this._cachedContent = newContent;
