@@ -238,7 +238,7 @@ test("Should ignore unknown meta transactions", () => {
   expect(content.get("key1")).toEqual("set1");
 });
 
-test.only("totalValidTransactions should return the number of valid transactions processed", async () => {
+test("totalValidTransactions should return the number of valid transactions processed", async () => {
   const client = setupTestNode({
     connected: true,
   });
@@ -249,33 +249,33 @@ test.only("totalValidTransactions should return the number of valid transactions
   const group = client.node.createGroup();
   group.addMember("everyone", "reader");
 
-  // const map = group.createMap({ fromClient: true });
+  const map = group.createMap({ fromClient: true });
 
-  // const mapOnOtherClient = await loadCoValueOrFail(otherClient.node, map.id);
+  const mapOnOtherClient = await loadCoValueOrFail(otherClient.node, map.id);
 
-  // otherClientConnection.peerState.gracefulShutdown();
+  otherClientConnection.peerState.gracefulShutdown();
 
-  // group.addMember("everyone", "writer");
+  group.addMember("everyone", "writer");
 
-  // await new Promise((resolve) => setTimeout(resolve, 50));
+  await new Promise((resolve) => setTimeout(resolve, 50));
 
-  // mapOnOtherClient.set("fromOtherClient", true, "trusting");
+  mapOnOtherClient.set("fromOtherClient", true, "trusting");
 
-  // expect(mapOnOtherClient.totalValidTransactions).toEqual(1);
-  // expect(mapOnOtherClient.toJSON()).toEqual({
-  //   fromClient: true,
-  // });
+  expect(mapOnOtherClient.totalValidTransactions).toEqual(1);
+  expect(mapOnOtherClient.toJSON()).toEqual({
+    fromClient: true,
+  });
 
-  // otherClient.connectToSyncServer();
+  otherClient.connectToSyncServer();
 
-  // await waitFor(() => {
-  //   expect(mapOnOtherClient.core.getCurrentContent().toJSON()).toEqual({
-  //     fromClient: true,
-  //     fromOtherClient: true,
-  //   });
-  // });
+  await waitFor(() => {
+    expect(mapOnOtherClient.core.getCurrentContent().toJSON()).toEqual({
+      fromClient: true,
+      fromOtherClient: true,
+    });
+  });
 
-  // expect(
-  //   mapOnOtherClient.core.getCurrentContent().totalValidTransactions,
-  // ).toEqual(2);
+  expect(
+    mapOnOtherClient.core.getCurrentContent().totalValidTransactions,
+  ).toEqual(2);
 });
