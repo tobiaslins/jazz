@@ -85,6 +85,9 @@ export class RawCoMapView<
       options?.ignorePrivateTransactions ?? false;
     this.ops = {};
     this.latest = {};
+
+    // We track the knownTransacions in multiple CoValues because branches
+    // need to retrieve the transactions from both the source and the branch
     this.knownTransactions = { [core.id]: 0 };
 
     this.processNewTransactions();
