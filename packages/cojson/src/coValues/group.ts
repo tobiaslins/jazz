@@ -294,6 +294,8 @@ export class RawGroup<
   }
 
   forEachChildGroup(callback: (child: RawGroup) => void) {
+    // When rotating the parent key, all the child groups loaded in memory rotate their key.
+    // The unloaded child groups will be rotated when they are loaded, by checking if their key has been revealed to the latest parent readKey.
     for (const id of this.core.dependant) {
       const dependant = this.core.node.getCoValue(id);
 
