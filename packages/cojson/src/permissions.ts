@@ -169,7 +169,7 @@ export function determineValidTransactions(coValue: CoValueCore): void {
 
   // The CoValue has unsafeAllowAll ruleset
   if (coValue.verified.header.ruleset.type === "unsafeAllowAll") {
-    for (const tx of coValue.verifiedTransactions) {
+    for (const tx of coValue.toValidateTransactions) {
       tx.markValid();
     }
     return;
