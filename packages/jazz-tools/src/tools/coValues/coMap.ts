@@ -32,7 +32,7 @@ import {
   TypeSym,
   BranchDefinition,
   getIdFromHeader,
-  unstable_loadUnique,
+  internalLoadUnique,
   Account,
   CoValueBase,
   CoValueJazzApi,
@@ -500,7 +500,7 @@ export class CoMap extends CoValueBase implements CoValue {
       options.owner.$jazz.id,
     );
 
-    return unstable_loadUnique(this, {
+    return internalLoadUnique(this, {
       header,
       owner: options.owner,
       resolve: options.resolve,
@@ -545,7 +545,7 @@ export class CoMap extends CoValueBase implements CoValue {
 
     if (!owner.$isLoaded) return owner;
 
-    return unstable_loadUnique(this, {
+    return internalLoadUnique(this, {
       header,
       owner,
       resolve: options?.resolve,

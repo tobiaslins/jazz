@@ -39,7 +39,6 @@ export type {
   AccountClass,
   AccountCreationProps,
   BaseProfileShape,
-  unstable_loadUnique,
 } from "./internal.js";
 
 export {
@@ -61,6 +60,7 @@ export {
   importContentPieces,
   Ref,
   createUnloadedCoValue,
+  unstable_loadUnique,
 } from "./internal.js";
 
 export {

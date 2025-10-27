@@ -1,5 +1,4 @@
-import { useToast } from "@/hooks/use-toast";
-import { createInviteLink, useCoState } from "jazz-tools/react";
+import { useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import { Playlist } from "./1_schema";
 import { uploadMusicTracks } from "./4_actions";
@@ -9,6 +8,7 @@ import { MusicTrackRow } from "./components/MusicTrackRow";
 import { PlayerControls } from "./components/PlayerControls";
 import { EditPlaylistModal } from "./components/EditPlaylistModal";
 import { PlaylistMembers } from "./components/PlaylistMembers";
+import { MemberAccessModal } from "./components/MemberAccessModal";
 import { SidePanel } from "./components/SidePanel";
 import { Button } from "./components/ui/button";
 import { SidebarInset, SidebarTrigger } from "./components/ui/sidebar";
@@ -19,8 +19,8 @@ import { useAccountSelector } from "@/components/AccountProvider.tsx";
 export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
   const playState = usePlayState();
   const isPlaying = playState.value === "play";
-  const { toast } = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
 
   async function handleFileLoad(files: FileList) {
     /**
@@ -46,27 +46,18 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
     select: (playlist) => (playlist.$isLoaded ? playlist : undefined),
   });
 
-  const isPlaylistOwner = useAccountSelector({
-    select: (me) => playlist && me.$isLoaded && me.canAdmin(playlist),
+  const membersIds = playlist?.$jazz.owner.members.map((member) => member.id);
+  const isRootPlaylist = !params.playlistId;
+  const canEdit = useAccountSelector({
+    select: (me) => Boolean(playlist && me.canWrite(playlist)),
   });
   const isActivePlaylist = useAccountSelector({
     select: (me) =>
       me.$isLoaded && playlistId === me.root.activePlaylist?.$jazz.id,
   });
 
-  const membersIds = playlist?.$jazz.owner.members.map((member) => member.id);
-  const isRootPlaylist = !params.playlistId;
-
-  const handlePlaylistShareClick = async () => {
-    if (!isPlaylistOwner || !playlist) return;
-
-    const inviteLink = createInviteLink(playlist, "reader");
-
-    await navigator.clipboard.writeText(inviteLink);
-
-    toast({
-      title: "Invite link copied into the clipboard",
-    });
+  const handlePlaylistShareClick = () => {
+    setIsMembersModalOpen(true);
   };
 
   const handleEditClick = () => {
@@ -91,7 +82,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                 {membersIds && playlist && (
                   <PlaylistMembers
                     memberIds={membersIds}
-                    group={playlist.$jazz.owner}
+                    onClick={() => setIsMembersModalOpen(true)}
                   />
                 )}
               </div>
@@ -104,7 +95,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
                   </FileUploadButton>
                 </>
               )}
-              {!isRootPlaylist && (
+              {!isRootPlaylist && canEdit && (
                 <>
                   <Button onClick={handleEditClick} variant="outline">
                     Edit
@@ -144,6 +135,15 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
       />
+
+      {/* Members Management Modal */}
+      {playlist && (
+        <MemberAccessModal
+          isOpen={isMembersModalOpen}
+          onOpenChange={setIsMembersModalOpen}
+          playlist={playlist}
+        />
+      )}
     </SidebarInset>
   );
 }

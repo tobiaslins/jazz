@@ -6,7 +6,12 @@ import {
   createJazzTestAccount,
   runWithoutActiveAccount,
 } from "../testing";
-import { Group, co, activeAccountContext } from "../internal";
+import {
+  Group,
+  co,
+  activeAccountContext,
+  unstable_loadUnique,
+} from "../internal";
 import { z } from "../exports";
 
 beforeEach(async () => {
@@ -46,6 +51,61 @@ describe("Creating and finding unique CoMaps", async () => {
       group.$jazz.id,
     );
     expect(foundAlice).toEqual(alice);
+  });
+
+  test("should work with unstable_loadUnique", async () => {
+    const group = Group.create();
+
+    const Person = co.map({
+      name: z.string(),
+      _height: z.number(),
+      birthday: z.date(),
+      color: z.string(),
+    });
+
+    const alice = Person.create(
+      {
+        name: "Alice",
+        _height: 100,
+        birthday: new Date("1990-01-01"),
+        color: "red",
+      },
+      { owner: group, unique: { name: "Alice" } },
+    );
+
+    const foundAlice = await unstable_loadUnique(Person, {
+      unique: { name: "Alice" },
+      owner: group,
+    });
+    expect(foundAlice).toEqual(alice);
+  });
+
+  test("should upsert with unstable_loadUnique", async () => {
+    const group = Group.create();
+
+    const Person = co.map({
+      name: z.string(),
+      _height: z.number(),
+      birthday: z.date(),
+      color: z.string(),
+    });
+
+    const alice = await unstable_loadUnique(Person, {
+      unique: { name: "Alice" },
+      onCreateWhenMissing: () => {
+        Person.create(
+          {
+            name: "Alice",
+            _height: 100,
+            birthday: new Date("1990-01-01"),
+            color: "red",
+          },
+          { owner: group, unique: { name: "Alice" } },
+        );
+      },
+      owner: group,
+    });
+    expect(alice?.name).toEqual("Alice");
   });
 
   test("manual upserting pattern", async () => {
@@ -123,6 +183,51 @@ describe("Creating and finding unique CoMaps", async () => {
       identifier: sourceData.identifier,
       external_id: sourceData._id,
     });
+  });
+
+  test("upserting a existent value without enough permissions should not throw", async () => {
+    const Event = co.map({
+      title: z.string(),
+      identifier: z.string(),
+      external_id: z.string(),
+    });
+
+    const sourceData = {
+      title: "Test Event Title",
+      identifier: "test-event-identifier",
+      _id: "test-event-external-id",
+    };
+    const workspace = Group.create();
+
+    const initialEvent = await Event.upsertUnique({
+      value: {
+        title: sourceData.title,
+        identifier: sourceData.identifier,
+        external_id: sourceData._id,
+      },
+      unique: sourceData.identifier,
+      owner: workspace,
+    });
+
+    const alice = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const workspaceOnAlice = await Group.load(workspace.$jazz.id, {
+      loadAs: alice,
+    });
+    assert(workspaceOnAlice);
+
+    const eventOnAlice = await Event.upsertUnique({
+      value: {
+        title: sourceData.title,
+        identifier: sourceData.identifier,
+        external_id: sourceData._id,
+      },
+      unique: sourceData.identifier,
+      owner: workspaceOnAlice,
+    });
+    expect(eventOnAlice).toBeNull();
   });
 
   test("upserting without an active account", async () => {

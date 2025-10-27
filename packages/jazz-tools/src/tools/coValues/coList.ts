@@ -24,7 +24,7 @@ import {
   TypeSym,
   BranchDefinition,
   getIdFromHeader,
-  unstable_loadUnique,
+  internalLoadUnique,
   CoValueLoadingState,
 } from "../internal.js";
 import {
@@ -386,7 +386,7 @@ export class CoList<out Item = any>
       options.owner.$jazz.id,
     );
 
-    return unstable_loadUnique(this, {
+    return internalLoadUnique(this, {
       header,
       owner: options.owner,
       resolve: options.resolve,
@@ -428,7 +428,7 @@ export class CoList<out Item = any>
     });
     if (!owner.$isLoaded) return owner;
 
-    return unstable_loadUnique(this, {
+    return internalLoadUnique(this, {
       header,
       owner,
       resolve: options?.resolve,

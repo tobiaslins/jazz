@@ -1,5 +1,16 @@
 # jazz-webhook
 
+## 0.18.29
+
+### Patch Changes
+
+- Updated dependencies [cc7efc8]
+- Updated dependencies [f55d17f]
+  - jazz-tools@0.18.29
+  - cojson@0.18.29
+  - cojson-storage-sqlite@0.18.29
+  - cojson-transport-ws@0.18.29
+
 ## 0.18.28
 
 ### Patch Changes

@@ -55,8 +55,6 @@ export class VerifiedState {
   readonly crypto: CryptoProvider;
   readonly header: CoValueHeader;
   readonly sessions: SessionMap;
-  private _cachedKnownState?: CoValueKnownState;
-  private _cachedKnownStateWithStreaming?: CoValueKnownState;
   private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
   public lastAccessed: number | undefined;
   public branchSourceId?: RawCoID;
@@ -102,8 +100,6 @@ export class VerifiedState {
 
     if (result.isOk()) {
       this._cachedNewContentSinceEmpty = undefined;
-      this._cachedKnownState = undefined;
-      this._cachedKnownStateWithStreaming = undefined;
     }
 
     return result;
@@ -125,8 +121,6 @@ export class VerifiedState {
     );
 
     this._cachedNewContentSinceEmpty = undefined;
-    this._cachedKnownState = undefined;
-    this._cachedKnownStateWithStreaming = undefined;
 
     return result;
   }
@@ -151,8 +145,6 @@ export class VerifiedState {
     );
 
     this._cachedNewContentSinceEmpty = undefined;
-    this._cachedKnownState = undefined;
-    this._cachedKnownStateWithStreaming = undefined;
 
     return result;
   }
@@ -286,39 +278,12 @@ export class VerifiedState {
     return piecesWithContent;
   }
 
-  /**
-   * Returns the known state of the CoValue
-   *
-   * The return value identity is going to be stable as long as the CoValue is not modified.
-   *
-   * On change the knownState is invalidated and a new object is returned.
-   */
   knownState() {
-    if (this._cachedKnownState) {
-      return this._cachedKnownState;
-    }
-    this._cachedKnownState = cloneKnownState(this.sessions.knownState);
-    return this._cachedKnownState;
+    return this.sessions.knownState;
   }
 
-  /**
-   * Returns the known state considering the known state of the streaming source
-   *
-   * Used to correctly manage the content & subscriptions during the content streaming process
-   */
   knownStateWithStreaming() {
-    if (!this.sessions.knownStateWithStreaming) {
-      return this.knownState();
-    }
-
-    if (this._cachedKnownStateWithStreaming) {
-      return this._cachedKnownStateWithStreaming;
-    }
-    this._cachedKnownStateWithStreaming = cloneKnownState(
-      this.sessions.knownStateWithStreaming,
-    );
-
-    return this._cachedKnownStateWithStreaming;
+    return this.sessions.knownStateWithStreaming ?? this.knownState();
   }
 
   isStreaming(): boolean {

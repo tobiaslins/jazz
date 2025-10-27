@@ -228,7 +228,7 @@ async function handleImagePicker() {
 
 The `createImage()` function:
 - Creates an `ImageDefinition` with the right properties
-- Generates a small placeholder for immediate display
+- Optionally generates a small placeholder for immediate display
 - Creates multiple resolution variants of your image
 - Returns the created `ImageDefinition`
 
@@ -242,7 +242,7 @@ declare function createImage(
   image: Blob | File | string,
   options: {
     owner?: Group | Account;
-    placeholder?: "blur" | false;
+    placeholder?: false | "blur";
     maxSize?: number;
     progressive?: boolean;
   }): Loaded<
@@ -268,7 +268,7 @@ The owner of the `ImageDefinition`. This is used to control access to the image.
 
 #### `placeholder`
 
-The placeholder is a base64 encoded image that is displayed while the image is loading. Currently, only `"blur"` is a supported.
+Disabled by default. This option allows you to automatically generate a low resolution preview for use while the image is loading. Currently, only `"blur"` is a supported.
 
 #### `maxSize`
 
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
 </TabbedCodeGroup>
 
 The `Image` component handles:
-- Showing a placeholder while loading, if generated
+- Showing a placeholder while loading, if generated or specified
 - Automatically selecting the appropriate resolution, if generated with progressive loading
 - Progressive enhancement as higher resolutions become available, if generated with progressive loading
 - Determining the correct width/height attributes to avoid layout shifting
@@ -469,6 +469,7 @@ export type ImageProps = Omit<
   imageId: string;
   width?: number | "original";
   height?: number | "original";
+  placeholder?: string;
 };
 ```
 </CodeGroup>
@@ -484,6 +485,7 @@ export type ImageProps = Omit<
   imageId: string;
   width?: number | "original";
   height?: number | "original";
+  placeholder?: string;
 };
 ```
 </CodeGroup>
@@ -534,6 +536,11 @@ The `Image` component supports lazy loading with the [same options as the native
 </ContentByFramework>
 
 <ContentByFramework framework={['react', 'svelte','react-native','react-native-expo']}>
+
+#### Placeholder
+
+You can choose to specify a custom placeholder to display as a fallback while an image is loading in case your image does not have a placeholder generated. A data URL or a URL for a static asset works well here.
+
 ### Imperative Usage [!framework=react,svelte,react-native,react-native-expo]
 </ContentByFramework>
 

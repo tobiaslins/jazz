@@ -128,11 +128,13 @@ function ChatBubble({ me, msg }: { me: Account; msg: Message }) {
 
   return (
     <BubbleContainer fromMe={fromMe}>
+      {lastEdit && (
+        <BubbleInfo by={lastEdit.by?.profile?.name} madeAt={lastEdit.madeAt} />
+      )}
       <BubbleBody fromMe={fromMe}>
         {image?.$isLoaded ? <BubbleImage image={image} /> : null}
         <BubbleText text={text} />
       </BubbleBody>
-      {lastEdit && <BubbleInfo by={lastEditorName} madeAt={lastEdit.madeAt} />}
     </BubbleContainer>
   );
 }

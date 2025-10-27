@@ -35,6 +35,13 @@ export type ImageProps = Omit<RNImageProps, "width" | "height" | "source"> & {
    * ```
    */
   height?: number | "original";
+  /**
+   * A custom placeholder to display while an image is loading. This will
+   * be passed as the src of the img tag, so a data URL works well here.
+   * This will be used as a fallback if no images are ready and no placeholder
+   * is available otherwise.
+   */
+  placeholder?: string;
 };
 
 /**
@@ -53,6 +60,7 @@ export type ImageProps = Omit<RNImageProps, "width" | "height" | "source"> & {
  *       width={100}
  *       height={100}
  *       resizeMode="cover"
+ *       placeholder="/placeholder.png"
  *     />
  *   );
  * }
@@ -65,7 +73,7 @@ export type ImageProps = Omit<RNImageProps, "width" | "height" | "source"> & {
  * ```
  */
 export const Image = forwardRef<RNImage, ImageProps>(function Image(
-  { imageId, width, height, ...props },
+  { imageId, width, height, placeholder, ...props },
   ref,
 ) {
   const image = useCoState(ImageDefinition, imageId, {
@@ -119,7 +127,7 @@ export const Image = forwardRef<RNImage, ImageProps>(function Image(
     if (!image) return;
 
     let lastBestImage: FileStream | string | undefined =
-      image.placeholderDataURL;
+      image?.placeholderDataURL ?? placeholder;
 
     const unsub = image.$jazz.subscribe({}, (update) => {
       if (lastBestImage === undefined && update.placeholderDataURL) {
@@ -148,7 +156,7 @@ export const Image = forwardRef<RNImage, ImageProps>(function Image(
     return unsub;
   }, [image]);
 
-  if (!image) {
+  if (!src) {
     return null;
   }
 
