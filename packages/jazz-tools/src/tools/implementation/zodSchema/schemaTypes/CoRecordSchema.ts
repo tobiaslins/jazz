@@ -72,7 +72,7 @@ export interface CoRecordSchema<
     > = true,
   >(
     id: string,
-    options?: {
+    options: {
       resolve?: RefsToResolveStrict<
         CoRecordInstanceCoValuesMaybeLoaded<K, V>,
         R

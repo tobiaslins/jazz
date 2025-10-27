@@ -2,11 +2,16 @@ import {
   Account,
   AccountCreationProps,
   BranchDefinition,
+  CoMapSchemaDefinition,
   coOptionalDefiner,
   Group,
   MaybeLoaded,
   RefsToResolveStrict,
+  RefsToResolve,
+  Resolved,
   Simplify,
+  SubscribeListenerOptions,
+  unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
@@ -18,6 +23,7 @@ import {
   CoreCoMapSchema,
   createCoreCoMapSchema,
 } from "./CoMapSchema.js";
+import { CoOptionalSchema } from "./CoOptionalSchema.js";
 
 export type BaseProfileShape = {
   name: z.core.$ZodString<string>;
@@ -35,60 +41,106 @@ export type DefaultAccountShape = {
   root: CoMapSchema<{}>;
 };
 
-export interface AccountSchema<
-  Shape extends BaseAccountShape = DefaultAccountShape,
-> extends CoreAccountSchema<Shape>,
-    Omit<
-      CoMapSchema<Shape>,
-      | "builtin"
-      | "getDefinition"
-      | "create"
-      | "load"
-      | "withMigration"
-      | "unstable_merge"
-      | "getCoValueClass"
-    > {
-  builtin: "Account";
+export class AccountSchema<Shape extends BaseAccountShape = DefaultAccountShape>
+  implements CoreAccountSchema<Shape>
+{
+  collaborative = true as const;
+  builtin = "Account" as const;
+  shape: Shape;
+  getDefinition: () => CoMapSchemaDefinition;
 
-  create: (
+  constructor(
+    coreSchema: CoreAccountSchema<Shape>,
+    private coValueClass: typeof Account,
+  ) {
+    this.shape = coreSchema.shape;
+    this.getDefinition = coreSchema.getDefinition;
+  }
+
+  create(
     options: Simplify<Parameters<(typeof Account)["create"]>[0]>,
-  ) => Promise<AccountInstance<Shape>>;
+  ): Promise<AccountInstance<Shape>> {
+    // @ts-expect-error
+    return this.coValueClass.create(options);
+  }
 
-  load: <R extends ResolveQuery<AccountSchema<Shape>>>(
+  load<R extends ResolveQuery<AccountSchema<Shape>>>(
     id: string,
     options?: {
       loadAs?: Account | AnonymousJazzAgent;
       resolve?: RefsToResolveStrict<AccountSchema<Shape>, R>;
     },
-  ) => Promise<MaybeLoaded<Loaded<AccountSchema<Shape>, R>>>;
+  ): Promise<MaybeLoaded<Loaded<AccountSchema<Shape>, R>>> {
+    // @ts-expect-error
+    return this.coValueClass.load(id, options);
+  }
 
   /** @internal */
-  createAs: (
+  createAs(
     as: Account,
     options: {
-      creationProps?: { name: string };
+      creationProps: { name: string };
     },
-  ) => Promise<AccountInstance<Shape>>;
+  ): Promise<AccountInstance<Shape>> {
+    // @ts-expect-error
+    return this.coValueClass.createAs(as, options);
+  }
 
-  unstable_merge: <R extends ResolveQuery<AccountSchema<Shape>>>(
+  unstable_merge<R extends ResolveQuery<AccountSchema<Shape>>>(
     id: string,
-    options?: {
+    options: {
       loadAs?: Account | AnonymousJazzAgent;
       resolve?: RefsToResolveStrict<AccountSchema<Shape>, R>;
       branch: BranchDefinition;
     },
-  ) => Promise<void>;
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
+  }
 
-  getMe: () => Loaded<this, true>;
+  subscribe<
+    const R extends RefsToResolve<Simplify<AccountInstance<Shape>>> = true,
+  >(
+    id: string,
+    options: SubscribeListenerOptions<Simplify<AccountInstance<Shape>>, R>,
+    listener: (
+      value: Resolved<Simplify<AccountInstance<Shape>>, R>,
+      unsubscribe: () => void,
+    ) => void,
+  ): () => void {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(id, options, listener);
+  }
+
+  getMe(): Loaded<this, true> {
+    // @ts-expect-error
+    return this.coValueClass.getMe();
+  }
 
   withMigration(
     migration: (
       account: Loaded<AccountSchema<Shape>>,
       creationProps?: { name: string },
     ) => void,
-  ): AccountSchema<Shape>;
+  ): AccountSchema<Shape> {
+    (this.coValueClass.prototype as Account).migrate = async function (
+      this,
+      creationProps,
+    ) {
+      // @ts-expect-error
+      await migration(this, creationProps);
+    };
 
-  getCoValueClass: () => typeof Account;
+    return this;
+  }
+
+  getCoValueClass(): typeof Account {
+    return this.coValueClass;
+  }
+
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
+  }
 }
 
 export function createCoreAccountSchema<Shape extends BaseAccountShape>(
@@ -98,62 +150,6 @@ export function createCoreAccountSchema<Shape extends BaseAccountShape>(
     ...createCoreCoMapSchema(shape),
     builtin: "Account" as const,
   };
-}
-
-export function enrichAccountSchema<Shape extends BaseAccountShape>(
-  schema: CoreAccountSchema<Shape>,
-  coValueClass: typeof Account,
-): AccountSchema<Shape> {
-  const enrichedSchema = Object.assign(schema, {
-    create: (...args: any[]) => {
-      // @ts-expect-error
-      return coValueClass.create(...args);
-    },
-    createAs: (...args: any[]) => {
-      // @ts-expect-error
-      return coValueClass.createAs(...args);
-    },
-    getMe: (...args: any[]) => {
-      // @ts-expect-error
-      return coValueClass.getMe(...args);
-    },
-    load: (...args: any[]) => {
-      // @ts-expect-error
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: any[]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    fromRaw: (...args: any[]) => {
-      // @ts-expect-error
-      return coValueClass.fromRaw(...args);
-    },
-    unstable_merge: (...args: any[]) => {
-      // @ts-expect-error
-      return unstable_mergeBranchWithResolve(coValueClass, ...args);
-    },
-    withMigration: (
-      migration: (
-        value: any,
-        creationProps?: AccountCreationProps,
-      ) => void | Promise<void>,
-    ) => {
-      (coValueClass.prototype as Account).migrate = async function (
-        this,
-        creationProps,
-      ) {
-        await migration(this, creationProps);
-      };
-
-      return enrichedSchema;
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-    optional: () => coOptionalDefiner(enrichedSchema),
-  }) as unknown as AccountSchema<Shape>;
-  return enrichedSchema;
 }
 
 export type DefaultProfileShape = {

@@ -102,7 +102,7 @@ export class CoMapSchema<
     > = true,
   >(
     id: string,
-    options?: {
+    options: {
       resolve?: RefsToResolveStrict<
         Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap,
         R

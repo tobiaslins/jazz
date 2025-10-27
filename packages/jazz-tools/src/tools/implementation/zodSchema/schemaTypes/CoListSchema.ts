@@ -74,7 +74,7 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
     const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
   >(
     id: string,
-    options?: {
+    options: {
       resolve?: RefsToResolveStrict<CoListInstanceCoValuesMaybeLoaded<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
       branch: BranchDefinition;

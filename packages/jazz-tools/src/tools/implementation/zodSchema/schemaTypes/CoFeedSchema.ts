@@ -64,7 +64,7 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
     const R extends RefsToResolve<CoFeedInstanceCoValuesMaybeLoaded<T>> = true,
   >(
     id: string,
-    options?: {
+    options: {
       resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesMaybeLoaded<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
       branch: BranchDefinition;
