@@ -191,6 +191,7 @@ export class RawGroup<
     super(core, options);
     this.crypto = core.node.crypto;
 
+    // Checks if this is not an account
     if (core.isGroup()) {
       rotateReadKeyIfNeeded(this);
       healMissingKeyForEveryone(this);
