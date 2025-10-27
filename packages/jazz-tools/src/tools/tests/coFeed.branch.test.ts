@@ -247,6 +247,8 @@ describe("CoFeed Branching", async () => {
         Group.create(me).makePublic("writer"),
       );
 
+      await new Promise((resolve) => setTimeout(resolve, 5));
+
       const branch = await TestStream.load(originalFeed.$jazz.id, {
         unstable_branch: { name: "double-merge-branch" },
       });
@@ -258,7 +260,16 @@ describe("CoFeed Branching", async () => {
       // First merge
       branch.$jazz.unstable_merge();
 
-      expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("jam");
+      const feed = await TestStream.load(originalFeed.$jazz.id);
+      assert(feed);
+
+      if (feed.perAccount[me.$jazz.id]?.value !== "jam") {
+        console.log(feed.$jazz.raw.items, feed.perAccount[me.$jazz.id]?.value);
+      }
+
+      expect(feed.perAccount[me.$jazz.id]?.value).toEqual("jam");
+
+      await new Promise((resolve) => setTimeout(resolve, 5));
 
       // Make more changes to the branch
       branch.$jazz.push("cheese");
@@ -267,10 +278,8 @@ describe("CoFeed Branching", async () => {
       branch.$jazz.unstable_merge();
 
       // Verify all changes are applied
-      expect(originalFeed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
-      expect(originalFeed.perSession[me.$jazz.sessionID]?.value).toEqual(
-        "cheese",
-      );
+      expect(feed.perAccount[me.$jazz.id]?.value).toEqual("cheese");
+      expect(feed.perSession[me.$jazz.sessionID]?.value).toEqual("cheese");
     });
 
     test("two users merge different branches with different edits", async () => {

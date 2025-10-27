@@ -61,8 +61,10 @@ export function exceedsRecommendedSize(
   );
 }
 
+const cachedTextEncoder = new TextEncoder();
+
 export function validateTxSizeLimitInBytes(changes: JsonValue[]): void {
-  const serializedSize = new TextEncoder().encode(
+  const serializedSize = cachedTextEncoder.encode(
     JSON.stringify(changes),
   ).length;
   if (serializedSize > TRANSACTION_CONFIG.MAX_TX_SIZE_BYTES) {
