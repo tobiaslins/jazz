@@ -43,8 +43,8 @@ export function App() {
   }, [me?.$jazz?.id]);
 
   useEffect(() => {
-    setLocalValue(me?.profile?.name ?? "");
-  }, [me?.profile?.name]);
+    setLocalValue(profile?.name ?? "");
+  }, [profile?.name]);
 
   useEffect(() => {
     if (spanRef.current) {
@@ -92,8 +92,8 @@ export function App() {
             className="bg-transparent text-lg outline-none min-w-0 max-w-full"
             onChange={(e) => {
               setLocalValue(e.target.value);
-              if (!me?.profile) return;
-              me.profile.$jazz.set("name", e.target.value);
+              if (!profile) return;
+              profile.$jazz.set("name", e.target.value);
             }}
             placeholder={usernamePlaceholder}
           />

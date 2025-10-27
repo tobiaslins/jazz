@@ -161,7 +161,11 @@ export function MemberAccessModal(props: MemberAccessModalProps) {
                         />
                         <div className="flex-1">
                           <p className="font-medium text-gray-900">
-                            {isCurrentUser ? "You" : member.profile?.name}
+                            {isCurrentUser
+                              ? "You"
+                              : member.profile.$isLoaded
+                                ? member.profile.name
+                                : ""}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             {getRoleIcon(currentRole)}
