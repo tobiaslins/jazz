@@ -28,11 +28,27 @@ import { AnyZodOrCoValueSchema, AnyZodSchema } from "../zodSchema.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
 import { CoreCoValueSchema } from "./CoValueSchema.js";
 
-export interface CoMapSchema<
+export class CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
   Owner extends Account | Group = Account | Group,
-> extends CoreCoMapSchema<Shape, CatchAll> {
+> implements CoreCoMapSchema<Shape, CatchAll>
+{
+  collaborative = true as const;
+  builtin = "CoMap" as const;
+  shape: Shape;
+  catchAll?: CatchAll;
+  getDefinition: () => CoMapSchemaDefinition;
+
+  constructor(
+    coreSchema: CoreCoMapSchema<Shape, CatchAll>,
+    private coValueClass: typeof CoMap,
+  ) {
+    this.shape = coreSchema.shape;
+    this.catchAll = coreSchema.catchAll;
+    this.getDefinition = coreSchema.getDefinition;
+  }
+
   create(
     init: CoMapSchemaInit<Shape>,
     options?:
@@ -52,6 +68,9 @@ export interface CoMapSchema<
         }
       | Owner,
   ): CoMapInstanceShape<Shape, CatchAll> & CoMap;
+  create(...args: [any, ...any[]]) {
+    return this.coValueClass.create(...args);
+  }
 
   load<
     const R extends RefsToResolve<
@@ -72,7 +91,10 @@ export interface CoMapSchema<
     MaybeLoaded<
       Resolved<Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap, R>
     >
-  >;
+  > {
+    // @ts-expect-error
+    return this.coValueClass.load(id, options);
+  }
 
   unstable_merge<
     const R extends RefsToResolve<
@@ -88,7 +110,10 @@ export interface CoMapSchema<
       loadAs?: Account | AnonymousJazzAgent;
       branch: BranchDefinition;
     },
-  ): Promise<void>;
+  ): Promise<void> {
+    // @ts-expect-error
+    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
+  }
 
   subscribe<
     const R extends RefsToResolve<
@@ -107,16 +132,21 @@ export interface CoMapSchema<
       >,
       unsubscribe: () => void,
     ) => void,
-  ): () => void;
+  ): () => void {
+    // @ts-expect-error
+    return this.coValueClass.subscribe(id, options, listener);
+  }
 
   /** @deprecated Use `CoMap.upsertUnique` and `CoMap.loadUnique` instead. */
   findUnique(
     unique: CoValueUniqueness["uniqueness"],
     ownerID: string,
     as?: Account | Group | AnonymousJazzAgent,
-  ): string;
+  ): string {
+    return this.coValueClass.findUnique(unique, ownerID, as);
+  }
 
-  upsertUnique: <
+  upsertUnique<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
     > = true,
@@ -128,11 +158,14 @@ export interface CoMapSchema<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap,
       R
     >;
-  }) => Promise<
+  }): Promise<
     MaybeLoaded<
       Resolved<Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap, R>
     >
-  >;
+  > {
+    // @ts-expect-error
+    return this.coValueClass.upsertUnique(options);
+  }
 
   loadUnique<
     const R extends RefsToResolve<
@@ -152,10 +185,13 @@ export interface CoMapSchema<
     MaybeLoaded<
       Resolved<Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap, R>
     >
-  >;
+  > {
+    // @ts-expect-error
+    return this.coValueClass.loadUnique(unique, ownerID, options);
+  }
 
   /**
-   * @deprecated Use `co.map().catchall` will be removed in an upcoming version.
+   * @deprecated `co.map().catchall` will be removed in an upcoming version.
    *
    * Use a `co.record` nested inside a `co.map` if you need to store key-value properties.
    *
@@ -173,7 +209,10 @@ export interface CoMapSchema<
    * });
    * ```
    */
-  catchall<T extends AnyZodOrCoValueSchema>(schema: T): CoMapSchema<Shape, T>;
+  catchall<T extends AnyZodOrCoValueSchema>(schema: T): CoMapSchema<Shape, T> {
+    const schemaWithCatchAll = createCoreCoMapSchema(this.shape, schema);
+    return hydrateCoreCoValueSchema(schemaWithCatchAll);
+  }
 
   withMigration(
     migration: (
@@ -182,11 +221,19 @@ export interface CoMapSchema<
         true
       >,
     ) => undefined,
-  ): CoMapSchema<Shape, CatchAll, Owner>;
+  ): CoMapSchema<Shape, CatchAll, Owner> {
+    // @ts-expect-error
+    this.coValueClass.prototype.migrate = migration;
+    return this;
+  }
 
-  getCoValueClass: () => typeof CoMap;
+  getCoValueClass(): typeof CoMap {
+    return this.coValueClass;
+  }
 
-  optional(): CoOptionalSchema<this>;
+  optional(): CoOptionalSchema<this> {
+    return coOptionalDefiner(this);
+  }
 
   /**
    * Creates a new CoMap schema by picking the specified keys from the original schema.
@@ -196,7 +243,19 @@ export interface CoMapSchema<
    */
   pick<Keys extends keyof Shape>(
     keys: { [key in Keys]: true },
-  ): CoMapSchema<Simplify<Pick<Shape, Keys>>, unknown, Owner>;
+  ): CoMapSchema<Simplify<Pick<Shape, Keys>>, unknown, Owner> {
+    const keysSet = new Set(Object.keys(keys));
+    const pickedShape: Record<string, AnyZodOrCoValueSchema> = {};
+
+    for (const [key, value] of Object.entries(this.shape)) {
+      if (keysSet.has(key)) {
+        pickedShape[key] = value;
+      }
+    }
+
+    // @ts-expect-error the picked shape contains all required keys
+    return coMapDefiner(pickedShape);
+  }
 
   /**
    * Creates a new CoMap schema by making all fields optional.
@@ -207,7 +266,32 @@ export interface CoMapSchema<
     keys?: {
       [key in Keys]: true;
     },
-  ): CoMapSchema<PartialShape<Shape, Keys>, CatchAll, Owner>;
+  ): CoMapSchema<PartialShape<Shape, Keys>, CatchAll, Owner> {
+    const partialShape: Record<string, AnyZodOrCoValueSchema> = {};
+
+    for (const [key, value] of Object.entries(this.shape)) {
+      if (keys && !keys[key as Keys]) {
+        partialShape[key] = value;
+        continue;
+      }
+
+      if (isAnyCoValueSchema(value)) {
+        partialShape[key] = coOptionalDefiner(value);
+      } else {
+        partialShape[key] = z.optional(this.shape[key]);
+      }
+    }
+
+    const partialCoMapSchema = coMapDefiner(partialShape);
+    if (this.catchAll) {
+      // @ts-expect-error the partial shape contains all required keys
+      return partialCoMapSchema.catchall(
+        this.catchAll as unknown as AnyZodOrCoValueSchema,
+      );
+    }
+    // @ts-expect-error the partial shape contains all required keys
+    return partialCoMapSchema;
+  }
 }
 
 export function createCoreCoMapSchema<
@@ -245,103 +329,6 @@ export function createCoreCoMapSchema<
       },
     }),
   };
-}
-
-export function enrichCoMapSchema<
-  Shape extends z.core.$ZodLooseShape,
-  CatchAll extends AnyZodOrCoValueSchema | unknown,
->(
-  schema: CoreCoMapSchema<Shape, CatchAll>,
-  coValueClass: typeof CoMap,
-): CoMapSchema<Shape, CatchAll> {
-  const coValueSchema = Object.assign(schema, {
-    create: (...args: [any, ...any[]]) => {
-      return coValueClass.create(...args);
-    },
-    load: (...args: [any, ...any[]]) => {
-      return coValueClass.load(...args);
-    },
-    subscribe: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.subscribe(...args);
-    },
-    findUnique: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.findUnique(...args);
-    },
-    upsertUnique: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.upsertUnique(...args);
-    },
-    loadUnique: (...args: [any, ...any[]]) => {
-      // @ts-expect-error
-      return coValueClass.loadUnique(...args);
-    },
-    unstable_merge: (...args: any[]) => {
-      // @ts-expect-error
-      return unstable_mergeBranchWithResolve(coValueClass, ...args);
-    },
-    catchall: (catchAll: AnyZodOrCoValueSchema) => {
-      const schemaWithCatchAll = createCoreCoMapSchema(
-        coValueSchema.getDefinition().shape,
-        catchAll,
-      );
-      return hydrateCoreCoValueSchema(schemaWithCatchAll);
-    },
-    withMigration: (migration: (value: any) => undefined) => {
-      // @ts-expect-error TODO check
-      coValueClass.prototype.migrate = migration;
-
-      return coValueSchema;
-    },
-    getCoValueClass: () => {
-      return coValueClass;
-    },
-    optional: () => {
-      return coOptionalDefiner(coValueSchema);
-    },
-    pick: <Keys extends keyof Shape>(keys: { [key in Keys]: true }) => {
-      const keysSet = new Set(Object.keys(keys));
-      const pickedShape: Record<string, AnyZodOrCoValueSchema> = {};
-
-      for (const [key, value] of Object.entries(coValueSchema.shape)) {
-        if (keysSet.has(key)) {
-          pickedShape[key] = value;
-        }
-      }
-
-      return coMapDefiner(pickedShape);
-    },
-    partial: <Keys extends keyof Shape = keyof Shape>(
-      keys?: {
-        [key in Keys]: true;
-      },
-    ) => {
-      const partialShape: Record<string, AnyZodOrCoValueSchema> = {};
-
-      for (const [key, value] of Object.entries(coValueSchema.shape)) {
-        if (keys && !keys[key as Keys]) {
-          partialShape[key] = value;
-          continue;
-        }
-
-        if (isAnyCoValueSchema(value)) {
-          partialShape[key] = coOptionalDefiner(value);
-        } else {
-          partialShape[key] = z.optional(coValueSchema.shape[key]);
-        }
-      }
-
-      const partialCoMapSchema = coMapDefiner(partialShape);
-      if (coValueSchema.catchAll) {
-        return partialCoMapSchema.catchall(
-          coValueSchema.catchAll as unknown as AnyZodOrCoValueSchema,
-        );
-      }
-      return partialCoMapSchema;
-    },
-  }) as unknown as CoMapSchema<Shape, CatchAll>;
-  return coValueSchema;
 }
 
 export interface CoMapSchemaDefinition<

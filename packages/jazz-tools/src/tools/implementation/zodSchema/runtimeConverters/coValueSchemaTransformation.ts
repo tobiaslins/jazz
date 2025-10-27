@@ -7,6 +7,7 @@ import {
   CoList,
   CoListSchema,
   CoMap,
+  CoMapSchema,
   CoPlainText,
   CoRichText,
   CoValueClass,
@@ -16,7 +17,6 @@ import {
   PlainTextSchema,
   SchemaUnion,
   enrichAccountSchema,
-  enrichCoMapSchema,
   isCoValueClass,
   Group,
   CoVector,
@@ -99,7 +99,7 @@ export function hydrateCoreCoValueSchema<S extends AnyCoreCoValueSchema>(
     const coValueSchema =
       ClassToExtend === Account
         ? enrichAccountSchema(schema as any, coValueClass as any)
-        : enrichCoMapSchema(schema as any, coValueClass as any);
+        : new CoMapSchema(schema as any, coValueClass as any);
 
     return coValueSchema as unknown as CoValueSchemaFromCoreSchema<S>;
   } else if (schema.builtin === "CoList") {
