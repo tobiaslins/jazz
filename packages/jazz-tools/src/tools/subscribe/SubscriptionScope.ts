@@ -88,11 +88,7 @@ export class SubscriptionScope<D extends CoValue> {
         // - Run the migration only once
         // - Skip all the updates until the migration is done
         // - Trigger handleUpdate only with the final value
-        if (
-          !this.migrated &&
-          value !== CoValueLoadingState.UNAVAILABLE &&
-          !value.core.verified.isStreaming()
-        ) {
+        if (!this.migrated && value !== CoValueLoadingState.UNAVAILABLE) {
           if (this.migrating) {
             return;
           }
@@ -284,10 +280,6 @@ export class SubscriptionScope<D extends CoValue> {
     // If the value is in error, we send the update regardless of the children statuses
     if (this.value.type !== CoValueLoadingState.LOADED) return true;
 
-    if (this.isStreaming() && !this.isFileStream()) {
-      return false;
-    }
-
     return this.pendingLoadedChildren.size === 0;
   }
 
@@ -314,24 +306,6 @@ export class SubscriptionScope<D extends CoValue> {
     }
 
     return CoValueLoadingState.LOADING;
-  }
-
-  isStreaming() {
-    if (this.value.type !== CoValueLoadingState.LOADED) {
-      return false;
-    }
-
-    return this.value.value.$jazz.raw.core.verified.isStreaming();
-  }
-
-  isFileStream() {
-    if (this.value.type !== CoValueLoadingState.LOADED) {
-      return false;
-    }
-
-    return (
-      this.value.value.$jazz.raw.core.verified.header.meta?.type === "binary"
-    );
   }
 
   triggerUpdate() {

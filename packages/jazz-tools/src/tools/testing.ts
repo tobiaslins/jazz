@@ -389,6 +389,13 @@ export async function setupJazzTestSync({
   return account;
 }
 
+export function disableJazzTestSync() {
+  if (syncServer.current) {
+    syncServer.current.gracefulShutdown();
+  }
+  syncServer.current = null;
+}
+
 export function assertLoaded<T extends MaybeLoaded<CoValue>>(
   coValue: T,
 ): asserts coValue is LoadedAndRequired<T> {
