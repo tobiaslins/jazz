@@ -493,7 +493,7 @@ export async function unstable_loadUnique<
     owner: Account | Group;
     resolve?: ResolveQueryStrict<S, R>;
   },
-): Promise<Loaded<S, R> | null> {
+): Promise<MaybeLoaded<Loaded<S, R>>> {
   const cls = coValueClassFromCoValueClassOrSchema(schema);
 
   if (
@@ -505,15 +505,14 @@ export async function unstable_loadUnique<
 
   const header = cls._getUniqueHeader(options.unique, options.owner.$jazz.id);
 
+  // @ts-expect-error the CoValue class is too generic for TS to infer its instances are CoValues
   return internalLoadUnique(cls, {
     header,
     onCreateWhenMissing: options.onCreateWhenMissing,
-    // @ts-expect-error loaded is not compatible with Resolved at type level, but they are the same thing
     onUpdateWhenFound: options.onUpdateWhenFound,
     owner: options.owner,
-    // @ts-expect-error loaded is not compatible with Resolved at type level, but they are the same thing
     resolve: options.resolve,
-  }) as unknown as Loaded<S, R> | null;
+  }) as unknown as MaybeLoaded<Loaded<S, R>>;
 }
 
 export async function internalLoadUnique<
@@ -540,7 +539,7 @@ export async function internalLoadUnique<
   // retrying failures
   // This way when we want to upsert we are sure that, if the load failed
   // it failed because the unique value was missing
-  await loadCoValueWithoutMe(cls, id, {
+  const maybeLoadedCoValue = await loadCoValueWithoutMe(cls, id, {
     skipRetry: true,
     loadAs,
   });
@@ -560,7 +559,9 @@ export async function internalLoadUnique<
   }
 
   if (!isAvailable) {
-    return null;
+    // @ts-expect-error the resolve query of the loaded values is not necessarily the same,
+    // but we're only returning not-loaded values
+    return maybeLoadedCoValue;
   }
 
   if (options.onUpdateWhenFound) {

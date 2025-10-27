@@ -7,6 +7,7 @@ import {
   runWithoutActiveAccount,
 } from "../testing";
 import {
+  CoValueLoadingState,
   Group,
   co,
   activeAccountContext,
@@ -105,7 +106,8 @@ describe("Creating and finding unique CoMaps", async () => {
       },
       owner: group,
     });
-    expect(alice?.name).toEqual("Alice");
+    assertLoaded(alice);
+    expect(alice.name).toEqual("Alice");
   });
 
   test("manual upserting pattern", async () => {
@@ -216,7 +218,7 @@ describe("Creating and finding unique CoMaps", async () => {
     const workspaceOnAlice = await Group.load(workspace.$jazz.id, {
       loadAs: alice,
     });
-    assert(workspaceOnAlice);
+    assertLoaded(workspaceOnAlice);
 
     const eventOnAlice = await Event.upsertUnique({
       value: {
@@ -227,7 +229,10 @@ describe("Creating and finding unique CoMaps", async () => {
       unique: sourceData.identifier,
       owner: workspaceOnAlice,
     });
-    expect(eventOnAlice).toBeNull();
+    expect(eventOnAlice.$isLoaded).toBe(false);
+    expect(eventOnAlice.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
   });
 
   test("upserting without an active account", async () => {
