@@ -1117,7 +1117,7 @@ export class CoValueCore {
       matchingTransactions.push(transaction);
     }
 
-    if (options?.knownTransactions) {
+    if (options?.knownTransactions !== undefined) {
       options.knownTransactions[this.id] = this.toProcessTransactions.length;
     }
 
