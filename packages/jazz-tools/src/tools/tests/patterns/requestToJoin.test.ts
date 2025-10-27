@@ -276,7 +276,7 @@ describe("Request to join", () => {
     // With the writeOnly permission, the user can download the request
     // but not its content
     expect(requestOnUser2.$jazz.loadingState).toBe(
-      CoValueLoadingState.UNAUTHORIZED,
+      CoValueLoadingState.UNAVAILABLE,
     );
   });
 });

@@ -1,4 +1,3 @@
-import { waitFor } from "@testing-library/dom";
 import { cojsonInternals, emptyKnownState } from "cojson";
 import { assert, beforeEach, expect, test } from "vitest";
 import { Account, Group, co, exportCoValue, z } from "../exports.js";
@@ -9,7 +8,7 @@ import {
   getPeerConnectedToTestSyncServer,
   setupJazzTestSync,
 } from "../testing.js";
-import { assertLoaded } from "./utils.js";
+import { assertLoaded, waitFor } from "./utils.js";
 
 cojsonInternals.CO_VALUE_LOADING_CONFIG.RETRY_DELAY = 10;
 
@@ -461,5 +460,16 @@ test("should correctly reject the load if after the group streaming the account 
 
   // Load the value and expect the migration to run only once
   const loadedPerson = await Person.load(person.$jazz.id, { loadAs: bob });
-  expect(loadedPerson).toBeNull();
+  expect(loadedPerson.$isLoaded).toEqual(false);
+  expect(loadedPerson.$jazz.loadingState).toEqual(
+    CoValueLoadingState.UNAVAILABLE,
+  );
+
+  await waitFor(async () => {
+    const loadedPerson = await Person.load(person.$jazz.id, { loadAs: bob });
+    expect(loadedPerson.$isLoaded).toEqual(false);
+    expect(loadedPerson.$jazz.loadingState).toEqual(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
+  });
 });
