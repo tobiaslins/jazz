@@ -105,7 +105,10 @@ export function ProjectTodoTable() {
                 />
               ))
             : null}
-          <NewTaskInputRow createTask={createTask} disabled={!project} />
+          <NewTaskInputRow
+            createTask={createTask}
+            disabled={!project.$isLoaded}
+          />
         </TableBody>
       </Table>
     </div>

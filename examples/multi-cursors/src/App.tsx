@@ -28,7 +28,7 @@ function App() {
       }
     };
     loadCursorFeed();
-  }, [me.$jazz.id]);
+  }, [me.$jazz.id, me.$isLoaded]);
 
   const profileName = me.$isLoaded ? me.profile.name : undefined;
   const sessionID = me.$isLoaded ? me.$jazz.sessionID : undefined;
