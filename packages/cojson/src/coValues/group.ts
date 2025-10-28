@@ -192,7 +192,7 @@ export class RawGroup<
     this.crypto = core.node.crypto;
 
     // Checks if this is not an account
-    if (core.isGroup()) {
+    if (core.isGroup() && !core.verified.isStreaming()) {
       // rotateReadKeyIfNeeded(this);
       healMissingKeyForEveryone(this);
     }
