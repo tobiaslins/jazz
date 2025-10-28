@@ -78,7 +78,7 @@ export class FileStreamSchema implements CoreFileStreamSchema {
 
   load(
     id: string,
-    options: { loadAs: Account | AnonymousJazzAgent },
+    options?: { loadAs: Account | AnonymousJazzAgent },
   ): Promise<FileStream | null> {
     return this.coValueClass.load(id, options);
   }
