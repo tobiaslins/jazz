@@ -125,6 +125,7 @@ function healMissingKeyForEveryone(group: RawGroup) {
 function needsKeyRotation(group: RawGroup) {
   const me = group.core.node.getCurrentAccountOrAgentID();
 
+  // Checking only direct membership because inside the migrations we can't navigate the parent groups
   if (group.get(me) !== "admin" && group.get(me) !== "manager") {
     return false;
   }

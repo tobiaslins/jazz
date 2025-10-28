@@ -290,6 +290,93 @@ describe("Group.childKeyRotation", () => {
     expect(updatedMapOnCharlieNode.get("test")).toBe("Readable by charlie");
   });
 
+  test("direct manager account can trigger the unloaded child group key rotation", async () => {
+    const group = admin.node.createGroup();
+    const childGroup = bob.node.createGroup();
+
+    group.addMember(bobOnAdminNode, "writer");
+    group.addMember(aliceOnAdminNode, "reader");
+
+    await group.core.waitForSync();
+
+    const groupOnBobNode = await loadCoValueOrFail(bob.node, group.id);
+
+    childGroup.extend(groupOnBobNode);
+
+    const charlieOnBobNode = await loadCoValueOrFail(
+      bob.node,
+      charlie.accountID,
+    );
+
+    childGroup.addMember(charlieOnBobNode, "manager");
+
+    await childGroup.core.waitForSync();
+    await groupOnBobNode.core.waitForSync();
+
+    group.removeMember(aliceOnAdminNode);
+
+    await group.core.waitForSync();
+
+    const childGroupOnCharlieNode = await loadCoValueOrFail(
+      charlie.node,
+      childGroup.id,
+    );
+
+    const map = childGroupOnCharlieNode.createMap();
+    map.set("test", "Not readable by alice");
+
+    await map.core.waitForSync();
+
+    const mapOnAliceNode = await loadCoValueOrFail(alice.node, map.id);
+
+    // Ensure that the map is fully synced
+    await waitFor(async () => {
+      expect(mapOnAliceNode.core.knownState()).toEqual(map.core.knownState());
+    });
+
+    // Charlie should not be able to read what Bob wrote because key was rotated
+    expect(mapOnAliceNode.get("test")).toBeUndefined();
+  });
+
+  test("inherited admin account can't trigger the unloaded child group key rotation", async () => {
+    const group = admin.node.createGroup();
+    const childGroup = bob.node.createGroup();
+
+    // Alice is admin on parent group (will inherit to child), but not directly on child
+    group.addMember(aliceOnAdminNode, "admin");
+    group.addMember(bobOnAdminNode, "writer");
+    group.addMember(charlieOnAdminNode, "reader");
+
+    await group.core.waitForSync();
+
+    const groupOnBobNode = await loadCoValueOrFail(bob.node, group.id);
+
+    childGroup.extend(groupOnBobNode);
+
+    await childGroup.core.waitForSync();
+    await groupOnBobNode.core.waitForSync();
+
+    group.removeMember(charlieOnAdminNode);
+
+    await group.core.waitForSync();
+
+    // Alice has inherited admin access but is not a direct admin on the child group
+    // So she can't trigger key rotation
+    const childGroupOnNewAliceNode = await loadCoValueOrFail(
+      alice.node,
+      childGroup.id,
+    );
+
+    const map = childGroupOnNewAliceNode.createMap();
+    map.set("test", "Readable by charlie");
+
+    await map.core.waitForSync();
+
+    // Charlie should be able to read what Alice wrote because key wasn't rotated
+    const mapOnCharlieNode = await loadCoValueOrFail(charlie.node, map.id);
+    expect(mapOnCharlieNode.get("test")).toBe("Readable by charlie");
+  });
+
   // TODO: In this case the child can't detect the parent group rotation, because it doesn't have access to the parent group readKey
   // We need to replace the writeOnlyKey with an asymmetric key sealing mechanism to cover this case
   test.skip("removing a member should rotate the writeOnlyKey on child group", async () => {
