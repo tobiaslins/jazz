@@ -73,8 +73,8 @@ export function createWebSocketPeer({
   meter,
   meta,
 }: CreateWebSocketPeerOpts): Peer {
-  const totalIngressBytesCounter = (
-    meter ?? metrics.getMeter("default")
+  const ingressBytesCounter = (
+    meter ?? metrics.getMeter("cojson-transport-ws")
   ).createCounter("jazz.usage.ingress", {
     description: "Total ingress bytes from peer",
     unit: "bytes",
@@ -82,7 +82,7 @@ export function createWebSocketPeer({
   });
 
   // Initialize the counter by adding 0
-  totalIngressBytesCounter.add(0, meta);
+  ingressBytesCounter.add(0, meta);
 
   const incoming = new ConnectedPeerChannel();
   const emitClosedEvent = createClosedEventEmitter(onClose);
@@ -158,7 +158,7 @@ export function createWebSocketPeer({
         incoming.push(msg);
 
         if (msg.action === "content") {
-          totalIngressBytesCounter.add(getContentMessageSize(msg), meta);
+          ingressBytesCounter.add(getContentMessageSize(msg), meta);
         }
       }
     }

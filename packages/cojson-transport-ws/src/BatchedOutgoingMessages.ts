@@ -27,7 +27,7 @@ export class BatchedOutgoingMessages
   private queue: PriorityBasedMessageQueue;
   private processing = false;
   private closed = false;
-  private counter;
+  private egressBytesCounter;
 
   constructor(
     private websocket: AnyWebSocket,
@@ -39,14 +39,13 @@ export class BatchedOutgoingMessages
     private meta?: Record<string, string | number>,
     meter?: Meter,
   ) {
-    this.counter = (meter ?? metrics.getMeter("default")).createCounter(
-      "jazz.usage.egress",
-      {
-        description: "Total egress bytes",
-        unit: "bytes",
-        valueType: ValueType.INT,
-      },
-    );
+    this.egressBytesCounter = (
+      meter ?? metrics.getMeter("cojson-transport-ws")
+    ).createCounter("jazz.usage.egress", {
+      description: "Total egress bytes",
+      unit: "bytes",
+      valueType: ValueType.INT,
+    });
 
     this.queue = new PriorityBasedMessageQueue(
       CO_VALUE_PRIORITY.HIGH,
@@ -57,7 +56,7 @@ export class BatchedOutgoingMessages
     );
 
     // Initialize the counter by adding 0
-    this.counter.add(0, this.meta);
+    this.egressBytesCounter.add(0, this.meta);
   }
 
   push(msg: SyncMessage | DisconnectedError) {
@@ -114,7 +113,7 @@ export class BatchedOutgoingMessages
 
   private processMessage(msg: SyncMessage) {
     if (msg.action === "content") {
-      this.counter.add(getContentMessageSize(msg), this.meta);
+      this.egressBytesCounter.add(getContentMessageSize(msg), this.meta);
     }
 
     if (!this.batching) {
