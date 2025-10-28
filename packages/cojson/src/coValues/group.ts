@@ -136,17 +136,15 @@ function needsKeyRotation(group: RawGroup) {
   }
 
   for (const parentGroup of group.getParentGroups()) {
-    if (parentGroup.core.verified.isStreaming()) {
+    const parentReadKeyId = parentGroup.get("readKey");
+
+    if (!parentReadKeyId) {
       continue;
     }
 
-    const key = parentGroup.getCurrentReadKey();
-
-    if (!key.secret) {
-      continue;
-    }
-
-    const hasKeyRevelation = group.get(`${currentReadKeyId}_for_${key.id}`);
+    const hasKeyRevelation = group.get(
+      `${currentReadKeyId}_for_${parentReadKeyId}`,
+    );
 
     if (!hasKeyRevelation) {
       return true;
