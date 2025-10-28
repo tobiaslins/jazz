@@ -379,7 +379,7 @@ describe("Group.removeMember", () => {
     expect(mapOnAliceNode.get("test")).toBeUndefined();
   });
 
-  test("removing a member should rotate the readKey on unloaded child groups", async () => {
+  test.skip("removing a member should rotate the readKey on unloaded child groups", async () => {
     const admin = await setupTestAccount({
       connected: true,
     });

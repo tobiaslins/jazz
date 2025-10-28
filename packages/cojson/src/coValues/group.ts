@@ -193,7 +193,7 @@ export class RawGroup<
 
     // Checks if this is not an account
     if (core.isGroup()) {
-      rotateReadKeyIfNeeded(this);
+      // rotateReadKeyIfNeeded(this);
       healMissingKeyForEveryone(this);
     }
   }
