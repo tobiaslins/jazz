@@ -627,6 +627,22 @@ export async function setupTestAccount(
     connectToSyncServer,
     addStorage,
     addAsyncStorage,
+    spawnNewSession: () => {
+      const { peer } = getSyncServerConnectedPeer({
+        peerId: ctx.node.getCurrentAgent().id,
+      });
+
+      ctx.node.syncManager.addPeer(peer);
+
+      return LocalNode.withLoadedAccount({
+        peers: [peer],
+        crypto: Crypto,
+        storage: opts.storage,
+        accountID: ctx.accountID,
+        accountSecret: ctx.accountSecret,
+        sessionID: Crypto.newRandomSessionID(ctx.accountID),
+      });
+    },
     disconnect: () => {
       const allPeers = ctx.node.syncManager.getPeers(ctx.accountID);
       allPeers.forEach((peer) => {

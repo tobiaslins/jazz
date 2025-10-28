@@ -123,6 +123,12 @@ function healMissingKeyForEveryone(group: RawGroup) {
 }
 
 function needsKeyRotation(group: RawGroup) {
+  const me = group.core.node.getCurrentAccountOrAgentID();
+
+  if (group.get(me) !== "admin" && group.get(me) !== "manager") {
+    return false;
+  }
+
   const currentReadKeyId = group.get("readKey");
 
   if (!currentReadKeyId) {
@@ -130,15 +136,17 @@ function needsKeyRotation(group: RawGroup) {
   }
 
   for (const parentGroup of group.getParentGroups()) {
-    const parentReadKeyId = parentGroup.get("readKey");
-
-    if (!parentReadKeyId) {
+    if (parentGroup.core.verified.isStreaming()) {
       continue;
     }
 
-    const hasKeyRevelation = group.get(
-      `${currentReadKeyId}_for_${parentReadKeyId}`,
-    );
+    const key = parentGroup.getCurrentReadKey();
+
+    if (!key.secret) {
+      continue;
+    }
+
+    const hasKeyRevelation = group.get(`${currentReadKeyId}_for_${key.id}`);
 
     if (!hasKeyRevelation) {
       return true;
@@ -190,12 +198,22 @@ export class RawGroup<
   ) {
     super(core, options);
     this.crypto = core.node.crypto;
+    this.migrate();
+  }
 
-    // Checks if this is not an account
-    if (core.isGroup() && !core.verified.isStreaming()) {
-      // rotateReadKeyIfNeeded(this);
-      healMissingKeyForEveryone(this);
+  migrate(): Promise<void> | void {
+    if (!this.core.isGroup()) {
+      return;
     }
+
+    if (!this.core.isCompletelyDownloaded()) {
+      return this.core
+        .waitFor((core) => core.isCompletelyDownloaded())
+        .then(() => this.migrate());
+    }
+
+    rotateReadKeyIfNeeded(this);
+    healMissingKeyForEveryone(this);
   }
 
   /**

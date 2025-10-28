@@ -254,29 +254,24 @@ export class CoValueCore {
     return this.hasVerifiedContent();
   }
 
-  /**
-   * True if the coValue is completely downloaded:
-   * - the current coValue is available and not streaming
-   * - the group is available and not streaming
-   * - TODO: all the parent groups are available and not streaming
-   */
-  isCompletelyDownloaded(): this is AvailableCoValueCore {
+  isCompletelyDownloaded(): boolean {
     if (!this.hasVerifiedContent()) {
       return false;
     }
 
-    if (this.verified.isStreaming()) {
+    if (this.isStreaming()) {
       return false;
     }
 
-    const group = this.safeGetGroup();
-
-    // TODO: Group coValues should be completely downloaded when all their parent groups are completely downloaded
-    if (!group) {
-      return true;
+    if (this.incompleteDependencies.size > 0) {
+      return false;
     }
 
-    return group.core.isCompletelyDownloaded();
+    return true;
+  }
+
+  isStreaming() {
+    return this.verified?.isStreaming() ?? false;
   }
 
   hasVerifiedContent(): this is AvailableCoValueCore {
@@ -1163,6 +1158,7 @@ export class CoValueCore {
   }
 
   dependencies: Set<RawCoID> = new Set();
+  incompleteDependencies: Set<RawCoID> = new Set();
   private addDependency(dependency: RawCoID) {
     if (this.dependencies.has(dependency)) {
       return true;
@@ -1186,7 +1182,17 @@ export class CoValueCore {
           this.markDependencyAvailable(dependency);
         }
       });
-      return false;
+    }
+
+    if (!dependencyCoValue.isCompletelyDownloaded()) {
+      this.incompleteDependencies.add(dependency);
+      dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
+        if (dependencyCoValue.isCompletelyDownloaded()) {
+          unsubscribe();
+          this.incompleteDependencies.delete(dependency);
+          this.scheduleNotifyUpdate();
+        }
+      });
     }
   }
 
