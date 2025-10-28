@@ -18,7 +18,7 @@ import {
   coValueClassFromCoValueClassOrSchema,
   loadCoValue,
 } from "../internal.js";
-import { isCoValueId } from "../lib/id.js";
+import { isCoValueId } from "../lib/utils.js";
 
 export type InboxInvite = `${CoID<MessagesStream>}/${InviteSecret}`;
 type TxKey = `${SessionID}/${number}`;

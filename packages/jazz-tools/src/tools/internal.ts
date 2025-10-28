@@ -29,6 +29,7 @@ export * from "./subscribe/SubscriptionScope.js";
 export * from "./subscribe/types.js";
 export * from "./subscribe/index.js";
 export * from "./lib/cache.js";
+export * from "./lib/utils.js";
 export * from "./lib/utilityTypes.js";
 export * from "./implementation/createContext.js";
 

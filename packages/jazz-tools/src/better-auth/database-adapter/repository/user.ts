@@ -72,7 +72,7 @@ export class UserRepository extends JazzRepository {
       return [];
     }
 
-    const user = emailIndex?.user;
+    const user = emailIndex.user;
 
     if (!user) {
       return [];

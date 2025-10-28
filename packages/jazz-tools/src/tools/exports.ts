@@ -51,6 +51,7 @@ export {
   CoPlainText,
   CoRichText,
   Account,
+  assertLoaded,
   isControlledAccount,
   loadCoValue,
   subscribeToCoValue,

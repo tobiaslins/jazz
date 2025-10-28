@@ -10,7 +10,6 @@ import {
 } from "react";
 import { highestResAvailable } from "../../media/index.js";
 import { useCoState } from "../hooks.js";
-import e from "cors";
 
 export type ImageProps = Omit<
   JSX.IntrinsicElements["img"],

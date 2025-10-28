@@ -27,7 +27,7 @@ import {
   importContentPieces,
   loadCoValue,
 } from "../internal.js";
-import { isCoValueId } from "../lib/id.js";
+import { isCoValueId } from "../lib/utils.js";
 import { Account } from "./account.js";
 
 type MessageShape = Record<string, AnyZodOrCoValueSchema>;
