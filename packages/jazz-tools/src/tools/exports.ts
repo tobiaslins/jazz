@@ -52,6 +52,7 @@ export {
   CoRichText,
   Account,
   assertLoaded,
+  getLoadedOrUndefined,
   isControlledAccount,
   loadCoValue,
   subscribeToCoValue,

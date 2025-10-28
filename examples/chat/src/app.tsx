@@ -1,7 +1,7 @@
 import { apiKey } from "@/apiKey.ts";
 import { getRandomUsername, inIframe, onChatLoad } from "@/util.ts";
 import { useIframeHashRouter } from "hash-slash";
-import { Group } from "jazz-tools";
+import { getLoadedOrUndefined, Group } from "jazz-tools";
 import { JazzInspector } from "jazz-tools/inspector";
 import { JazzReactProvider, useAccount, useLogOut } from "jazz-tools/react";
 import { StrictMode, useId, useMemo, useState, useEffect, useRef } from "react";
@@ -35,7 +35,7 @@ export function App() {
   const [inputWidth, setInputWidth] = useState(120);
   const spanRef = useRef<HTMLSpanElement>(null);
 
-  const profile = me.$isLoaded ? me.profile : undefined;
+  const profile = getLoadedOrUndefined(me)?.profile;
 
   const avatarSeed = useMemo(() => {
     if (!me?.$jazz?.id) return 0;

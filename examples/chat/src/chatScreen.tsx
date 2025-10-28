@@ -1,4 +1,4 @@
-import { Account } from "jazz-tools";
+import { Account, getLoadedOrUndefined } from "jazz-tools";
 import { createImage } from "jazz-tools/media";
 import { useAccount, useCoState } from "jazz-tools/react";
 import { useEffect, useState } from "react";
@@ -124,7 +124,7 @@ function ChatBubble({ me, msg }: { me: Account; msg: Message }) {
   const lastEdit = msg.$jazz.getEdits().text;
   const fromMe = lastEdit?.by?.isMe;
   const lastEditor = lastEdit?.by?.profile;
-  const lastEditorName = lastEditor?.$isLoaded ? lastEditor.name : undefined;
+  const lastEditorName = getLoadedOrUndefined(lastEditor)?.name;
 
   return (
     <BubbleContainer fromMe={fromMe}>

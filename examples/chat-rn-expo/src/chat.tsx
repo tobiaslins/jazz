@@ -1,5 +1,5 @@
 import * as Clipboard from "expo-clipboard";
-import { Account, CoMapEdit, Group } from "jazz-tools";
+import { Account, CoMapEdit, getLoadedOrUndefined, Group } from "jazz-tools";
 import { useState } from "react";
 import React, {
   Button,
@@ -105,7 +105,7 @@ export default function ChatScreen() {
           <Text style={styles.usernameTitle}>Username</Text>
           <TextInput
             style={styles.usernameInput}
-            value={me.$isLoaded ? me.profile.name : ""}
+            value={getLoadedOrUndefined(me)?.profile?.name ?? ""}
             onChangeText={(value) => {
               if (me.$isLoaded) {
                 me.profile.$jazz.set("name", value);

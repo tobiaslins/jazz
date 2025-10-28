@@ -1,7 +1,7 @@
 <script lang="ts">
   import { createImage } from 'jazz-tools/media';
   import { AccountCoState, CoState } from 'jazz-tools/svelte';
-  import { Account, CoPlainText, type ID } from 'jazz-tools';
+  import { Account, CoPlainText, getLoadedOrUndefined, type ID } from 'jazz-tools';
 
   import { page } from '$app/state';
 
@@ -62,7 +62,7 @@
   <TopBar>
     <input
       type="text"
-      value={me.$isLoaded ? me.profile.name : ''}
+      value={getLoadedOrUndefined(me)?.profile?.name ?? ''}
       class="bg-transparent"
       onchange={(e) => {
         if (!me.$isLoaded) return;

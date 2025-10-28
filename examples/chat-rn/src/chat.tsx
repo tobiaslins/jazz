@@ -1,6 +1,7 @@
 import Clipboard from "@react-native-clipboard/clipboard";
 import {
   CoPlainText,
+  getLoadedOrUndefined,
   Group,
   ID,
   LastAndAllCoMapEdits,
@@ -30,7 +31,7 @@ export function ChatScreen({ navigation }: { navigation: any }) {
     resolve: { $each: { text: true } },
   });
   const [message, setMessage] = useState("");
-  const profile = me.$isLoaded ? me.profile : undefined;
+  const profile = getLoadedOrUndefined(me)?.profile;
 
   function handleLogOut() {
     setChatId(undefined);
@@ -142,7 +143,7 @@ export function ChatScreen({ navigation }: { navigation: any }) {
           <Text style={styles.usernameLabel}>Username</Text>
           <TextInput
             style={styles.usernameInput}
-            value={profile?.$isLoaded ? profile.name : ""}
+            value={getLoadedOrUndefined(profile)?.name ?? ""}
             onChangeText={(value) => {
               if (profile?.$isLoaded) {
                 profile.$jazz.set("name", value);
