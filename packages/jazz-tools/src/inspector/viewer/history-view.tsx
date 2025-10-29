@@ -171,12 +171,12 @@ function mapTransactionToAction(
 
   if (isGroupExtension(change)) {
     const child = change.key.slice(6);
-    return `Group become a member of ${child}`;
+    return `Group became a member of ${child}`;
   }
 
   if (isGroupExtendRevocation(change)) {
     const child = change.key.slice(6);
-    return `Group has been revoked from ${child}`;
+    return `Group's membership of ${child} has been revoked.`;
   }
 
   if (isGroupPromotion(change)) {
