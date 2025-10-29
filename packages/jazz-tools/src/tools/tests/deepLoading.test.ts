@@ -999,6 +999,50 @@ describe("Deep loading with unauthorized account", async () => {
 
     expect(user.$jazz.loadingState).toBe(CoValueLoadingState.UNAUTHORIZED);
   });
+
+  test("using $onError on a plain text value", async () => {
+    const Person = co.map({
+      name: co.plainText(),
+    });
+
+    const person = Person.create(
+      { name: Person.shape.name.create("John", onlyBob) },
+      group,
+    );
+
+    const loadedPerson = await Person.load(person.$jazz.id, {
+      resolve: { name: { $onError: "catch" } },
+      loadAs: alice,
+    });
+
+    expect(loadedPerson.$isLoaded).toBe(true);
+    assertLoaded(loadedPerson);
+    expect(loadedPerson.name.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
+  });
+
+  test("using $onError on a file stream", async () => {
+    const Person = co.map({
+      avatar: co.fileStream(),
+    });
+
+    const person = Person.create(
+      { avatar: Person.shape.avatar.create(onlyBob) },
+      group,
+    );
+
+    const loadedPerson = await Person.load(person.$jazz.id, {
+      resolve: { avatar: { $onError: "catch" } },
+      loadAs: alice,
+    });
+
+    expect(loadedPerson.$isLoaded).toBe(true);
+    assertLoaded(loadedPerson);
+    expect(loadedPerson.avatar.$jazz.loadingState).toBe(
+      CoValueLoadingState.UNAUTHORIZED,
+    );
+  });
 });
 
 test("doesn't break on Map.Record key deletion when the key is referenced in the depth", async () => {

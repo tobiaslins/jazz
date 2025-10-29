@@ -117,7 +117,9 @@ export type RefsToResolve<
                       >;
                     } & OnError)
                   | boolean
-              : boolean);
+              : V extends { [TypeSym]: "CoPlainText" | "BinaryCoStream" }
+                ? boolean | OnError
+                : boolean);
 
 export type RefsToResolveStrict<T, V> = [V] extends [RefsToResolve<T>]
   ? RefsToResolve<T>
