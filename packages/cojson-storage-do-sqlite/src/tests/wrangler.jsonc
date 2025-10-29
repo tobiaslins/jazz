@@ -1,6 +1,6 @@
 {
   "name": "cloudflare-do-storage",
-  "main": "src/index.ts",
+  "main": "dosqlite.ts",
   "compatibility_date": "2025-10-08",
   "compatibility_flags": ["nodejs_compat"],
   "durable_objects": {

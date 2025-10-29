@@ -5,7 +5,8 @@ import { execa } from "execa";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 // @ts-ignore
-const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+const currentDir = dirname(fileURLToPath(import.meta.url));
+const packageRoot = join(currentDir, "../..");
 const projectRoot = join(packageRoot, "../..");
 
 describe("Cloudflare DurableObject SQL storage", () => {
@@ -14,7 +15,7 @@ describe("Cloudflare DurableObject SQL storage", () => {
 
   beforeAll(async () => {
     server = execa(join(projectRoot, "node_modules/.bin/wrangler"), ["dev"], {
-      cwd: packageRoot,
+      cwd: currentDir,
     });
     // Wait for server to be ready
     url = await new Promise<URL>((resolve, reject) => {

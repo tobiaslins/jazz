@@ -9,8 +9,8 @@ import {
 } from "cojson";
 import { WasmCrypto } from "cojson/crypto/WasmCrypto";
 
-import { toSimplifiedMessages } from "cojson-storage-sqlite/src/tests/messagesTestUtils";
-import { getDurableObjectSqlStorage } from "cojson-storage-do-sqlite/src/index.js";
+import { toSimplifiedMessages } from "./messagesTestUtils.js";
+import { getDurableObjectSqlStorage } from "../index.js";
 
 const Crypto = await WasmCrypto.create();
 
