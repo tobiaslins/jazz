@@ -200,15 +200,23 @@ export class RawGroup<
     this.migrate();
   }
 
-  migrate(): Promise<void> | void {
+  migrate() {
     if (!this.core.isGroup()) {
       return;
     }
 
+    // We need the group and their parents to be completely downloaded to correctly handle the migrations
     if (!this.core.isCompletelyDownloaded()) {
-      return this.core
-        .waitFor((core) => core.isCompletelyDownloaded())
-        .then(() => this.migrate());
+      this.core.subscribe((core, unsubscribe) => {
+        if (core.isCompletelyDownloaded()) {
+          unsubscribe();
+
+          rotateReadKeyIfNeeded(this);
+          healMissingKeyForEveryone(this);
+        }
+      });
+
+      return;
     }
 
     rotateReadKeyIfNeeded(this);
