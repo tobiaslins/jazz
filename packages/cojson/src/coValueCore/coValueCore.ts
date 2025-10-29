@@ -390,14 +390,6 @@ export class CoValueCore {
     return false;
   }
 
-  markDependencyAvailable(dependency: RawCoID) {
-    this.missingDependencies.delete(dependency);
-
-    if (this.missingDependencies.size === 0) {
-      this.scheduleNotifyUpdate();
-    }
-  }
-
   newContentQueue: {
     msg: NewContentMessage;
     from: PeerState | "storage" | "import";
@@ -1179,7 +1171,11 @@ export class CoValueCore {
       dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
         if (dependencyCoValue.isAvailable()) {
           unsubscribe();
-          this.markDependencyAvailable(dependency);
+          this.missingDependencies.delete(dependency);
+
+          if (this.missingDependencies.size === 0) {
+            this.notifyUpdate(); // We want this to propagate immediately
+          }
         }
       });
     }
@@ -1190,7 +1186,10 @@ export class CoValueCore {
         if (dependencyCoValue.isCompletelyDownloaded()) {
           unsubscribe();
           this.incompleteDependencies.delete(dependency);
-          this.scheduleNotifyUpdate();
+          if (this.incompleteDependencies.size === 0) {
+            // We want this to propagate immediately in the dependency chain
+            this.notifyUpdate();
+          }
         }
       });
     }
