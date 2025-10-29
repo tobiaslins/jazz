@@ -1,5 +1,22 @@
 # cojson
 
+## 0.18.31
+
+### Patch Changes
+
+- 7c2b7b8: Bugfix: diable the progressive child rotation
+  - cojson-core-wasm@0.18.31
+  - cojson-core-napi@0.18.31
+
+## 0.18.30
+
+### Patch Changes
+
+- ad83da2: Optimize the parsing of large CoValues by switching to stages containers
+- d08b7e2: feat: introduced new "manager" role who can invite and remove members, and being removed by admins.
+  - cojson-core-wasm@0.18.30
+  - cojson-core-napi@0.18.30
+
 ## 0.18.29
 
 ### Patch Changes
