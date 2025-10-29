@@ -371,7 +371,7 @@ test("chunks transactions when when the chars are longer than MAX_RECOMMENDED_TX
     }),
   ).toMatchInlineSnapshot(`
     [
-      "client -> storage | CONTENT CoPlainText header: true new: After: 0 New: 1",
+      "client -> storage | CONTENT CoPlainText header: true new: After: 0 New: 1 expectContentUntil: header/42",
       "client -> storage | CONTENT CoPlainText header: false new: After: 1 New: 1",
       "client -> storage | CONTENT CoPlainText header: false new: After: 2 New: 1",
       "client -> storage | CONTENT CoPlainText header: false new: After: 3 New: 1",

@@ -585,6 +585,8 @@ export class SyncManager {
           sessions: msg.expectContentUntil,
         });
       }
+    } else if (msg.expectContentUntil) {
+      coValue.verified.setStreamingKnownState(msg.expectContentUntil);
     }
 
     // At this point the CoValue must be in memory, if not we have a bug

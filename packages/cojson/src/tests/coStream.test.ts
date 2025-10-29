@@ -223,18 +223,18 @@ test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE)
     sessions: {},
   })!;
 
-  expect(newContent.length).toEqual(5);
+  expect(newContent.length).toEqual(4);
   expect(newContent[0]!.header).toBeDefined();
-  expect(newContent[1]!.new[node.currentSessionID]!.lastSignature).toEqual(
+  expect(newContent[0]!.new[node.currentSessionID]!.lastSignature).toEqual(
     sessionEntry.signatureAfter[3],
   );
-  expect(newContent[2]!.new[node.currentSessionID]!.lastSignature).toEqual(
+  expect(newContent[1]!.new[node.currentSessionID]!.lastSignature).toEqual(
     sessionEntry.signatureAfter[6],
   );
-  expect(newContent[3]!.new[node.currentSessionID]!.lastSignature).toEqual(
+  expect(newContent[2]!.new[node.currentSessionID]!.lastSignature).toEqual(
     sessionEntry.signatureAfter[9],
   );
-  expect(newContent[4]!.new[node.currentSessionID]!.lastSignature).toEqual(
+  expect(newContent[3]!.new[node.currentSessionID]!.lastSignature).toEqual(
     sessionEntry.lastSignature,
   );
 });
@@ -292,18 +292,18 @@ test("When adding large transactions (bigger than MAX_RECOMMENDED_TX_SIZE), we s
     sessions: {},
   })!;
 
-  expect(newContent.length).toEqual(5);
+  expect(newContent.length).toEqual(4);
   expect(newContent[0]!.header).toBeDefined();
-  expect(newContent[1]!.new[node.currentSessionID]!.lastSignature).toEqual(
+  expect(newContent[0]!.new[node.currentSessionID]!.lastSignature).toEqual(
     sessionEntry.signatureAfter[1],
   );
-  expect(newContent[2]!.new[node.currentSessionID]!.lastSignature).toEqual(
+  expect(newContent[1]!.new[node.currentSessionID]!.lastSignature).toEqual(
     sessionEntry.signatureAfter[2],
   );
-  expect(newContent[3]!.new[node.currentSessionID]!.lastSignature).toEqual(
+  expect(newContent[2]!.new[node.currentSessionID]!.lastSignature).toEqual(
     sessionEntry.signatureAfter[3],
   );
-  expect(newContent[4]!.new[node.currentSessionID]!.lastSignature).toEqual(
+  expect(newContent[3]!.new[node.currentSessionID]!.lastSignature).toEqual(
     sessionEntry.lastSignature,
   );
 });

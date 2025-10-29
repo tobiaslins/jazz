@@ -1,10 +1,15 @@
 import {
   addTransactionToContentMessage,
   createContentMessage,
+  knownStateFromContent,
 } from "../coValueContentMessage.js";
 import { Transaction, VerifiedState } from "../coValueCore/verifiedState.js";
 import { Signature } from "../crypto/crypto.js";
 import { RawCoID, SessionID } from "../ids.js";
+import {
+  combineKnownStateSessions,
+  KnownStateSessions,
+} from "../knownState.js";
 import { NewContentMessage } from "../sync.js";
 import { LinkedList } from "./LinkedList.js";
 
@@ -113,8 +118,29 @@ export class LocalTransactionsSyncQueue {
     this.processingSyncs = true;
 
     queueMicrotask(() => {
+      const firstContentPieceMap = new Map<RawCoID, NewContentMessage>();
+      const streamingKnownStates = new Map<RawCoID, KnownStateSessions>();
+
       while (this.queue.head) {
         const content = this.queue.head.value;
+
+        const firstContentPiece = firstContentPieceMap.get(content.id);
+
+        if (!firstContentPiece) {
+          firstContentPieceMap.set(content.id, content);
+        } else {
+          let knownState = streamingKnownStates.get(content.id);
+          if (!knownState) {
+            knownState = knownStateFromContent(firstContentPiece).sessions;
+            streamingKnownStates.set(content.id, knownState);
+            firstContentPiece.expectContentUntil = knownState;
+          }
+
+          combineKnownStateSessions(
+            knownState,
+            knownStateFromContent(content).sessions,
+          );
+        }
 
         this.sync(content);
 

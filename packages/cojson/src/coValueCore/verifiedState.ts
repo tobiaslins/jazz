@@ -4,6 +4,7 @@ import {
   createContentMessage,
   exceedsRecommendedSize,
   getTransactionSize,
+  addTransactionToContentMessage as addTransactionToPiece,
 } from "../coValueContentMessage.js";
 import {
   CryptoProvider,
@@ -21,7 +22,11 @@ import { NewContentMessage } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { SessionLog, SessionMap } from "./SessionMap.js";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
-import { cloneKnownState, CoValueKnownState } from "../knownState.js";
+import {
+  cloneKnownState,
+  CoValueKnownState,
+  KnownStateSessions,
+} from "../knownState.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -160,6 +165,10 @@ export class VerifiedState {
     );
   }
 
+  setStreamingKnownState(streamingKnownState: KnownStateSessions) {
+    this.sessions.setStreamingKnownState(streamingKnownState);
+  }
+
   newContentSince(
     knownState: CoValueKnownState | undefined,
   ): NewContentMessage[] | undefined {
@@ -177,89 +186,64 @@ export class VerifiedState {
 
     const pieces = [currentPiece];
 
-    const sentState: CoValueKnownState["sessions"] = {};
-
     let pieceSize = 0;
 
-    let sessionsTodoAgain: Set<SessionID> | undefined | "first" = "first";
+    const sessionsToDo = [...this.sessions.keys()];
+    const sessionSent = { ...knownState?.sessions };
 
-    while (sessionsTodoAgain === "first" || sessionsTodoAgain?.size || 0 > 0) {
-      if (sessionsTodoAgain === "first") {
-        sessionsTodoAgain = undefined;
+    while (sessionsToDo.length > 0) {
+      const sessionID = sessionsToDo.pop();
+
+      if (!sessionID) {
+        continue;
       }
-      const sessionsTodo = sessionsTodoAgain ?? this.sessions.keys();
 
-      for (const sessionIDKey of sessionsTodo) {
-        const sessionID = sessionIDKey as SessionID;
-        const log = this.sessions.get(sessionID)!;
-        const knownStateForSessionID = knownState?.sessions[sessionID];
-        const sentStateForSessionID = sentState[sessionID];
-        const nextKnownSignatureIdx = getNextKnownSignatureIdx(
-          log,
-          knownStateForSessionID,
-          sentStateForSessionID,
-        );
+      const log = this.sessions.get(sessionID);
+      if (!log) {
+        continue;
+      }
 
-        const firstNewTxIdx =
-          sentStateForSessionID ?? knownStateForSessionID ?? 0;
-        const afterLastNewTxIdx =
-          nextKnownSignatureIdx === undefined
-            ? log.transactions.length
-            : nextKnownSignatureIdx + 1;
+      const startFrom = sessionSent[sessionID] ?? 0;
+      let txIdx = startFrom;
 
-        const nNewTx = Math.max(0, afterLastNewTxIdx - firstNewTxIdx);
+      for (; txIdx < log.transactions.length; txIdx++) {
+        const isLastItem = txIdx === log.transactions.length - 1;
+        const tx = log.transactions[txIdx]!;
+        const signature = isLastItem
+          ? log.lastSignature
+          : log.signatureAfter[txIdx];
+        addTransactionToPiece(currentPiece, tx, sessionID, signature!, txIdx);
+        pieceSize += getTransactionSize(tx);
 
-        if (nNewTx === 0) {
-          sessionsTodoAgain?.delete(sessionID);
-          continue;
+        if (signature) {
+          break;
+        }
+      }
+
+      sessionSent[sessionID] = txIdx + 1;
+
+      if (txIdx < log.transactions.length - 1) {
+        sessionsToDo.unshift(sessionID);
+      }
+
+      if (
+        currentPiece.new[sessionID] &&
+        !currentPiece.new[sessionID].lastSignature
+      ) {
+        throw new Error("All the SessionLogs sent must have a lastSignature", {
+          cause: currentPiece.new[sessionID],
+        });
+      }
+
+      if (exceedsRecommendedSize(pieceSize)) {
+        if (currentPiece === pieces[0]) {
+          currentPiece.expectContentUntil =
+            this.knownStateWithStreaming().sessions;
         }
 
-        if (afterLastNewTxIdx < log.transactions.length) {
-          if (!sessionsTodoAgain) {
-            sessionsTodoAgain = new Set();
-          }
-          sessionsTodoAgain.add(sessionID);
-        }
-
-        const oldPieceSize = pieceSize;
-        for (let txIdx = firstNewTxIdx; txIdx < afterLastNewTxIdx; txIdx++) {
-          const tx = log.transactions[txIdx]!;
-          pieceSize += getTransactionSize(tx);
-        }
-
-        if (exceedsRecommendedSize(pieceSize)) {
-          if (!currentPiece.expectContentUntil && pieces.length === 1) {
-            currentPiece.expectContentUntil =
-              this.knownStateWithStreaming().sessions;
-          }
-
-          currentPiece = createContentMessage(this.id, this.header, false);
-          pieces.push(currentPiece);
-          pieceSize = pieceSize - oldPieceSize;
-        }
-
-        let sessionEntry = currentPiece.new[sessionID];
-        if (!sessionEntry) {
-          sessionEntry = {
-            after: sentStateForSessionID ?? knownStateForSessionID ?? 0,
-            newTransactions: [],
-            lastSignature: "WILL_BE_REPLACED" as Signature,
-          };
-          currentPiece.new[sessionID] = sessionEntry;
-        }
-
-        for (let txIdx = firstNewTxIdx; txIdx < afterLastNewTxIdx; txIdx++) {
-          const tx = log.transactions[txIdx]!;
-          sessionEntry.newTransactions.push(tx);
-        }
-
-        sessionEntry.lastSignature =
-          nextKnownSignatureIdx === undefined
-            ? log.lastSignature!
-            : log.signatureAfter[nextKnownSignatureIdx]!;
-
-        sentState[sessionID] =
-          (sentStateForSessionID ?? knownStateForSessionID ?? 0) + nNewTx;
+        currentPiece = createContentMessage(this.id, this.header, false);
+        pieces.push(currentPiece);
+        pieceSize = 0;
       }
     }
 
