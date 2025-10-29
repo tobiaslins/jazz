@@ -1,5 +1,13 @@
 # cojson-transport-nodejs-ws
 
+## 0.18.32
+
+### Patch Changes
+
+- 2c7013a: Allow providing a custom meter for usage tracking
+- Updated dependencies [8f47a9e]
+  - cojson@0.18.32
+
 ## 0.18.31
 
 ### Patch Changes

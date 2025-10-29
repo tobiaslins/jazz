@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.32
+
+### Patch Changes
+
+- 314c199: feat: CoValue's history is now visible in inspector
+- Updated dependencies [8f47a9e]
+- Updated dependencies [2c7013a]
+  - cojson@0.18.32
+  - cojson-transport-ws@0.18.32
+  - cojson-storage-indexeddb@0.18.32
+
 ## 0.18.31
 
 ### Patch Changes
