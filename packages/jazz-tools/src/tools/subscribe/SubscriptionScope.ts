@@ -345,9 +345,8 @@ export class SubscriptionScope<D extends CoValue> {
       this.resolve = {};
     }
 
-    if (!this.resolve.$each && !(key in this.resolve)) {
-      const resolve = this.resolve as Record<string, any>;
-
+    const resolve: Record<string, any> = this.resolve;
+    if (!resolve.$each && !(key in resolve)) {
       // Adding the key to the resolve object to resolve the key when calling loadChildren
       resolve[key] = true;
       // Track the keys that are autoloaded to flag any id on that key as autoloaded
