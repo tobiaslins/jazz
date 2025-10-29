@@ -149,7 +149,7 @@ describe("Group.childKeyRotation", () => {
     newBobSession.syncManager.handleNewContent(lastChunk, "import");
 
     // The migration waits for the group to be completely downloaded
-    await childGroupOnNewBobNode.core.waitFor((core) =>
+    await childGroupOnNewBobNode.core.waitForAsync((core) =>
       core.isCompletelyDownloaded(),
     );
 
@@ -216,7 +216,7 @@ describe("Group.childKeyRotation", () => {
     newBobSession.syncManager.handleNewContent(lastChunk, "import");
 
     // The migration waits for the group to be completely downloaded, this includes full streaming of the parent group
-    await childGroupOnNewBobNode.core.waitFor((core) =>
+    await childGroupOnNewBobNode.core.waitForAsync((core) =>
       core.isCompletelyDownloaded(),
     );
 

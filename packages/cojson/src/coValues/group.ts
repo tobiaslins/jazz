@@ -205,22 +205,20 @@ export class RawGroup<
       return;
     }
 
+    const runMigrations = () => {
+      rotateReadKeyIfNeeded(this);
+      healMissingKeyForEveryone(this);
+    };
+
     // We need the group and their parents to be completely downloaded to correctly handle the migrations
     if (!this.core.isCompletelyDownloaded()) {
-      this.core.subscribe((core, unsubscribe) => {
-        if (core.isCompletelyDownloaded()) {
-          unsubscribe();
-
-          rotateReadKeyIfNeeded(this);
-          healMissingKeyForEveryone(this);
-        }
+      this.core.waitFor({
+        predicate: (core) => core.isCompletelyDownloaded(),
+        onSuccess: runMigrations,
       });
-
-      return;
+    } else {
+      runMigrations();
     }
-
-    rotateReadKeyIfNeeded(this);
-    healMissingKeyForEveryone(this);
   }
 
   /**

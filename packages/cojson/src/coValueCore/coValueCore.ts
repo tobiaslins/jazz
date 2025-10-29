@@ -282,29 +282,37 @@ export class CoValueCore {
     return this.getLoadingStateForPeer(peerId) === "errored";
   }
 
-  waitFor(callback: (value: CoValueCore) => boolean) {
+  waitFor(opts: {
+    predicate: (value: CoValueCore) => boolean;
+    onSuccess: (value: CoValueCore) => void;
+  }) {
+    const { predicate, onSuccess } = opts;
+    this.subscribe((core, unsubscribe) => {
+      if (predicate(core)) {
+        unsubscribe();
+        onSuccess(core);
+      }
+    }, true);
+  }
+
+  waitForAsync(callback: (value: CoValueCore) => boolean) {
     return new Promise<CoValueCore>((resolve) => {
-      this.subscribe((core, unsubscribe) => {
-        if (callback(core)) {
-          unsubscribe();
-          resolve(core);
-        }
-      }, true);
+      this.waitFor({ predicate: callback, onSuccess: resolve });
     });
   }
 
   waitForAvailableOrUnavailable(): Promise<CoValueCore> {
-    return this.waitFor(
+    return this.waitForAsync(
       (core) => core.isAvailable() || core.loadingState === "unavailable",
     );
   }
 
   waitForAvailable(): Promise<CoValueCore> {
-    return this.waitFor((core) => core.isAvailable());
+    return this.waitForAsync((core) => core.isAvailable());
   }
 
   waitForFullStreaming(): Promise<CoValueCore> {
-    return this.waitFor(
+    return this.waitForAsync(
       (core) => core.isAvailable() && !core.verified.isStreaming(),
     );
   }
@@ -409,17 +417,16 @@ export class CoValueCore {
       return;
     }
 
-    this.subscribe((core, unsubscribe) => {
-      if (!core.hasMissingDependencies()) {
-        unsubscribe();
-
+    this.waitFor({
+      predicate: (core) => !core.hasMissingDependencies(),
+      onSuccess: () => {
         const enqueuedNewContent = this.newContentQueue;
         this.newContentQueue = [];
 
         for (const { msg, from } of enqueuedNewContent) {
           this.node.syncManager.handleNewContent(msg, from);
         }
-      }
+      },
     });
   }
 
@@ -1168,29 +1175,30 @@ export class CoValueCore {
 
     if (!dependencyCoValue.isAvailable()) {
       this.missingDependencies.add(dependency);
-      dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
-        if (dependencyCoValue.isAvailable()) {
-          unsubscribe();
+      dependencyCoValue.waitFor({
+        predicate: (dependencyCoValue) => dependencyCoValue.isAvailable(),
+        onSuccess: () => {
           this.missingDependencies.delete(dependency);
 
           if (this.missingDependencies.size === 0) {
             this.notifyUpdate(); // We want this to propagate immediately
           }
-        }
+        },
       });
     }
 
     if (!dependencyCoValue.isCompletelyDownloaded()) {
       this.incompleteDependencies.add(dependency);
-      dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
-        if (dependencyCoValue.isCompletelyDownloaded()) {
-          unsubscribe();
+      dependencyCoValue.waitFor({
+        predicate: (dependencyCoValue) =>
+          dependencyCoValue.isCompletelyDownloaded(),
+        onSuccess: () => {
           this.incompleteDependencies.delete(dependency);
           if (this.incompleteDependencies.size === 0) {
             // We want this to propagate immediately in the dependency chain
             this.notifyUpdate();
           }
-        }
+        },
       });
     }
   }
