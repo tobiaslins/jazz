@@ -9,6 +9,7 @@ import {
   Role,
 } from "cojson";
 import { useMemo } from "react";
+import { styled } from "goober";
 import { isCoId } from "./types";
 import { AccountOrGroupText } from "./account-or-group-text";
 import { DataTable, ColumnDef } from "../ui/data-table";
@@ -22,12 +23,15 @@ import {
   BinaryStreamChunk,
   BinaryStreamEnd,
 } from "cojson/dist/coValues/coStream.js";
+import { VerifiedTransaction } from "cojson/dist/coValueCore/coValueCore.js";
+import { Icon } from "../ui";
 
 type HistoryEntry = {
   id: string;
   author: string;
   action: string;
   timestamp: Date;
+  isValid: boolean;
 };
 
 export function HistoryView({
@@ -46,16 +50,33 @@ export function HistoryView({
     {
       id: "author",
       header: "Author",
-      accessor: (row) =>
-        row.author.startsWith("co_") ? (
-          <AccountOrGroupText
-            coId={row.author as CoID<RawCoValue>}
-            node={node}
-            showId
-          />
-        ) : (
-          row.author
-        ),
+      accessor: (row) => (
+        <>
+          {row.isValid || (
+            <RedTooltip data-text="This transaction is invalid and is not used">
+              <Icon
+                name="caution"
+                size="xs"
+                color="red"
+                style={{
+                  display: "inline-block",
+                  verticalAlign: "middle",
+                  marginRight: "0.25rem",
+                }}
+              />
+            </RedTooltip>
+          )}
+          {row.author.startsWith("co_") ? (
+            <AccountOrGroupText
+              coId={row.author as CoID<RawCoValue>}
+              node={node}
+              showId
+            />
+          ) : (
+            row.author
+          )}
+        </>
+      ),
       sortable: false,
       filterable: true,
       sortFn: (a, b) => a.author.localeCompare(b.author),
@@ -95,24 +116,42 @@ export function HistoryView({
   );
 }
 
-function getHistory(coValue: RawCoValue): HistoryEntry[] {
-  return coValue.core.verifiedTransactions.flatMap((tx, index) => {
-    if (tx.changes === undefined || tx.changes.length === 0) {
-      return [
-        {
-          id: `${tx.txID.sessionID.toString()}-${tx.txID.txIndex}-${index}`,
-          author: tx.author,
-          action: (tx.tx as any).changes,
-          timestamp: new Date(tx.currentMadeAt),
-        },
-      ];
+function getTransactionChanges(
+  tx: VerifiedTransaction,
+  coValue: RawCoValue,
+): JsonValue[] {
+  if (tx.isValid === false && tx.tx.privacy === "private") {
+    const readKey = coValue.core.getReadKey(tx.tx.keyUsed);
+    if (!readKey) {
+      throw new Error("Read key not found");
     }
 
-    return tx.changes.map((change, changeIndex) => ({
+    return (
+      coValue.core.verified.decryptTransaction(
+        tx.txID.sessionID,
+        tx.txID.txIndex,
+        readKey,
+      ) ?? []
+    );
+
+    // const decryptedString = coValue.core.verified.sessions.get(tx.txID.sessionID)?.impl.decryptNextTransactionChangesJson(tx.txID.txIndex, readKey);
+
+    // return decryptedString ? [decryptedString] : [];
+  }
+
+  return tx.changes ?? (tx.tx as any).changes ?? [];
+}
+
+function getHistory(coValue: RawCoValue): HistoryEntry[] {
+  return coValue.core.verifiedTransactions.flatMap((tx, index) => {
+    const changes = getTransactionChanges(tx, coValue);
+
+    return changes.map((change, changeIndex) => ({
       id: `${tx.txID.sessionID.toString()}-${tx.txID.txIndex}-${index}-${changeIndex}`,
       author: tx.author,
       action: mapTransactionToAction(change, coValue),
       timestamp: new Date(tx.currentMadeAt),
+      isValid: tx.isValid,
     }));
   });
 }
@@ -306,3 +345,35 @@ const isStreamChunk = (change: any): change is BinaryStreamChunk => {
 const isStreamEnd = (change: any): change is BinaryStreamEnd => {
   return change?.type === "end";
 };
+
+const RedTooltip = styled("span")`
+  position:relative; /* making the .tooltip span a container for the tooltip text */
+  border-bottom:1px dashed #000; /* little indicater to indicate it's hoverable */
+
+  &:before {
+    content: attr(data-text);
+    background-color: red;
+    position:absolute;
+
+    /* vertically center */
+    top:50%;
+    transform:translateY(-50%);
+
+    /* move to right */
+    left:100%;
+    margin-left:15px; /* and add a small left margin */
+
+    /* basic styles */
+    width:200px;
+    padding:10px;
+    border-radius:10px;
+    color: #fff;
+    text-align:center;
+
+    display:none; /* hide by default */
+  }
+
+  &:hover:before {
+    display:block;
+  }
+`;
