@@ -337,7 +337,7 @@ test("should wait for the full streaming of the group", async () => {
   );
 });
 
-test.skip("should wait for the full streaming of the parent groups", async () => {
+test("should wait for the full streaming of the parent groups", async () => {
   disableJazzTestSync();
 
   const alice = await createJazzTestAccount({

@@ -123,6 +123,13 @@ function healMissingKeyForEveryone(group: RawGroup) {
 }
 
 function needsKeyRotation(group: RawGroup) {
+  const myRole = group.myRole();
+
+  // Checking only direct membership because inside the migrations we can't navigate the parent groups
+  if (myRole !== "admin" && myRole !== "manager") {
+    return false;
+  }
+
   const currentReadKeyId = group.get("readKey");
 
   if (!currentReadKeyId) {
@@ -190,11 +197,27 @@ export class RawGroup<
   ) {
     super(core, options);
     this.crypto = core.node.crypto;
+    this.migrate();
+  }
 
-    // Checks if this is not an account
-    if (core.isGroup() && !core.verified.isStreaming()) {
-      // rotateReadKeyIfNeeded(this);
+  migrate() {
+    if (!this.core.isGroup()) {
+      return;
+    }
+
+    const runMigrations = () => {
+      rotateReadKeyIfNeeded(this);
       healMissingKeyForEveryone(this);
+    };
+
+    // We need the group and their parents to be completely downloaded to correctly handle the migrations
+    if (!this.core.isCompletelyDownloaded()) {
+      this.core.waitFor({
+        predicate: (core) => core.isCompletelyDownloaded(),
+        onSuccess: runMigrations,
+      });
+    } else {
+      runMigrations();
     }
   }
 
@@ -318,7 +341,7 @@ export class RawGroup<
    * @category 1. Role reading
    */
   myRole(): Role | undefined {
-    return this.roleOfInternal(this.core.node.getCurrentAgent().id);
+    return this.roleOfInternal(this.core.node.getCurrentAccountOrAgentID());
   }
 
   /**
