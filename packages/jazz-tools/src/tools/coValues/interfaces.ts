@@ -709,7 +709,7 @@ function loadContentPiecesFromCoValue(
     }
   }
 
-  const pieces = core.verified.newContentSince(undefined) ?? [];
+  const pieces = core.newContentSince() ?? [];
 
   for (const piece of pieces) {
     contentPieces.push(piece);

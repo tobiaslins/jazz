@@ -540,6 +540,13 @@ export function setupTestNode(
         isSyncServer: opts.isSyncServer,
       });
     },
+    disconnect: () => {
+      const allPeers = Object.values(node.syncManager.peers);
+      allPeers.forEach((peer) => {
+        peer.gracefulShutdown();
+      });
+      node.syncManager.peers = {};
+    },
   };
 
   return ctx;
@@ -731,8 +738,7 @@ export function createAccountInNode(node: LocalNode) {
 
   const accountCoreEntry = node.getCoValue(accountOnTempNode.id);
 
-  const content =
-    accountOnTempNode.core.verified.newContentSince(undefined)?.[0]!;
+  const content = accountOnTempNode.core.newContentSince(undefined)?.[0]!;
 
   node.syncManager.handleNewContent(content, "import");
 

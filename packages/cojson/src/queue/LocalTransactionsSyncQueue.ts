@@ -1,10 +1,15 @@
 import {
   addTransactionToContentMessage,
   createContentMessage,
+  knownStateFromContent,
 } from "../coValueContentMessage.js";
 import { Transaction, VerifiedState } from "../coValueCore/verifiedState.js";
 import { Signature } from "../crypto/crypto.js";
 import { RawCoID, SessionID } from "../ids.js";
+import {
+  combineKnownStateSessions,
+  KnownStateSessions,
+} from "../knownState.js";
 import { NewContentMessage } from "../sync.js";
 import { LinkedList } from "./LinkedList.js";
 
@@ -113,8 +118,28 @@ export class LocalTransactionsSyncQueue {
     this.processingSyncs = true;
 
     queueMicrotask(() => {
+      const firstContentPieceMap = new Map<RawCoID, NewContentMessage>();
+
       while (this.queue.head) {
         const content = this.queue.head.value;
+
+        const firstContentPiece = firstContentPieceMap.get(content.id);
+
+        if (!firstContentPiece) {
+          firstContentPieceMap.set(content.id, content);
+        } else {
+          // There is already a content piece for this coValue, so this means that we need to flag
+          // that this content is going to be streamed
+          if (!firstContentPiece.expectContentUntil) {
+            firstContentPiece.expectContentUntil =
+              knownStateFromContent(firstContentPiece).sessions;
+          }
+
+          combineKnownStateSessions(
+            firstContentPiece.expectContentUntil,
+            knownStateFromContent(content).sessions,
+          );
+        }
 
         this.sync(content);
 

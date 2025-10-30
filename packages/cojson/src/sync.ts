@@ -228,7 +228,7 @@ export class SyncManager {
       }
     }
 
-    const newContentPieces = coValue.verified.newContentSince(
+    const newContentPieces = coValue.newContentSince(
       peer.getOptimisticKnownState(id),
     );
 
@@ -585,6 +585,8 @@ export class SyncManager {
           sessions: msg.expectContentUntil,
         });
       }
+    } else if (msg.expectContentUntil) {
+      coValue.verified.setStreamingKnownState(msg.expectContentUntil);
     }
 
     // At this point the CoValue must be in memory, if not we have a bug
@@ -647,6 +649,9 @@ export class SyncManager {
             peerRole: peer.role,
             id: msg.id,
             err: result.error,
+            msgKnownState: knownStateFromContent(msg).sessions,
+            knownState: coValue.knownState().sessions,
+            newContent: validNewContent.new,
           });
           // TODO Mark only the session as errored, not the whole coValue
           coValue.markErrored(peer.id, result.error);
@@ -822,7 +827,7 @@ export class SyncManager {
         return undefined;
       }
 
-      return value.verified.newContentSince(correction);
+      return value.newContentSince(correction);
     });
   }
 

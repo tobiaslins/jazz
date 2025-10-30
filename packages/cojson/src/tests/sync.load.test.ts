@@ -576,8 +576,7 @@ describe("loading coValues from server", () => {
       [
         "client -> server | LOAD Map sessions: empty",
         "server -> client | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | CONTENT Map header: true new:  expectContentUntil: header/1024",
-        "server -> client | CONTENT Map header: false new: After: 0 New: 73",
+        "server -> client | CONTENT Map header: true new: After: 0 New: 73 expectContentUntil: header/1024",
         "server -> client | CONTENT Map header: false new: After: 73 New: 73",
         "server -> client | CONTENT Map header: false new: After: 146 New: 73",
         "server -> client | CONTENT Map header: false new: After: 219 New: 73",
@@ -593,7 +592,6 @@ describe("loading coValues from server", () => {
         "server -> client | CONTENT Map header: false new: After: 949 New: 73",
         "server -> client | CONTENT Map header: false new: After: 1022 New: 2",
         "client -> server | KNOWN Group sessions: header/5",
-        "client -> server | KNOWN Map sessions: header/0",
         "client -> server | KNOWN Map sessions: header/73",
         "client -> server | KNOWN Map sessions: header/146",
         "client -> server | KNOWN Map sessions: header/219",
@@ -608,6 +606,83 @@ describe("loading coValues from server", () => {
         "client -> server | KNOWN Map sessions: header/876",
         "client -> server | KNOWN Map sessions: header/949",
         "client -> server | KNOWN Map sessions: header/1022",
+        "client -> server | KNOWN Map sessions: header/1024",
+      ]
+    `);
+  });
+
+  test("streaming a large update", async () => {
+    const group = jazzCloud.node.createGroup();
+    group.addMember("everyone", "writer");
+
+    const largeMap = group.createMap();
+
+    await largeMap.core.waitForSync();
+
+    const client = setupTestNode({
+      connected: true,
+    });
+    const mapOnClient = await loadCoValueOrFail(client.node, largeMap.id);
+
+    // Generate a large amount of data (about 100MB)
+    const dataSize = 1 * 1024 * 1024;
+    const chunkSize = 1024; // 1KB chunks
+    const chunks = dataSize / chunkSize;
+
+    const value = Buffer.alloc(chunkSize, `value$`).toString("base64");
+
+    for (let i = 0; i < chunks; i++) {
+      const key = `key${i}`;
+      largeMap.set(key, value, "trusting");
+    }
+
+    await waitFor(() => {
+      expect(mapOnClient.core.knownState()).toEqual(largeMap.core.knownState());
+    });
+
+    expect(mapOnClient.get(`key${chunks - 1}`)).toEqual(value);
+
+    expect(
+      SyncMessagesLog.getMessages({
+        Group: group.core,
+        Map: largeMap.core,
+      }),
+    ).toMatchInlineSnapshot(`
+      [
+        "client -> server | LOAD Map sessions: empty",
+        "server -> client | CONTENT Group header: true new: After: 0 New: 5",
+        "server -> client | CONTENT Map header: true new: ",
+        "client -> server | KNOWN Group sessions: header/5",
+        "client -> server | KNOWN Map sessions: header/0",
+        "server -> client | CONTENT Map header: false new: After: 0 New: 72 expectContentUntil: header/1024",
+        "server -> client | CONTENT Map header: false new: After: 72 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 145 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 218 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 291 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 364 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 437 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 510 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 583 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 656 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 729 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 802 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 875 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 948 New: 73",
+        "server -> client | CONTENT Map header: false new: After: 1021 New: 3",
+        "client -> server | KNOWN Map sessions: header/72",
+        "client -> server | KNOWN Map sessions: header/145",
+        "client -> server | KNOWN Map sessions: header/218",
+        "client -> server | KNOWN Map sessions: header/291",
+        "client -> server | KNOWN Map sessions: header/364",
+        "client -> server | KNOWN Map sessions: header/437",
+        "client -> server | KNOWN Map sessions: header/510",
+        "client -> server | KNOWN Map sessions: header/583",
+        "client -> server | KNOWN Map sessions: header/656",
+        "client -> server | KNOWN Map sessions: header/729",
+        "client -> server | KNOWN Map sessions: header/802",
+        "client -> server | KNOWN Map sessions: header/875",
+        "client -> server | KNOWN Map sessions: header/948",
+        "client -> server | KNOWN Map sessions: header/1021",
         "client -> server | KNOWN Map sessions: header/1024",
       ]
     `);
@@ -1311,8 +1386,8 @@ describe("loading coValues from server", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> server | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> server | CONTENT ParentGroup header: true new: After: 0 New: 5",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 3 expectContentUntil: header/5",
+        "client -> server | CONTENT ParentGroup header: true new: After: 0 New: 5 expectContentUntil: header/7",
         "client -> server | CONTENT Group header: false new: After: 3 New: 2",
         "client -> server | CONTENT ParentGroup header: false new: After: 5 New: 2",
         "client -> server | CONTENT Map header: true new: After: 0 New: 1",

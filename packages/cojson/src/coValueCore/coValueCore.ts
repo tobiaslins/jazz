@@ -278,6 +278,17 @@ export class CoValueCore {
     return !!this.verified;
   }
 
+  /**
+   * Returns the CoValue data as NewContentMessage objects, excluding the transactions that are part of the given known state.
+   *
+   * Used to serialize the CoValue data to send it to peers and storage.
+   */
+  newContentSince(
+    knownState?: CoValueKnownState,
+  ): NewContentMessage[] | undefined {
+    return this.verified?.newContentSince(knownState);
+  }
+
   isErroredInPeer(peerId: PeerID) {
     return this.getLoadingStateForPeer(peerId) === "errored";
   }
@@ -313,7 +324,7 @@ export class CoValueCore {
 
   waitForFullStreaming(): Promise<CoValueCore> {
     return this.waitForAsync(
-      (core) => core.isAvailable() && !core.verified.isStreaming(),
+      (core) => core.isAvailable() && !core.isStreaming(),
     );
   }
 
@@ -371,7 +382,7 @@ export class CoValueCore {
 
   missingDependencies = new Set<RawCoID>();
 
-  isCircularMissingDependency(dependency: CoValueCore) {
+  isCircularDependency(dependency: CoValueCore) {
     const visited = new Set<RawCoID>();
     const stack = [dependency];
 
@@ -384,7 +395,7 @@ export class CoValueCore {
 
       visited.add(current.id);
 
-      for (const dependency of current.missingDependencies) {
+      for (const dependency of current.dependencies) {
         if (dependency === this.id) {
           return true;
         }
@@ -1159,44 +1170,42 @@ export class CoValueCore {
   dependencies: Set<RawCoID> = new Set();
   incompleteDependencies: Set<RawCoID> = new Set();
   private addDependency(dependency: RawCoID) {
-    if (this.dependencies.has(dependency)) {
-      return true;
+    const dependencyCoValue = this.node.getCoValue(dependency);
+
+    if (
+      this.isCircularDependency(dependencyCoValue) ||
+      this.dependencies.has(dependency)
+    ) {
+      return;
     }
 
     this.dependencies.add(dependency);
-
-    const dependencyCoValue = this.node.getCoValue(dependency);
-
-    if (this.isCircularMissingDependency(dependencyCoValue)) {
-      return true;
-    }
-
     dependencyCoValue.addDependant(this.id);
 
-    if (!dependencyCoValue.isAvailable()) {
-      this.missingDependencies.add(dependency);
+    if (!dependencyCoValue.isCompletelyDownloaded()) {
+      this.incompleteDependencies.add(dependencyCoValue.id);
       dependencyCoValue.waitFor({
-        predicate: (dependencyCoValue) => dependencyCoValue.isAvailable(),
+        predicate: (dependencyCoValue) =>
+          dependencyCoValue.isCompletelyDownloaded(),
         onSuccess: () => {
-          this.missingDependencies.delete(dependency);
-
-          if (this.missingDependencies.size === 0) {
-            this.notifyUpdate(); // We want this to propagate immediately
+          this.incompleteDependencies.delete(dependencyCoValue.id);
+          if (this.incompleteDependencies.size === 0) {
+            // We want this to propagate immediately in the dependency chain
+            this.notifyUpdate();
           }
         },
       });
     }
 
-    if (!dependencyCoValue.isCompletelyDownloaded()) {
-      this.incompleteDependencies.add(dependency);
+    if (!dependencyCoValue.isAvailable()) {
+      this.missingDependencies.add(dependencyCoValue.id);
       dependencyCoValue.waitFor({
-        predicate: (dependencyCoValue) =>
-          dependencyCoValue.isCompletelyDownloaded(),
+        predicate: (dependencyCoValue) => dependencyCoValue.isAvailable(),
         onSuccess: () => {
-          this.incompleteDependencies.delete(dependency);
-          if (this.incompleteDependencies.size === 0) {
-            // We want this to propagate immediately in the dependency chain
-            this.notifyUpdate();
+          this.missingDependencies.delete(dependencyCoValue.id);
+
+          if (this.missingDependencies.size === 0) {
+            this.notifyUpdate(); // We want this to propagate immediately
           }
         },
       });

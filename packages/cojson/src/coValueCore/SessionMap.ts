@@ -19,6 +19,8 @@ import {
   KnownStateSessions,
   updateSessionCounter,
   cloneKnownState,
+  combineKnownStateSessions,
+  isKnownStateSubsetOf,
 } from "../knownState.js";
 
 export type SessionLog = {
@@ -53,6 +55,28 @@ export class SessionMap {
         sessions: { ...streamingKnownState },
       };
     }
+  }
+
+  setStreamingKnownState(streamingKnownState: KnownStateSessions) {
+    // if the streaming known state is a subset of the current known state, we can skip the update
+    if (isKnownStateSubsetOf(streamingKnownState, this.knownState.sessions)) {
+      return;
+    }
+
+    if (this.streamingKnownState) {
+      combineKnownStateSessions(this.streamingKnownState, streamingKnownState);
+    } else {
+      this.streamingKnownState = { ...streamingKnownState };
+    }
+
+    if (!this.knownStateWithStreaming) {
+      this.knownStateWithStreaming = cloneKnownState(this.knownState);
+    }
+
+    combineKnownStateSessions(
+      this.knownStateWithStreaming.sessions,
+      streamingKnownState,
+    );
   }
 
   get(sessionID: SessionID): SessionLog | undefined {

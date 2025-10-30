@@ -7,7 +7,7 @@ import {
   setSessionCounter,
   updateSessionCounter,
   cloneKnownState,
-  areLocalSessionsUploaded,
+  isKnownStateSubsetOf,
   type CoValueKnownState,
   type KnownStateSessions,
 } from "../knownState.js";
@@ -547,14 +547,14 @@ describe("knownState", () => {
     });
   });
 
-  describe("areLocalSessionsUploaded", () => {
+  describe("isKnownStateSubsetOf", () => {
     test("should return true when all counters match", () => {
       const session1 = "session-1" as SessionID;
       const session2 = "session-2" as SessionID;
       const from = { [session1]: 5, [session2]: 10 };
       const to = { [session1]: 5, [session2]: 10 };
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(true);
     });
@@ -564,7 +564,7 @@ describe("knownState", () => {
       const from = { [session1]: 5 };
       const to = { [session1]: 3 };
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(false);
     });
@@ -574,7 +574,7 @@ describe("knownState", () => {
       const from = { [session1]: 5 };
       const to = {};
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(false);
     });
@@ -584,7 +584,7 @@ describe("knownState", () => {
       const from = {};
       const to = { [session1]: 5 };
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(true);
     });
@@ -593,7 +593,7 @@ describe("knownState", () => {
       const from = {};
       const to = {};
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(true);
     });
@@ -613,7 +613,7 @@ describe("knownState", () => {
         [session3]: 15,
       };
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(true);
     });
@@ -633,7 +633,7 @@ describe("knownState", () => {
         [session3]: 15,
       };
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(false);
     });
@@ -647,7 +647,7 @@ describe("knownState", () => {
         [session2]: 10,
       };
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(true);
     });
@@ -657,7 +657,7 @@ describe("knownState", () => {
       const from = { [session1]: 5 };
       const to = { [session1]: 10 };
 
-      const result = areLocalSessionsUploaded(from, to);
+      const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(false);
     });
