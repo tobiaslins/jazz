@@ -125,7 +125,7 @@ describe("Group.childKeyRotation", () => {
       group.set("test", "1".repeat(1024));
     }
 
-    expect(group.core.verified.newContentSince(undefined)?.length).toBe(3);
+    expect(group.core.verified.newContentSince(undefined)?.length).toBe(2);
 
     group.removeMember(aliceOnAdminNode);
 
@@ -191,7 +191,7 @@ describe("Group.childKeyRotation", () => {
     }
 
     expect(parentGroup.core.verified.newContentSince(undefined)?.length).toBe(
-      4,
+      3,
     );
 
     parentGroup.removeMember(aliceOnAdminNode);

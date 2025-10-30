@@ -493,7 +493,7 @@ describe("CoValueCore.isCompletelyDownloaded", () => {
   });
 
   describe("streaming from the middle", () => {
-    test.skip("should return false when the value itself is streaming", async () => {
+    test("should return false when the value itself is streaming", async () => {
       const group = admin.node.createGroup();
 
       const map = group.createMap();
