@@ -109,7 +109,7 @@ export function cloneKnownState(knownState: CoValueKnownState) {
 /**
  * Checks if all the local sessions have the same counters as in remote.
  */
-export function areLocalSessionsUploaded(
+export function isKnownStateSubsetOf(
   local: Record<string, number>,
   remote: Record<string, number>,
 ) {

@@ -169,12 +169,10 @@ export class VerifiedState {
   newContentSince(
     knownState: CoValueKnownState | undefined,
   ): NewContentMessage[] | undefined {
-    const includeHeader = !knownState?.header;
-
     let currentPiece: NewContentMessage = createContentMessage(
       this.id,
       this.header,
-      includeHeader,
+      false,
     );
     const pieces: NewContentMessage[] = [currentPiece];
     let pieceSize = 0;
@@ -278,9 +276,29 @@ export class VerifiedState {
       }
     }
 
+    const firstPiece = pieces[0];
+
+    if (!firstPiece) {
+      throw new Error("First piece not found", {
+        cause: pieces,
+      });
+    }
+
+    const includeHeader = !knownState?.header;
+
+    if (includeHeader) {
+      firstPiece.header = this.header;
+    }
+
     const piecesWithContent = pieces.filter(
       (piece) => piece.header || Object.keys(piece.new).length > 0,
     );
+
+    if (piecesWithContent.length > 1 || this.isStreaming()) {
+      firstPiece.expectContentUntil = {
+        ...this.knownStateWithStreaming().sessions,
+      };
+    }
 
     if (piecesWithContent.length === 0) {
       return undefined;

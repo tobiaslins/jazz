@@ -1,18 +1,9 @@
 import { assert, beforeEach, describe, expect, test } from "vitest";
-import {
-  loadCoValueOrFail,
-  setupTestAccount,
-  setupTestNode,
-} from "./testUtils.js";
+import { loadCoValueOrFail, setupTestNode } from "./testUtils.js";
 import { CO_VALUE_PRIORITY } from "../priority.js";
 import { emptyKnownState, SessionID } from "../exports.js";
 import { NewContentMessage } from "../sync.js";
-import {
-  addTransactionToContentMessage,
-  exceedsRecommendedSize,
-  getTransactionSize,
-} from "../coValueContentMessage.js";
-import { TRANSACTION_CONFIG } from "../config.js";
+import { addTransactionToContentMessage } from "../coValueContentMessage.js";
 
 beforeEach(() => {
   setupTestNode({ isSyncServer: true });
@@ -37,6 +28,13 @@ function simplifyContentMessage(
     header: message.header ? "header" : undefined,
     priority: message.priority,
     new: Object.fromEntries(newContent),
+    expectContentUntil: message.expectContentUntil
+      ? Object.fromEntries(
+          Object.entries(message.expectContentUntil).map(
+            ([sessionID, after]) => [sessionMapping[sessionID], after],
+          ),
+        )
+      : undefined,
   };
 }
 
@@ -107,6 +105,7 @@ describe("newContentSince", () => {
       [
         {
           "action": "content",
+          "expectContentUntil": undefined,
           "header": "header",
           "id": "id",
           "new": {
@@ -150,6 +149,7 @@ describe("newContentSince", () => {
       [
         {
           "action": "content",
+          "expectContentUntil": undefined,
           "header": "header",
           "id": "id",
           "new": {
@@ -197,7 +197,10 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
-            "header": undefined,
+            "expectContentUntil": {
+              "alice": 100,
+            },
+            "header": "header",
             "id": "id",
             "new": {
               "alice": {
@@ -209,7 +212,8 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
-            "header": "header",
+            "expectContentUntil": undefined,
+            "header": undefined,
             "id": "id",
             "new": {
               "alice": {
@@ -260,7 +264,11 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
-            "header": undefined,
+            "expectContentUntil": {
+              "alice": 100,
+              "bob": 1,
+            },
+            "header": "header",
             "id": "id",
             "new": {
               "alice": {
@@ -272,7 +280,8 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
-            "header": "header",
+            "expectContentUntil": undefined,
+            "header": undefined,
             "id": "id",
             "new": {
               "alice": {
@@ -331,7 +340,11 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
-            "header": undefined,
+            "expectContentUntil": {
+              "alice": 100,
+              "bob": 100,
+            },
+            "header": "header",
             "id": "id",
             "new": {
               "alice": {
@@ -343,6 +356,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {
@@ -355,7 +369,8 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
-            "header": "header",
+            "expectContentUntil": undefined,
+            "header": undefined,
             "id": "id",
             "new": {
               "alice": {
@@ -420,7 +435,12 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
-            "header": undefined,
+            "expectContentUntil": {
+              "alice": 100,
+              "bob": 1,
+              "charlie": 100,
+            },
+            "header": "header",
             "id": "id",
             "new": {
               "alice": {
@@ -432,6 +452,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {
@@ -444,7 +465,8 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
-            "header": "header",
+            "expectContentUntil": undefined,
+            "header": undefined,
             "id": "id",
             "new": {
               "alice": {
@@ -540,7 +562,12 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
-            "header": undefined,
+            "expectContentUntil": {
+              "alice": 100,
+              "bob": 1,
+              "charlie": 100,
+            },
+            "header": "header",
             "id": "id",
             "new": {
               "alice": {
@@ -552,6 +579,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {
@@ -564,7 +592,8 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
-            "header": "header",
+            "expectContentUntil": undefined,
+            "header": undefined,
             "id": "id",
             "new": {
               "bob": {
@@ -622,6 +651,9 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
+            "expectContentUntil": {
+              "alice": 200,
+            },
             "header": undefined,
             "id": "id",
             "new": {
@@ -634,6 +666,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {
@@ -694,6 +727,10 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
+            "expectContentUntil": {
+              "alice": 200,
+              "bob": 1,
+            },
             "header": undefined,
             "id": "id",
             "new": {
@@ -706,6 +743,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {
@@ -771,6 +809,10 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
+            "expectContentUntil": {
+              "alice": 101,
+              "bob": 100,
+            },
             "header": undefined,
             "id": "id",
             "new": {
@@ -783,6 +825,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {
@@ -795,6 +838,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {
@@ -866,6 +910,11 @@ describe("newContentSince", () => {
         [
           {
             "action": "content",
+            "expectContentUntil": {
+              "alice": 101,
+              "bob": 1,
+              "charlie": 100,
+            },
             "header": undefined,
             "id": "id",
             "new": {
@@ -878,6 +927,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {
@@ -890,6 +940,7 @@ describe("newContentSince", () => {
           },
           {
             "action": "content",
+            "expectContentUntil": undefined,
             "header": undefined,
             "id": "id",
             "new": {

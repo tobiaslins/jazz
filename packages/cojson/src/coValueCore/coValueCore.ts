@@ -1201,6 +1201,10 @@ export class CoValueCore {
     this.dependant.add(dependant);
   }
 
+  isStreaming() {
+    return this.verified?.isStreaming() ?? false;
+  }
+
   isGroup() {
     if (!this.verified) {
       return false;

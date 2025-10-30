@@ -20,7 +20,7 @@ import {
   updateSessionCounter,
   cloneKnownState,
   combineKnownStateSessions,
-  areLocalSessionsUploaded,
+  isKnownStateSubsetOf,
 } from "../knownState.js";
 
 export type SessionLog = {
@@ -58,9 +58,7 @@ export class SessionMap {
   }
 
   setStreamingKnownState(streamingKnownState: KnownStateSessions) {
-    if (
-      areLocalSessionsUploaded(streamingKnownState, this.knownState.sessions)
-    ) {
+    if (isKnownStateSubsetOf(streamingKnownState, this.knownState.sessions)) {
       return;
     }
 
