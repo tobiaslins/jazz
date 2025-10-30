@@ -254,29 +254,24 @@ export class CoValueCore {
     return this.hasVerifiedContent();
   }
 
-  /**
-   * True if the coValue is completely downloaded:
-   * - the current coValue is available and not streaming
-   * - the group is available and not streaming
-   * - TODO: all the parent groups are available and not streaming
-   */
-  isCompletelyDownloaded(): this is AvailableCoValueCore {
+  isCompletelyDownloaded(): boolean {
     if (!this.hasVerifiedContent()) {
       return false;
     }
 
-    if (this.verified.isStreaming()) {
+    if (this.isStreaming()) {
       return false;
     }
 
-    const group = this.safeGetGroup();
-
-    // TODO: Group coValues should be completely downloaded when all their parent groups are completely downloaded
-    if (!group) {
-      return true;
+    if (this.incompleteDependencies.size > 0) {
+      return false;
     }
 
-    return group.core.isCompletelyDownloaded();
+    return true;
+  }
+
+  isStreaming() {
+    return this.verified?.isStreaming() ?? false;
   }
 
   hasVerifiedContent(): this is AvailableCoValueCore {
@@ -293,29 +288,37 @@ export class CoValueCore {
     return this.getLoadingStateForPeer(peerId) === "errored";
   }
 
-  waitFor(callback: (value: CoValueCore) => boolean) {
+  waitFor(opts: {
+    predicate: (value: CoValueCore) => boolean;
+    onSuccess: (value: CoValueCore) => void;
+  }) {
+    const { predicate, onSuccess } = opts;
+    this.subscribe((core, unsubscribe) => {
+      if (predicate(core)) {
+        unsubscribe();
+        onSuccess(core);
+      }
+    }, true);
+  }
+
+  waitForAsync(callback: (value: CoValueCore) => boolean) {
     return new Promise<CoValueCore>((resolve) => {
-      this.subscribe((core, unsubscribe) => {
-        if (callback(core)) {
-          unsubscribe();
-          resolve(core);
-        }
-      }, true);
+      this.waitFor({ predicate: callback, onSuccess: resolve });
     });
   }
 
   waitForAvailableOrUnavailable(): Promise<CoValueCore> {
-    return this.waitFor(
+    return this.waitForAsync(
       (core) => core.isAvailable() || core.loadingState === "unavailable",
     );
   }
 
   waitForAvailable(): Promise<CoValueCore> {
-    return this.waitFor((core) => core.isAvailable());
+    return this.waitForAsync((core) => core.isAvailable());
   }
 
   waitForFullStreaming(): Promise<CoValueCore> {
-    return this.waitFor(
+    return this.waitForAsync(
       (core) => core.isAvailable() && !core.verified.isStreaming(),
     );
   }
@@ -401,14 +404,6 @@ export class CoValueCore {
     return false;
   }
 
-  markDependencyAvailable(dependency: RawCoID) {
-    this.missingDependencies.delete(dependency);
-
-    if (this.missingDependencies.size === 0) {
-      this.scheduleNotifyUpdate();
-    }
-  }
-
   newContentQueue: {
     msg: NewContentMessage;
     from: PeerState | "storage" | "import";
@@ -428,17 +423,16 @@ export class CoValueCore {
       return;
     }
 
-    this.subscribe((core, unsubscribe) => {
-      if (!core.hasMissingDependencies()) {
-        unsubscribe();
-
+    this.waitFor({
+      predicate: (core) => !core.hasMissingDependencies(),
+      onSuccess: () => {
         const enqueuedNewContent = this.newContentQueue;
         this.newContentQueue = [];
 
         for (const { msg, from } of enqueuedNewContent) {
           this.node.syncManager.handleNewContent(msg, from);
         }
-      }
+      },
     });
   }
 
@@ -1169,6 +1163,7 @@ export class CoValueCore {
   }
 
   dependencies: Set<RawCoID> = new Set();
+  incompleteDependencies: Set<RawCoID> = new Set();
   private addDependency(dependency: RawCoID) {
     if (this.dependencies.has(dependency)) {
       return true;
@@ -1186,13 +1181,31 @@ export class CoValueCore {
 
     if (!dependencyCoValue.isAvailable()) {
       this.missingDependencies.add(dependency);
-      dependencyCoValue.subscribe((dependencyCoValue, unsubscribe) => {
-        if (dependencyCoValue.isAvailable()) {
-          unsubscribe();
-          this.markDependencyAvailable(dependency);
-        }
+      dependencyCoValue.waitFor({
+        predicate: (dependencyCoValue) => dependencyCoValue.isAvailable(),
+        onSuccess: () => {
+          this.missingDependencies.delete(dependency);
+
+          if (this.missingDependencies.size === 0) {
+            this.notifyUpdate(); // We want this to propagate immediately
+          }
+        },
       });
-      return false;
+    }
+
+    if (!dependencyCoValue.isCompletelyDownloaded()) {
+      this.incompleteDependencies.add(dependency);
+      dependencyCoValue.waitFor({
+        predicate: (dependencyCoValue) =>
+          dependencyCoValue.isCompletelyDownloaded(),
+        onSuccess: () => {
+          this.incompleteDependencies.delete(dependency);
+          if (this.incompleteDependencies.size === 0) {
+            // We want this to propagate immediately in the dependency chain
+            this.notifyUpdate();
+          }
+        },
+      });
     }
   }
 

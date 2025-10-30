@@ -1,5 +1,13 @@
 # cojson
 
+## 0.18.32
+
+### Patch Changes
+
+- 8f47a9e: Switch to the native decrypt when decrypting transactions with RNQuickCrypto
+  - cojson-core-wasm@0.18.32
+  - cojson-core-napi@0.18.32
+
 ## 0.18.31
 
 ### Patch Changes
