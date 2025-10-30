@@ -56,7 +56,6 @@ export class VerifiedState {
   readonly crypto: CryptoProvider;
   readonly header: CoValueHeader;
   readonly sessions: SessionMap;
-  private _cachedNewContentSinceEmpty: NewContentMessage[] | undefined;
   public lastAccessed: number | undefined;
   public branchSourceId?: RawCoID;
   public branchName?: string;
@@ -99,10 +98,6 @@ export class VerifiedState {
       skipVerify,
     );
 
-    if (result.isOk()) {
-      this._cachedNewContentSinceEmpty = undefined;
-    }
-
     return result;
   }
 
@@ -120,8 +115,6 @@ export class VerifiedState {
       meta,
       madeAt,
     );
-
-    this._cachedNewContentSinceEmpty = undefined;
 
     return result;
   }
@@ -144,8 +137,6 @@ export class VerifiedState {
       meta,
       madeAt,
     );
-
-    this._cachedNewContentSinceEmpty = undefined;
 
     return result;
   }
