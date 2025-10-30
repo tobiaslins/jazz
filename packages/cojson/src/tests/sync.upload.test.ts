@@ -527,7 +527,7 @@ describe("client to server upload", () => {
     const map = coValue.getCurrentContent() as RawCoMap;
     map.set("hello", "world", "trusting");
 
-    const content = map.core.verified.newContentSince(undefined)?.[0];
+    const content = map.core.newContentSince(undefined)?.[0];
     assert(content);
 
     // Simulate a mismatch between the header and the coValue id

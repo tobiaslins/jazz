@@ -283,6 +283,12 @@ export class CoValueCore {
     return !!this.verified;
   }
 
+  newContentSince(
+    knownState?: CoValueKnownState,
+  ): NewContentMessage[] | undefined {
+    return this.verified?.newContentSince(knownState);
+  }
+
   isErroredInPeer(peerId: PeerID) {
     return this.getLoadingStateForPeer(peerId) === "errored";
   }

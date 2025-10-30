@@ -228,7 +228,7 @@ export class SyncManager {
       }
     }
 
-    const newContentPieces = coValue.verified.newContentSince(
+    const newContentPieces = coValue.newContentSince(
       peer.getOptimisticKnownState(id),
     );
 
@@ -824,7 +824,7 @@ export class SyncManager {
         return undefined;
       }
 
-      return value.verified.newContentSince(correction);
+      return value.newContentSince(correction);
     });
   }
 

@@ -497,7 +497,7 @@ describe("client syncs with a server with storage", () => {
 
     await largeMap.core.waitForSync();
 
-    const newContentChunks = largeMap.core.verified.newContentSince(
+    const newContentChunks = largeMap.core.newContentSince(
       emptyKnownState(largeMap.id),
     );
 
@@ -610,7 +610,7 @@ describe("client syncs with a server with storage", () => {
     SyncMessagesLog.clear(); // We want to focus on the sync messages happening from now
 
     // Import the group in the client, to have the dependencies availble and test that the import persists on storage
-    const groupContent = group.core.verified.newContentSince(undefined)?.[0];
+    const groupContent = group.core.newContentSince(undefined)?.[0];
     assert(groupContent);
     client.node.syncManager.handleNewContent(groupContent, "import");
     expect(storage.getKnownState(groupContent.id)).toEqual(
@@ -618,7 +618,7 @@ describe("client syncs with a server with storage", () => {
     );
 
     // Export the map content with the two sessions
-    const mapContent = mapOnBob.core.verified.newContentSince(undefined)?.[0];
+    const mapContent = mapOnBob.core.newContentSince(undefined)?.[0];
     assert(mapContent);
 
     // Tamper Bob's session

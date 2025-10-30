@@ -42,6 +42,22 @@ export function addTransactionToContentMessage(
   }
 }
 
+export function addTransactionToContentMessageWithoutSignature(
+  content: NewContentMessage,
+  transaction: Transaction,
+  sessionID: SessionID,
+  txIdx: number,
+) {
+  const signature = undefined as Signature | undefined;
+  addTransactionToContentMessage(
+    content,
+    transaction,
+    sessionID,
+    signature!,
+    txIdx,
+  );
+}
+
 export function getTransactionSize(transaction: Transaction) {
   return transaction.privacy === "private"
     ? transaction.encryptedChanges.length

@@ -398,7 +398,7 @@ describe("client syncs with a server with storage", () => {
 
     await largeMap.core.waitForSync();
 
-    const newContentChunks = largeMap.core.verified.newContentSince(
+    const newContentChunks = largeMap.core.newContentSince(
       emptyKnownState(largeMap.id),
     );
 

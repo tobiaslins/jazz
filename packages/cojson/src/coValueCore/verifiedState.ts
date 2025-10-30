@@ -4,7 +4,8 @@ import {
   createContentMessage,
   exceedsRecommendedSize,
   getTransactionSize,
-  addTransactionToContentMessage as addTransactionToPiece,
+  addTransactionToContentMessage,
+  addTransactionToContentMessageWithoutSignature,
 } from "../coValueContentMessage.js";
 import {
   CryptoProvider,
@@ -22,11 +23,7 @@ import { NewContentMessage } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
 import { SessionLog, SessionMap } from "./SessionMap.js";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
-import {
-  cloneKnownState,
-  CoValueKnownState,
-  KnownStateSessions,
-} from "../knownState.js";
+import { CoValueKnownState, KnownStateSessions } from "../knownState.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -172,91 +169,121 @@ export class VerifiedState {
   newContentSince(
     knownState: CoValueKnownState | undefined,
   ): NewContentMessage[] | undefined {
-    const isKnownStateEmpty = !knownState?.header && !knownState?.sessions;
-
-    if (isKnownStateEmpty && this._cachedNewContentSinceEmpty) {
-      return this._cachedNewContentSinceEmpty;
-    }
+    const includeHeader = !knownState?.header;
 
     let currentPiece: NewContentMessage = createContentMessage(
       this.id,
       this.header,
-      !knownState?.header,
+      includeHeader,
     );
-
-    const pieces = [currentPiece];
-
+    const pieces: NewContentMessage[] = [currentPiece];
     let pieceSize = 0;
 
-    const sessionsToDo = [...this.sessions.keys()];
-    const sessionSent = { ...knownState?.sessions };
+    const startNewPiece = () => {
+      currentPiece = createContentMessage(this.id, this.header, false);
+      pieces.push(currentPiece);
+      pieceSize = 0;
+    };
 
-    while (sessionsToDo.length > 0) {
-      const sessionID = sessionsToDo.pop();
-
-      if (!sessionID) {
-        continue;
+    const moveSessionContentToNewPiece = (sessionID: SessionID) => {
+      const sessionContent = currentPiece.new[sessionID];
+      if (!sessionContent) {
+        throw new Error("Session content not found", {
+          cause: {
+            sessionID,
+            currentPiece,
+          },
+        });
       }
 
-      const log = this.sessions.get(sessionID);
-      if (!log) {
-        continue;
-      }
+      delete currentPiece.new[sessionID];
 
-      const startFrom = sessionSent[sessionID] ?? 0;
-      let txIdx = startFrom;
+      const newPiece = createContentMessage(this.id, this.header, false);
+      newPiece.new[sessionID] = sessionContent;
 
-      for (; txIdx < log.transactions.length; txIdx++) {
+      // Insert the new piece before the current piece, to ensure that the order of the new transactions is preserved
+      pieces.splice(pieces.length - 1, 0, newPiece);
+    };
+
+    const sessionSent = knownState?.sessions;
+
+    for (const [sessionID, log] of this.sessions.sessions) {
+      const startFrom = sessionSent?.[sessionID] ?? 0;
+
+      let currentSessionSize = 0;
+
+      for (let txIdx = startFrom; txIdx < log.transactions.length; txIdx++) {
         const isLastItem = txIdx === log.transactions.length - 1;
         const tx = log.transactions[txIdx]!;
-        const signature = isLastItem
-          ? log.lastSignature
-          : log.signatureAfter[txIdx];
-        addTransactionToPiece(currentPiece, tx, sessionID, signature!, txIdx);
-        pieceSize += getTransactionSize(tx);
 
-        if (signature) {
-          break;
+        currentSessionSize += getTransactionSize(tx);
+
+        const signatureAfter = log.signatureAfter[txIdx];
+
+        if (signatureAfter) {
+          addTransactionToContentMessage(
+            currentPiece,
+            tx,
+            sessionID,
+            signatureAfter,
+            txIdx,
+          );
+          // When we meet a signatureAfter it means that the transaction log exceeds the recommended size
+          // so we move the session content to a dedicated piece, because it must be sent in a standalone piece
+          moveSessionContentToNewPiece(sessionID);
+          currentSessionSize = 0;
+        } else if (isLastItem) {
+          if (!log.lastSignature) {
+            throw new Error(
+              "All the SessionLogs sent must have a lastSignature",
+              {
+                cause: log,
+              },
+            );
+          }
+
+          addTransactionToContentMessage(
+            currentPiece,
+            tx,
+            sessionID,
+            log.lastSignature,
+            txIdx,
+          );
+
+          // If the current session size already exceeds the recommended size, we move the session content to a dedicated piece
+          if (exceedsRecommendedSize(currentSessionSize)) {
+            moveSessionContentToNewPiece(sessionID);
+          } else if (exceedsRecommendedSize(pieceSize, currentSessionSize)) {
+            startNewPiece();
+          } else {
+            pieceSize += currentSessionSize;
+          }
+        } else {
+          addTransactionToContentMessageWithoutSignature(
+            currentPiece,
+            tx,
+            sessionID,
+            txIdx,
+          );
         }
-      }
-
-      sessionSent[sessionID] = txIdx + 1;
-
-      if (txIdx < log.transactions.length - 1) {
-        sessionsToDo.unshift(sessionID);
       }
 
       if (
         currentPiece.new[sessionID] &&
         !currentPiece.new[sessionID].lastSignature
       ) {
-        throw new Error("All the SessionLogs sent must have a lastSignature", {
+        throw new Error("The SessionContent sent must have a lastSignature", {
           cause: currentPiece.new[sessionID],
         });
-      }
-
-      if (exceedsRecommendedSize(pieceSize)) {
-        if (currentPiece === pieces[0]) {
-          currentPiece.expectContentUntil =
-            this.knownStateWithStreaming().sessions;
-        }
-
-        currentPiece = createContentMessage(this.id, this.header, false);
-        pieces.push(currentPiece);
-        pieceSize = 0;
       }
     }
 
     const piecesWithContent = pieces.filter(
-      (piece) => Object.keys(piece.new).length > 0 || piece.header,
+      (piece) => piece.header || Object.keys(piece.new).length > 0,
     );
 
     if (piecesWithContent.length === 0) {
       return undefined;
-    }
-
-    if (isKnownStateEmpty) {
-      this._cachedNewContentSinceEmpty = piecesWithContent;
     }
 
     return piecesWithContent;

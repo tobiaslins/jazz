@@ -217,7 +217,7 @@ test("When adding large transactions (small fraction of MAX_RECOMMENDED_TX_SIZE)
   expect(sessionEntry.signatureAfter[10]).not.toBeDefined();
   expect(sessionEntry.signatureAfter[11]).not.toBeDefined();
 
-  const newContent = coValue.verified.newContentSince({
+  const newContent = coValue.newContentSince({
     id: coValue.id,
     header: false,
     sessions: {},
@@ -286,7 +286,7 @@ test("When adding large transactions (bigger than MAX_RECOMMENDED_TX_SIZE), we s
   expect(sessionEntry.signatureAfter[3]).toBeDefined();
   expect(sessionEntry.signatureAfter[4]).not.toBeDefined();
 
-  const newContent = coValue.verified.newContentSince({
+  const newContent = coValue.newContentSince({
     id: coValue.id,
     header: false,
     sessions: {},

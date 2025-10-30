@@ -320,7 +320,7 @@ describe("multiple clients syncing with the a cloud-like server mesh", () => {
     expect(mapOnItalianClient.get("hello")).toEqual("world");
     expect(mapOnFrenchClient.get("hello")).toEqual("world");
 
-    const msg = map.core.verified.newContentSince(undefined)?.[0];
+    const msg = map.core.newContentSince(undefined)?.[0];
     assert(msg);
 
     msg.new[mesh.edgeFrance.node.currentSessionID]!.newTransactions.push({

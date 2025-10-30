@@ -650,8 +650,7 @@ export class LocalNode {
     );
 
     const contentPieces =
-      groupAsInvite.core.verified.newContentSince(group.core.knownState()) ??
-      [];
+      groupAsInvite.core.newContentSince(group.core.knownState()) ?? [];
 
     // Import the new transactions to the current localNode
     for (const contentPiece of contentPieces) {
