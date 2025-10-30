@@ -184,6 +184,7 @@ export class VerifiedState {
 
     const moveSessionContentToNewPiece = (sessionID: SessionID) => {
       const sessionContent = currentPiece.new[sessionID];
+
       if (!sessionContent) {
         throw new Error("Session content not found", {
           cause: {
@@ -249,8 +250,10 @@ export class VerifiedState {
 
           // If the current session size already exceeds the recommended size, we move the session content to a dedicated piece
           if (exceedsRecommendedSize(currentSessionSize)) {
+            assertLastSignature(sessionID, currentPiece);
             moveSessionContentToNewPiece(sessionID);
           } else if (exceedsRecommendedSize(pieceSize, currentSessionSize)) {
+            assertLastSignature(sessionID, currentPiece);
             startNewPiece();
           } else {
             pieceSize += currentSessionSize;
@@ -269,14 +272,7 @@ export class VerifiedState {
         }
       }
 
-      if (
-        currentPiece.new[sessionID] &&
-        !currentPiece.new[sessionID].lastSignature
-      ) {
-        throw new Error("The SessionContent sent must have a lastSignature", {
-          cause: currentPiece.new[sessionID],
-        });
-      }
+      assertLastSignature(sessionID, currentPiece);
     }
 
     const firstPiece = pieces[0];
@@ -339,15 +335,10 @@ export class VerifiedState {
   }
 }
 
-function getNextKnownSignatureIdx(
-  log: SessionLog,
-  knownStateForSessionID?: number,
-  sentStateForSessionID?: number,
-) {
-  return Object.keys(log.signatureAfter)
-    .map(Number)
-    .sort((a, b) => a - b)
-    .find(
-      (idx) => idx >= (sentStateForSessionID ?? knownStateForSessionID ?? -1),
-    );
+function assertLastSignature(sessionID: SessionID, content: NewContentMessage) {
+  if (content.new[sessionID] && !content.new[sessionID].lastSignature) {
+    throw new Error("The SessionContent sent must have a lastSignature", {
+      cause: content.new[sessionID],
+    });
+  }
 }
