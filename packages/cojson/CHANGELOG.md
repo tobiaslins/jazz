@@ -1,5 +1,14 @@
 # cojson
 
+## 0.18.33
+
+### Patch Changes
+
+- 5ffe0a9: - Wait for the full download of all the dependency graph before running the migrations
+  - Re-enable the progressive child key rotation
+  - cojson-core-wasm@0.18.33
+  - cojson-core-napi@0.18.33
+
 ## 0.18.32
 
 ### Patch Changes

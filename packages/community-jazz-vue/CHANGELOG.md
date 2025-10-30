@@ -1,5 +1,15 @@
 # jazz-react
 
+## 0.18.33
+
+### Patch Changes
+
+- df0045e: fix: Image's lazy loading placeholder trasparency
+- Updated dependencies [df0045e]
+- Updated dependencies [5ffe0a9]
+  - jazz-tools@0.18.33
+  - cojson@0.18.33
+
 ## 0.18.32
 
 ### Patch Changes
