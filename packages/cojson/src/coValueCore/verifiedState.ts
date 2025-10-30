@@ -5,7 +5,6 @@ import {
   exceedsRecommendedSize,
   getTransactionSize,
   addTransactionToContentMessage,
-  addTransactionToContentMessageWithoutSignature,
 } from "../coValueContentMessage.js";
 import {
   CryptoProvider,
@@ -257,10 +256,14 @@ export class VerifiedState {
             pieceSize += currentSessionSize;
           }
         } else {
-          addTransactionToContentMessageWithoutSignature(
+          // Unsafely add the transaction to the content message, without a signature because we don't have one for this session
+          // Checks and assertions are enforced in this function to avoid that a content message gets out without a signature
+          const signature = undefined as Signature | undefined;
+          addTransactionToContentMessage(
             currentPiece,
             tx,
             sessionID,
+            signature!,
             txIdx,
           );
         }
