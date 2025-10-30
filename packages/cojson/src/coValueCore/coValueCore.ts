@@ -278,6 +278,11 @@ export class CoValueCore {
     return !!this.verified;
   }
 
+  /**
+   * Returns the CoValue data as NewContentMessage objects, excluding the transactions that are part of the given known state.
+   *
+   * Used to serialize the CoValue data to send it to peers and storage.
+   */
   newContentSince(
     knownState?: CoValueKnownState,
   ): NewContentMessage[] | undefined {
