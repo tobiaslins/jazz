@@ -58,6 +58,7 @@ export class SessionMap {
   }
 
   setStreamingKnownState(streamingKnownState: KnownStateSessions) {
+    // if the streaming known state is a subset of the current known state, we can skip the update
     if (isKnownStateSubsetOf(streamingKnownState, this.knownState.sessions)) {
       return;
     }

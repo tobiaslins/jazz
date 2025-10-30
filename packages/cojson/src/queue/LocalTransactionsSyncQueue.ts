@@ -119,7 +119,6 @@ export class LocalTransactionsSyncQueue {
 
     queueMicrotask(() => {
       const firstContentPieceMap = new Map<RawCoID, NewContentMessage>();
-      const streamingKnownStates = new Map<RawCoID, KnownStateSessions>();
 
       while (this.queue.head) {
         const content = this.queue.head.value;
@@ -129,15 +128,15 @@ export class LocalTransactionsSyncQueue {
         if (!firstContentPiece) {
           firstContentPieceMap.set(content.id, content);
         } else {
-          let knownState = streamingKnownStates.get(content.id);
-          if (!knownState) {
-            knownState = knownStateFromContent(firstContentPiece).sessions;
-            streamingKnownStates.set(content.id, knownState);
-            firstContentPiece.expectContentUntil = knownState;
+          // There is already a content piece for this coValue, so this means that we need to flag
+          // that this content is going to be streamed
+          if (!firstContentPiece.expectContentUntil) {
+            firstContentPiece.expectContentUntil =
+              knownStateFromContent(firstContentPiece).sessions;
           }
 
           combineKnownStateSessions(
-            knownState,
+            firstContentPiece.expectContentUntil,
             knownStateFromContent(content).sessions,
           );
         }

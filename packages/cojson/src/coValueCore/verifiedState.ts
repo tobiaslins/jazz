@@ -294,6 +294,7 @@ export class VerifiedState {
     );
 
     if (piecesWithContent.length > 1 || this.isStreaming()) {
+      // Flag that more content is coming
       firstPiece.expectContentUntil = {
         ...this.knownStateWithStreaming().sessions,
       };
