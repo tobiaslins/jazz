@@ -1,5 +1,17 @@
 # jazz-tools
 
+## 0.18.33
+
+### Patch Changes
+
+- df0045e: fix: Image's lazy loading placeholder trasparency
+- 5ffe0a9: - Wait for the full download of all the dependency graph before running the migrations
+  - Re-enable the progressive child key rotation
+- Updated dependencies [5ffe0a9]
+  - cojson@0.18.33
+  - cojson-storage-indexeddb@0.18.33
+  - cojson-transport-ws@0.18.33
+
 ## 0.18.32
 
 ### Patch Changes
