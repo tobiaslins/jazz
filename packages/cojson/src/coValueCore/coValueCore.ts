@@ -319,7 +319,7 @@ export class CoValueCore {
 
   waitForFullStreaming(): Promise<CoValueCore> {
     return this.waitForAsync(
-      (core) => core.isAvailable() && !core.verified.isStreaming(),
+      (core) => core.isAvailable() && !core.isStreaming(),
     );
   }
 
@@ -1212,10 +1212,6 @@ export class CoValueCore {
   dependant: Set<RawCoID> = new Set();
   private addDependant(dependant: RawCoID) {
     this.dependant.add(dependant);
-  }
-
-  isStreaming() {
-    return this.verified?.isStreaming() ?? false;
   }
 
   isGroup() {
