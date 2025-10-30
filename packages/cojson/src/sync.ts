@@ -651,6 +651,7 @@ export class SyncManager {
             err: result.error,
             msgKnownState: knownStateFromContent(msg).sessions,
             knownState: coValue.knownState().sessions,
+            newContent: validNewContent.new,
           });
           // TODO Mark only the session as errored, not the whole coValue
           coValue.markErrored(peer.id, result.error);
