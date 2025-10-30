@@ -123,10 +123,10 @@ function healMissingKeyForEveryone(group: RawGroup) {
 }
 
 function needsKeyRotation(group: RawGroup) {
-  const me = group.core.node.getCurrentAccountOrAgentID();
+  const myRole = group.myRole();
 
   // Checking only direct membership because inside the migrations we can't navigate the parent groups
-  if (group.get(me) !== "admin" && group.get(me) !== "manager") {
+  if (myRole !== "admin" && myRole !== "manager") {
     return false;
   }
 
@@ -341,7 +341,7 @@ export class RawGroup<
    * @category 1. Role reading
    */
   myRole(): Role | undefined {
-    return this.roleOfInternal(this.core.node.getCurrentAgent().id);
+    return this.roleOfInternal(this.core.node.getCurrentAccountOrAgentID());
   }
 
   /**

@@ -338,7 +338,7 @@ describe("Group.childKeyRotation", () => {
     expect(mapOnAliceNode.get("test")).toBeUndefined();
   });
 
-  test("inherited admin account can't trigger the unloaded child group key rotation", async () => {
+  test("inherited admin account triggers the unloaded child group key rotation", async () => {
     const group = admin.node.createGroup();
     const childGroup = bob.node.createGroup();
 
@@ -374,7 +374,7 @@ describe("Group.childKeyRotation", () => {
 
     // Charlie should be able to read what Alice wrote because key wasn't rotated
     const mapOnCharlieNode = await loadCoValueOrFail(charlie.node, map.id);
-    expect(mapOnCharlieNode.get("test")).toBe("Readable by charlie");
+    expect(mapOnCharlieNode.get("test")).toBe(undefined);
   });
 
   // TODO: In this case the child can't detect the parent group rotation, because it doesn't have access to the parent group readKey
