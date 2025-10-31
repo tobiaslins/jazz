@@ -67,6 +67,8 @@ export function disablePermissionErrors() {
 }
 
 export class VerifiedTransaction {
+  // The ID of the CoValue that the transaction belongs to
+  coValueId: RawCoID;
   dispatchTransaction: (transaction: VerifiedTransaction) => void;
   // The account or agent that made the transaction
   author: RawAccountID | AgentID;
@@ -92,6 +94,7 @@ export class VerifiedTransaction {
   previous: VerifiedTransaction | undefined;
 
   constructor(
+    coValueId: RawCoID,
     sessionID: SessionID,
     txIndex: number,
     tx: Transaction,
@@ -116,6 +119,7 @@ export class VerifiedTransaction {
           txIndex,
         };
 
+    this.coValueId = coValueId;
     this.currentTxID = txID;
     this.sourceTxID = undefined;
     this.tx = tx;
@@ -175,6 +179,7 @@ export class VerifiedTransaction {
     this.validationErrorMessage = errorMessage;
     if (logPermissionErrors === true) {
       logger.error("Invalid transaction: " + errorMessage, {
+        coValueId: this.coValueId,
         txID: this.txID,
         author: this.author,
         ...attributes,
@@ -953,6 +958,7 @@ export class CoValueCore {
         }
 
         const verifiedTransaction = new VerifiedTransaction(
+          this.id,
           sessionID,
           txIndex,
           tx,
