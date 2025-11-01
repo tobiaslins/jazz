@@ -289,6 +289,13 @@ export const preset = {
   plugins: [
     tailwindCSSAnimate,
     typography(),
+    plugin(({ addBase }) => {
+      addBase({
+        "*,::before,::after,::backdrop,::file-selector-button": {
+          borderColor: "var(--color-border-default)",
+        },
+      });
+    }),
     plugin(({ addVariant }) => addVariant("label", "& :is(label)")),
     plugin(({ addUtilities }) =>
       addUtilities({

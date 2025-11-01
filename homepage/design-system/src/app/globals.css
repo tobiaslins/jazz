@@ -23,7 +23,7 @@
   --color-strong: oklch(0.412109 0.002 75);
   --color-muted: oklch(0.853516 0.002 75);
 
-  --color-transparent-white: rgba(255, 255, 255, 0.1);
+  --color-transparent-white: rgba(255, 255, 0.1);
   --color-transparent-primary: lch(from var(--color-primary) l c h / 0.1);
 
   --color-border-default: oklch(0.917969 0.002 75);

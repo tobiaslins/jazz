@@ -4,12 +4,6 @@
 
 @config "../tailwind.config.ts";
 
-@layer base {
-  body {
-    font-family: var(--font-inter), sans-serif;
-  }
-}
-
 :root {
   --color-primary: #146aff;
   --color-primary-dark: lch(
@@ -49,45 +43,21 @@
   --color-background-highlight: lch(from var(--color-primary) l c h / 0.5);
 }
 
-/*
-  The default border color has changed to `currentcolor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-border-default);
-  }
+body {
+  font-family: var(--font-inter), sans-serif;
 }
 
 *:focus {
   outline: none;
 }
 
-@layer base {
-  :focus {
-    @apply outline-hidden;
-  }
+details > summary {
+  cursor: pointer;
+}
 
-  :focus-visible {
-    @apply ring-2 ring-primary;
-  }
-
-  details > summary {
-    @apply cursor-pointer;
-
-    &.list-none::-webkit-details-marker,
-    &.list-none::marker {
-      display: none;
-    }
-  }
+details > summary.list-none::-webkit-details-marker,
+details > summary.list-none::marker {
+  display: none;
 }
 
 @layer utilities {
