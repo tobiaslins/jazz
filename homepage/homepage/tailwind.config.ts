@@ -102,9 +102,9 @@ const config: Config = {
           dark: "var(--color-primary-dark)",
           light:
             "lch(from var(--color-primary) calc(l + 10) calc(c + 1) calc(h - 5))",
-          brightLight:
+          "bright-light":
             "lch(from var(--color-primary) calc(l - 1) calc(c + 20) calc(h + 5))",
-          brightDark:
+          "bright-dark":
             "lch(from var(--color-primary) calc(l - 6) calc(c + 20) calc(h + 5))",
         },
         success: {
@@ -113,9 +113,9 @@ const config: Config = {
           dark: "lch(from var(--color-success) calc(l - 7) calc(c - 1) calc(h + 5))",
           light:
             "lch(from var(--color-success) calc(l + 4) calc(c + 1) calc(h - 5))",
-          brightLight:
+          "bright-light":
             "lch(from var(--color-success) calc(l - 1) calc(c + 20) calc(h + 10))",
-          brightDark:
+          "bright-dark":
             "lch(from var(--color-success) calc(l - 6) calc(c + 20) calc(h + 10))",
         },
         info: {
@@ -124,9 +124,9 @@ const config: Config = {
           dark: "lch(from var(--color-info) calc(l - 7) calc(c - 1) calc(h + 5))",
           light:
             "lch(from var(--color-info) calc(l + 4) calc(c + 1) calc(h - 5))",
-          brightLight:
+          "bright-light":
             "lch(from var(--color-info) calc(l - 1) calc(c + 20) calc(h + 5))",
-          brightDark:
+          "bright-dark":
             "lch(from var(--color-info) calc(l - 4) calc(c + 20) calc(h + 5))",
         },
         warning: {
@@ -135,9 +135,9 @@ const config: Config = {
           dark: "lch(from var(--color-warning) calc(l - 7) calc(c - 1) calc(h + 5))",
           light:
             "lch(from var(--color-warning) calc(l + 4) calc(c + 1) calc(h - 5))",
-          brightLight:
+          "bright-light":
             "lch(from var(--color-warning) calc(l - 1) calc(c + 30) calc(h + 15))",
-          brightDark:
+          "bright-dark":
             "lch(from var(--color-warning) calc(l - 4) calc(c + 30) calc(h + 15))",
         },
         danger: {
@@ -146,9 +146,9 @@ const config: Config = {
           dark: "lch(from var(--color-danger) calc(l - 7) calc(c - 1) calc(h + 5))",
           light:
             "lch(from var(--color-danger) calc(l + 4) calc(c + 1) calc(h - 5))",
-          brightLight:
+          "bright-light":
             "lch(from var(--color-danger) calc(l - 2) calc(c + 20) calc(h + 10))",
-          brightDark:
+          "bright-dark":
             "lch(from var(--color-danger) calc(l - 6) calc(c + 10) calc(h + 10))",
         },
         tip: {
@@ -157,9 +157,9 @@ const config: Config = {
           dark: "lch(from var(--color-tip) calc(l - 7) calc(c - 1) calc(h + 5))",
           light:
             "lch(from var(--color-tip) calc(l + 4) calc(c + 1) calc(h - 5))",
-          brightLight:
+          "bright-light":
             "lch(from var(--color-tip) calc(l - 1) calc(c + 20) calc(h + 10))",
-          brightDark:
+          "bright-dark":
             "lch(from var(--color-tip) calc(l - 4) calc(c + 20) calc(h + 10))",
         },
         alert: {
@@ -168,9 +168,9 @@ const config: Config = {
           dark: "lch(from var(--color-alert) calc(l - 7) calc(c - 1) calc(h + 5))",
           light:
             "lch(from var(--color-alert) calc(l + 4) calc(c + 1) calc(h - 5))",
-          brightLight:
+          "bright-light":
             "lch(from var(--color-alert) calc(l - 1) calc(c + 50) calc(h + 15))",
-          brightDark:
+          "bright-dark":
             "lch(from var(--color-alert) calc(l - 5) calc(c + 50) calc(h + 15))",
         },
       },
