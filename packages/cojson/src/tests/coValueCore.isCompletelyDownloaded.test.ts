@@ -540,7 +540,6 @@ describe("CoValueCore.isCompletelyDownloaded", () => {
       await waitFor(() => {
         expect(mapOnBob.core.isCompletelyDownloaded()).toBe(true);
       });
-      // expect(mapOnBob.core.isCompletelyDownloaded()).toBe(true);
     });
 
     test.skip("should return false when the owner of the value is streaming", async () => {
