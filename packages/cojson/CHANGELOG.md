@@ -1,5 +1,14 @@
 # cojson
 
+## 0.18.34
+
+### Patch Changes
+
+- 4a79953: Fixed streaming status checks when handling streaming updates
+- d7e5cc8: Aligned the chunking algorithm of the local transactions sync with the one used for the general sync
+  - cojson-core-wasm@0.18.34
+  - cojson-core-napi@0.18.34
+
 ## 0.18.33
 
 ### Patch Changes
