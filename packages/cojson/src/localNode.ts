@@ -1,4 +1,3 @@
-import { Result, err, ok } from "neverthrow";
 import { GarbageCollector } from "./GarbageCollector.js";
 import type { CoID } from "./coValue.js";
 import type { RawCoValue } from "./coValue.js";
@@ -689,12 +688,9 @@ export class LocalNode {
   }
 
   /** @internal */
-  resolveAccountAgent(
-    id: RawAccountID | AgentID,
-    expectation?: string,
-  ): Result<AgentID, ResolveAccountAgentError> {
+  resolveAccountAgent(id: RawAccountID | AgentID, expectation?: string) {
     if (isAgentID(id)) {
-      return ok(id);
+      return { value: id, error: undefined };
     }
 
     let coValue: AvailableCoValueCore;
@@ -702,12 +698,7 @@ export class LocalNode {
     try {
       coValue = this.expectCoValueLoaded(id, expectation);
     } catch (e) {
-      return err({
-        type: "ErrorLoadingCoValueCore",
-        expectation,
-        id,
-        error: e,
-      } satisfies LoadCoValueCoreError);
+      return { value: undefined, error: e };
     }
 
     if (
@@ -717,14 +708,15 @@ export class LocalNode {
       !("type" in coValue.verified.header.meta) ||
       coValue.verified.header.meta.type !== "account"
     ) {
-      return err({
-        type: "UnexpectedlyNotAccount",
-        expectation,
-        id,
-      } satisfies UnexpectedlyNotAccountError);
+      return {
+        value: undefined,
+        error: new Error(`Unexpectedly not account: ${expectation}`),
+      };
     }
 
-    return ok((coValue.getCurrentContent() as RawAccount).currentAgentID());
+    const account = coValue.getCurrentContent() as RawAccount;
+
+    return { value: account.currentAgentID(), error: undefined };
   }
 
   createGroup(

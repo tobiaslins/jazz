@@ -113,10 +113,7 @@ export function areCurrentSessionsInSyncWith(
   current: Record<string, number>,
   target: Record<string, number>,
 ) {
-  for (const [sessionId, currentCount] of Object.entries(current) as [
-    SessionID,
-    number,
-  ][]) {
+  for (const [sessionId, currentCount] of Object.entries(current)) {
     const targetCount = target[sessionId] ?? 0;
     if (currentCount !== targetCount) {
       return false;
@@ -133,10 +130,7 @@ export function isKnownStateSubsetOf(
   current: Record<string, number>,
   target: Record<string, number>,
 ) {
-  for (const [sessionId, currentCount] of Object.entries(current) as [
-    SessionID,
-    number,
-  ][]) {
+  for (const [sessionId, currentCount] of Object.entries(current)) {
     const targetCount = target[sessionId] ?? 0;
     if (currentCount > targetCount) {
       return false;
@@ -154,10 +148,7 @@ export function getKnownStateToSend(
   target: Record<string, number>,
 ) {
   const toSend: Record<string, number> = {};
-  for (const [sessionId, currentCount] of Object.entries(current) as [
-    SessionID,
-    number,
-  ][]) {
+  for (const [sessionId, currentCount] of Object.entries(current)) {
     const targetCount = target[sessionId] ?? 0;
     if (currentCount > targetCount) {
       toSend[sessionId] = currentCount;

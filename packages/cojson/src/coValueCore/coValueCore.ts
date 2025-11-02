@@ -1,5 +1,4 @@
 import { UpDownCounter, ValueType, metrics } from "@opentelemetry/api";
-import { Result, err, ok } from "neverthrow";
 import type { PeerState } from "../PeerState.js";
 import type { RawCoValue } from "../coValue.js";
 import type { ControlledAccountOrAgent } from "../coValues/account.js";
@@ -201,7 +200,7 @@ export class CoValueCore {
       }
     | {
         type: "errored";
-        error: TryAddTransactionsError;
+        error: unknown;
       }
   >();
 
@@ -474,12 +473,10 @@ export class CoValueCore {
       new SessionMap(this.id, this.node.crypto, streamingKnownState),
     );
 
-    this.resetKnownStateCache();
-
     return true;
   }
 
-  markErrored(peerId: PeerID, error: TryAddTransactionsError) {
+  markErrored(peerId: PeerID, error: unknown) {
     const previousState = this.loadingState;
     this.loadingStatuses.set(peerId, { type: "errored", error });
     this.updateCounter(previousState);
@@ -531,27 +528,18 @@ export class CoValueCore {
       .then((core) => core.getCurrentContent());
   }
 
-  private _cachedKnownStateWithStreaming?: CoValueKnownState;
   /**
    * Returns the known state considering the known state of the streaming source
    *
    * Used to correctly manage the content & subscriptions during the content streaming process
    */
   knownStateWithStreaming(): CoValueKnownState {
-    if (this._cachedKnownStateWithStreaming) {
-      return this._cachedKnownStateWithStreaming;
-    }
-
-    const knownState = this.verified
-      ? cloneKnownState(this.verified.knownStateWithStreaming())
-      : emptyKnownState(this.id);
-
-    this._cachedKnownStateWithStreaming = knownState;
-
-    return knownState;
+    return (
+      this.verified?.immutableKnownStateWithStreaming() ??
+      emptyKnownState(this.id)
+    );
   }
 
-  private _cachedKnownState?: CoValueKnownState;
   /**
    * Returns the known state of the CoValue
    *
@@ -560,17 +548,7 @@ export class CoValueCore {
    * On change the knownState is invalidated and a new object is returned.
    */
   knownState(): CoValueKnownState {
-    if (this._cachedKnownState) {
-      return this._cachedKnownState;
-    }
-
-    const knownState = this.verified
-      ? cloneKnownState(this.verified.knownState())
-      : emptyKnownState(this.id);
-
-    this._cachedKnownState = knownState;
-
-    return knownState;
+    return this.verified?.immutableKnownState() ?? emptyKnownState(this.id);
   }
 
   get meta(): JsonValue {
@@ -612,31 +590,36 @@ export class CoValueCore {
     newTransactions: Transaction[],
     newSignature: Signature,
     skipVerify: boolean = false,
-  ): Result<true, TryAddTransactionsError> {
-    let result: Result<SignerID | undefined, TryAddTransactionsError>;
+  ) {
+    let signerID: SignerID | undefined;
 
-    if (skipVerify) {
-      result = ok(undefined);
-    } else {
-      result = this.node
-        .resolveAccountAgent(
-          accountOrAgentIDfromSessionID(sessionID),
-          "Expected to know signer of transaction",
-        )
-        .andThen((agent) => {
-          return ok(this.crypto.getAgentSignerID(agent));
-        });
-    }
+    if (!skipVerify) {
+      const result = this.node.resolveAccountAgent(
+        accountOrAgentIDfromSessionID(sessionID),
+        "Expected to know signer of transaction",
+      );
 
-    return result.andThen((signerID) => {
-      if (!this.verified) {
-        return err({
-          type: "TriedToAddTransactionsWithoutVerifiedState",
+      if (result.error || !result.value) {
+        return {
+          type: "ResolveAccountAgentError",
           id: this.id,
-        } satisfies TriedToAddTransactionsWithoutVerifiedStateErrpr);
+          error: result.error,
+        } as const;
       }
 
-      const result = this.verified.tryAddTransactions(
+      signerID = this.crypto.getAgentSignerID(result.value);
+    }
+
+    if (!this.verified) {
+      return {
+        type: "TriedToAddTransactionsWithoutVerifiedState",
+        id: this.id,
+        error: undefined,
+      };
+    }
+
+    try {
+      this.verified.tryAddTransactions(
         sessionID,
         signerID,
         newTransactions,
@@ -644,19 +627,11 @@ export class CoValueCore {
         skipVerify,
       );
 
-      if (result.isOk()) {
-        this.resetKnownStateCache();
-        this.processNewTransactions();
-        this.scheduleNotifyUpdate();
-      }
-
-      return result;
-    });
-  }
-
-  private resetKnownStateCache() {
-    this._cachedKnownState = undefined;
-    this._cachedKnownStateWithStreaming = undefined;
+      this.processNewTransactions();
+      this.scheduleNotifyUpdate();
+    } catch (e) {
+      return { type: "InvalidSignature", id: this.id, error: e } as const;
+    }
   }
 
   private processNewTransactions() {
@@ -805,7 +780,6 @@ export class CoValueCore {
 
     this.node.syncManager.recordTransactionsSize([transaction], "local");
 
-    this.resetKnownStateCache();
     this.processNewTransactions();
     this.addDependenciesFromNewTransaction(transaction);
 

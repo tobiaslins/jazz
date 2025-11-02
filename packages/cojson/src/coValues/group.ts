@@ -508,12 +508,14 @@ export class RawGroup<
         memberRole === "writerInvite" ||
         memberRole === "adminInvite"
       ) {
-        const otherMemberAgent = this.core.node
-          .resolveAccountAgent(
-            otherMemberKey,
-            "Expected member agent to be loaded",
-          )
-          ._unsafeUnwrap({ withStackTrace: true });
+        const otherMemberAgent = this.core.node.resolveAccountAgent(
+          otherMemberKey,
+          "Expected member agent to be loaded",
+        ).value;
+
+        if (!otherMemberAgent) {
+          throw new Error("Expected member agent to be loaded");
+        }
 
         this.storeKeyRevelationForMember(
           otherMemberKey,
@@ -689,9 +691,14 @@ export class RawGroup<
 
     if (lastReadyKeyEdit?.value) {
       const revealer = lastReadyKeyEdit.by;
-      const revealerAgent = core.node
-        .resolveAccountAgent(revealer, "Expected to know revealer")
-        ._unsafeUnwrap({ withStackTrace: true });
+      const revealerAgent = core.node.resolveAccountAgent(
+        revealer,
+        "Expected to know revealer",
+      ).value;
+
+      if (!revealerAgent) {
+        throw new Error("Expected to know revealer");
+      }
 
       const secret = this.crypto.unseal(
         lastReadyKeyEdit.value,
@@ -841,12 +848,14 @@ export class RawGroup<
     const newReadKey = this.crypto.newRandomKeySecret();
 
     for (const readerID of currentlyPermittedReaders) {
-      const agent = this.core.node
-        .resolveAccountAgent(
-          readerID,
-          "Expected to know currently permitted reader",
-        )
-        ._unsafeUnwrap({ withStackTrace: true });
+      const agent = this.core.node.resolveAccountAgent(
+        readerID,
+        "Expected to know currently permitted reader",
+      ).value;
+
+      if (!agent) {
+        throw new Error("Expected to know currently permitted reader");
+      }
 
       this.storeKeyRevelationForMember(
         readerID,
@@ -861,12 +870,14 @@ export class RawGroup<
      * and reveal them to the other non-writeOnly members
      */
     for (const writeOnlyMemberID of writeOnlyMembers) {
-      const agent = this.core.node
-        .resolveAccountAgent(
-          writeOnlyMemberID,
-          "Expected to know writeOnly member",
-        )
-        ._unsafeUnwrap({ withStackTrace: true });
+      const agent = this.core.node.resolveAccountAgent(
+        writeOnlyMemberID,
+        "Expected to know writeOnly member",
+      ).value;
+
+      if (!agent) {
+        throw new Error("Expected to know writeOnly member");
+      }
 
       const writeOnlyKey = this.crypto.newRandomKeySecret();
 
@@ -879,12 +890,14 @@ export class RawGroup<
       this.set(`writeKeyFor_${writeOnlyMemberID}`, writeOnlyKey.id, "trusting");
 
       for (const readerID of currentlyPermittedReaders) {
-        const agent = this.core.node
-          .resolveAccountAgent(
-            readerID,
-            "Expected to know currently permitted reader",
-          )
-          ._unsafeUnwrap({ withStackTrace: true });
+        const agent = this.core.node.resolveAccountAgent(
+          readerID,
+          "Expected to know currently permitted reader",
+        ).value;
+
+        if (!agent) {
+          throw new Error("Expected to know currently permitted reader");
+        }
 
         this.storeKeyRevelationForMember(
           readerID,
