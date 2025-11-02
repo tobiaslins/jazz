@@ -1,5 +1,13 @@
 # cojson
 
+## 0.18.36
+
+### Patch Changes
+
+- af3fe4c: Disable the background child key rotation for groups
+  - cojson-core-wasm@0.18.36
+  - cojson-core-napi@0.18.36
+
 ## 0.18.35
 
 ### Patch Changes
