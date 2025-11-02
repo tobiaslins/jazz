@@ -206,7 +206,7 @@ export class RawGroup<
     }
 
     const runMigrations = () => {
-      rotateReadKeyIfNeeded(this);
+      // rotateReadKeyIfNeeded(this);
       healMissingKeyForEveryone(this);
     };
 
