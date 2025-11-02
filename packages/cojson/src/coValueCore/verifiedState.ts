@@ -1,4 +1,3 @@
-import { Result, err, ok } from "neverthrow";
 import { AnyRawCoValue } from "../coValue.js";
 import {
   createContentMessage,
@@ -94,16 +93,14 @@ export class VerifiedState {
     newTransactions: Transaction[],
     newSignature: Signature,
     skipVerify: boolean = false,
-  ): Result<true, TryAddTransactionsError> {
-    const result = this.sessions.addTransaction(
+  ) {
+    this.sessions.addTransaction(
       sessionID,
       signerID,
       newTransactions,
       newSignature,
       skipVerify,
     );
-
-    return result;
   }
 
   makeNewTrustingTransaction(
@@ -293,16 +290,18 @@ export class VerifiedState {
     );
 
     if (piecesWithContent.length > 1 || this.isStreaming()) {
-      // Flag that more content is coming
-      if (knownState) {
-        firstPiece.expectContentUntil = getKnownStateToSend(
-          this.knownStateWithStreaming().sessions,
-          knownState.sessions,
-        );
-      } else {
-        firstPiece.expectContentUntil = {
-          ...this.knownStateWithStreaming().sessions,
-        };
+      if (!opts?.skipExpectContentUntil) {
+        // Flag that more content is coming
+        if (knownState) {
+          firstPiece.expectContentUntil = getKnownStateToSend(
+            this.knownStateWithStreaming().sessions,
+            knownState.sessions,
+          );
+        } else {
+          firstPiece.expectContentUntil = {
+            ...this.knownStateWithStreaming().sessions,
+          };
+        }
       }
     }
 
@@ -319,6 +318,17 @@ export class VerifiedState {
 
   knownStateWithStreaming() {
     return this.sessions.knownStateWithStreaming ?? this.knownState();
+  }
+
+  immutableKnownState() {
+    return this.sessions.immutableKnownState;
+  }
+
+  immutableKnownStateWithStreaming() {
+    return (
+      this.sessions.immutableKnownStateWithStreaming ??
+      this.immutableKnownState()
+    );
   }
 
   isStreaming(): boolean {
