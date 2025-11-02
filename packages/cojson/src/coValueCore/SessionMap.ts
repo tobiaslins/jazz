@@ -234,18 +234,12 @@ export class SessionMap {
     );
 
     // Check if the updated session matched the streaming state
-    // If so, we can delete the session from the streaming state to mark it as synced
-    if (this.streamingKnownState) {
-      const streamingCount = this.streamingKnownState[sessionLog.sessionID];
-      if (streamingCount && streamingCount <= transactionsCount) {
-        delete this.streamingKnownState[sessionLog.sessionID];
-
-        if (Object.keys(this.streamingKnownState).length === 0) {
-          // Mark the streaming as done by deleting the streaming statuses
-          this.streamingKnownState = undefined;
-          this.knownStateWithStreaming = undefined;
-        }
-      }
+    if (
+      this.streamingKnownState &&
+      isKnownStateSubsetOf(this.streamingKnownState, this.knownState.sessions)
+    ) {
+      this.streamingKnownState = undefined;
+      this.knownStateWithStreaming = undefined;
     }
 
     if (this.knownStateWithStreaming) {

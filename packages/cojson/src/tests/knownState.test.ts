@@ -10,6 +10,7 @@ import {
   isKnownStateSubsetOf,
   type CoValueKnownState,
   type KnownStateSessions,
+  areCurrentSessionsInSyncWith,
 } from "../knownState.js";
 import { RawCoID, SessionID } from "../ids.js";
 
@@ -547,6 +548,122 @@ describe("knownState", () => {
     });
   });
 
+  describe("areCurrentSessionsInSyncWith", () => {
+    test("should return true when all counters match", () => {
+      const session1 = "session-1" as SessionID;
+      const session2 = "session-2" as SessionID;
+      const from = { [session1]: 5, [session2]: 10 };
+      const to = { [session1]: 5, [session2]: 10 };
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(true);
+    });
+
+    test("should return false when counter differs", () => {
+      const session1 = "session-1" as SessionID;
+      const from = { [session1]: 5 };
+      const to = { [session1]: 3 };
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(false);
+    });
+
+    test("should return false when session is missing in to", () => {
+      const session1 = "session-1" as SessionID;
+      const from = { [session1]: 5 };
+      const to = {};
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(false);
+    });
+
+    test("should return true when from is empty", () => {
+      const session1 = "session-1" as SessionID;
+      const from = {};
+      const to = { [session1]: 5 };
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(true);
+    });
+
+    test("should return true when both are empty", () => {
+      const from = {};
+      const to = {};
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(true);
+    });
+
+    test("should handle multiple sessions", () => {
+      const session1 = "session-1" as SessionID;
+      const session2 = "session-2" as SessionID;
+      const session3 = "session-3" as SessionID;
+      const from = {
+        [session1]: 5,
+        [session2]: 10,
+        [session3]: 15,
+      };
+      const to = {
+        [session1]: 5,
+        [session2]: 10,
+        [session3]: 15,
+      };
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(true);
+    });
+
+    test("should return false if any session counter differs", () => {
+      const session1 = "session-1" as SessionID;
+      const session2 = "session-2" as SessionID;
+      const session3 = "session-3" as SessionID;
+      const from = {
+        [session1]: 5,
+        [session2]: 10,
+        [session3]: 15,
+      };
+      const to = {
+        [session1]: 5,
+        [session2]: 8,
+        [session3]: 15,
+      };
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(false);
+    });
+
+    test("should not check sessions in to that are not in from", () => {
+      const session1 = "session-1" as SessionID;
+      const session2 = "session-2" as SessionID;
+      const from = { [session1]: 5 };
+      const to = {
+        [session1]: 5,
+        [session2]: 10,
+      };
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(true);
+    });
+
+    test("should return false when counter in to is higher", () => {
+      const session1 = "session-1" as SessionID;
+      const from = { [session1]: 5 };
+      const to = { [session1]: 10 };
+
+      const result = areCurrentSessionsInSyncWith(from, to);
+
+      expect(result).toBe(false);
+    });
+  });
+
   describe("isKnownStateSubsetOf", () => {
     test("should return true when all counters match", () => {
       const session1 = "session-1" as SessionID;
@@ -559,7 +676,7 @@ describe("knownState", () => {
       expect(result).toBe(true);
     });
 
-    test("should return false when counter differs", () => {
+    test("should return false when the current session counter is higher than the target", () => {
       const session1 = "session-1" as SessionID;
       const from = { [session1]: 5 };
       const to = { [session1]: 3 };
@@ -567,6 +684,16 @@ describe("knownState", () => {
       const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(false);
+    });
+
+    test("should return true when the target session counter is higher than the target", () => {
+      const session1 = "session-1" as SessionID;
+      const from = { [session1]: 5 };
+      const to = { [session1]: 10 };
+
+      const result = isKnownStateSubsetOf(from, to);
+
+      expect(result).toBe(true);
     });
 
     test("should return false when session is missing in to", () => {
@@ -618,26 +745,6 @@ describe("knownState", () => {
       expect(result).toBe(true);
     });
 
-    test("should return false if any session counter differs", () => {
-      const session1 = "session-1" as SessionID;
-      const session2 = "session-2" as SessionID;
-      const session3 = "session-3" as SessionID;
-      const from = {
-        [session1]: 5,
-        [session2]: 10,
-        [session3]: 15,
-      };
-      const to = {
-        [session1]: 5,
-        [session2]: 8,
-        [session3]: 15,
-      };
-
-      const result = isKnownStateSubsetOf(from, to);
-
-      expect(result).toBe(false);
-    });
-
     test("should not check sessions in to that are not in from", () => {
       const session1 = "session-1" as SessionID;
       const session2 = "session-2" as SessionID;
@@ -650,16 +757,6 @@ describe("knownState", () => {
       const result = isKnownStateSubsetOf(from, to);
 
       expect(result).toBe(true);
-    });
-
-    test("should return false when counter in to is higher", () => {
-      const session1 = "session-1" as SessionID;
-      const from = { [session1]: 5 };
-      const to = { [session1]: 10 };
-
-      const result = isKnownStateSubsetOf(from, to);
-
-      expect(result).toBe(false);
     });
   });
 });

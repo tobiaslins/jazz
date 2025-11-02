@@ -537,8 +537,10 @@ describe("CoValueCore.isCompletelyDownloaded", () => {
       bobSession.syncManager.handleNewContent(lastChunk, "import");
 
       // Wait for the notification to be scheduled and executed
-      await waitFor(() => mapOnBob.core.isCompletelyDownloaded());
-      expect(mapOnBob.core.isCompletelyDownloaded()).toBe(true);
+      await waitFor(() => {
+        expect(mapOnBob.core.isCompletelyDownloaded()).toBe(true);
+      });
+      // expect(mapOnBob.core.isCompletelyDownloaded()).toBe(true);
     });
 
     test.skip("should return false when the owner of the value is streaming", async () => {
