@@ -1,5 +1,13 @@
 # cojson
 
+## 0.18.35
+
+### Patch Changes
+
+- d47ac6d: Remove neverthrow to easily propagate the original stacktrace of the transaction errors
+  - cojson-core-wasm@0.18.35
+  - cojson-core-napi@0.18.35
+
 ## 0.18.34
 
 ### Patch Changes
