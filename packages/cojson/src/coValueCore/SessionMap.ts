@@ -21,6 +21,7 @@ import {
   cloneKnownState,
   combineKnownStateSessions,
   isKnownStateSubsetOf,
+  getKnownStateToSend,
 } from "../knownState.js";
 
 export type SessionLog = {
@@ -63,10 +64,18 @@ export class SessionMap {
       return;
     }
 
+    const actualStreamingKnownState = getKnownStateToSend(
+      streamingKnownState,
+      this.knownState.sessions,
+    );
+
     if (this.streamingKnownState) {
-      combineKnownStateSessions(this.streamingKnownState, streamingKnownState);
+      combineKnownStateSessions(
+        this.streamingKnownState,
+        actualStreamingKnownState,
+      );
     } else {
-      this.streamingKnownState = { ...streamingKnownState };
+      this.streamingKnownState = actualStreamingKnownState;
     }
 
     if (!this.knownStateWithStreaming) {
@@ -75,7 +84,7 @@ export class SessionMap {
 
     combineKnownStateSessions(
       this.knownStateWithStreaming.sessions,
-      streamingKnownState,
+      actualStreamingKnownState,
     );
   }
 
@@ -225,18 +234,12 @@ export class SessionMap {
     );
 
     // Check if the updated session matched the streaming state
-    // If so, we can delete the session from the streaming state to mark it as synced
-    if (this.streamingKnownState) {
-      const streamingCount = this.streamingKnownState[sessionLog.sessionID];
-      if (streamingCount && streamingCount <= transactionsCount) {
-        delete this.streamingKnownState[sessionLog.sessionID];
-
-        if (Object.keys(this.streamingKnownState).length === 0) {
-          // Mark the streaming as done by deleting the streaming statuses
-          this.streamingKnownState = undefined;
-          this.knownStateWithStreaming = undefined;
-        }
-      }
+    if (
+      this.streamingKnownState &&
+      isKnownStateSubsetOf(this.streamingKnownState, this.knownState.sessions)
+    ) {
+      this.streamingKnownState = undefined;
+      this.knownStateWithStreaming = undefined;
     }
 
     if (this.knownStateWithStreaming) {
