@@ -1,7 +1,7 @@
 import { apiKey } from "@/apiKey.ts";
 import { getRandomUsername, inIframe, onChatLoad } from "@/util.ts";
 import { useIframeHashRouter } from "hash-slash";
-import { getLoadedOrUndefined, Group } from "jazz-tools";
+import { co, getLoadedOrUndefined, Group } from "jazz-tools";
 import { JazzInspector } from "jazz-tools/inspector";
 import { JazzReactProvider, useAccount, useLogOut } from "jazz-tools/react";
 import { StrictMode, useId, useMemo, useState, useEffect, useRef } from "react";
@@ -22,12 +22,12 @@ function stringToSeed(str: string): number {
   return Math.abs(hash);
 }
 
+const AccountWithProfile = co.account().resolved({
+  profile: true,
+});
+
 export function App() {
-  const me = useAccount(undefined, {
-    resolve: {
-      profile: true,
-    },
-  });
+  const me = useAccount(AccountWithProfile);
   const logOut = useLogOut();
   const router = useIframeHashRouter();
   const inputId = useId();
