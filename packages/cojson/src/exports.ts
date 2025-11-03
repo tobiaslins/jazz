@@ -3,7 +3,7 @@ import { type RawCoValue } from "./coValue.js";
 import {
   CoValueCore,
   idforHeader,
-  disablePermissionErrors,
+  enablePermissionErrors,
   type AvailableCoValueCore,
 } from "./coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
@@ -111,7 +111,7 @@ export const cojsonInternals = {
   getPriorityFromHeader,
   getGroupDependentKeyList,
   getGroupDependentKey,
-  disablePermissionErrors,
+  enablePermissionErrors,
   SyncManager,
   CO_VALUE_LOADING_CONFIG,
   CO_VALUE_PRIORITY,

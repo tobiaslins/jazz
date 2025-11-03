@@ -60,10 +60,10 @@ export function idforHeader(
   return `co_z${hash.slice("shortHash_z".length)}`;
 }
 
-let logPermissionErrors = true;
+let logPermissionErrors = false;
 
-export function disablePermissionErrors() {
-  logPermissionErrors = false;
+export function enablePermissionErrors() {
+  logPermissionErrors = true;
 }
 
 export class VerifiedTransaction {
