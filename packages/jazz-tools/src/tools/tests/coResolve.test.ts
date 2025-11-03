@@ -1,7 +1,14 @@
-import { beforeAll, describe, expect, test } from "vitest";
-import { Account, co, CoValueLoadingState, Group, z } from "../exports";
+import { beforeAll, describe, expect, expectTypeOf, test } from "vitest";
+import {
+  Account,
+  co,
+  CoPlainText,
+  CoValueLoadingState,
+  Group,
+  z,
+} from "../exports";
 import { createJazzTestAccount, setupJazzTestSync } from "../testing";
-import { assertLoaded, setupTwoNodes } from "./utils";
+import { assertLoaded, setupTwoNodes, waitFor } from "./utils";
 
 describe("Schema.resolved()", () => {
   beforeAll(async () => {
@@ -231,10 +238,124 @@ describe("Schema.resolved()", () => {
 
     describe("on subscribe()", () => {
       test("for CoMap", async () => {
-        // TODO
+        const TestMap = co.map({ name: co.plainText() });
+
+        const TestMapWithName = TestMap.resolved({ name: true });
+
+        const map = TestMapWithName.create({ name: "Test" }, publicGroup);
+
+        const updates: co.loaded<typeof TestMapWithName>[] = [];
+        TestMapWithName.subscribe(
+          map.$jazz.id,
+          {
+            loadAs: clientAccount,
+          },
+          (map) => {
+            expectTypeOf<typeof map.name>().toEqualTypeOf<CoPlainText>();
+            updates.push(map);
+          },
+        );
+
+        await waitFor(() => expect(updates.length).toBe(1));
+        expect(updates[0]?.name.toUpperCase()).toEqual("TEST");
       });
 
-      // TODO
+      test("for CoRecord", async () => {
+        const TestRecord = co.record(z.string(), co.plainText());
+
+        const TestRecordWithName = TestRecord.resolved({ name: true });
+
+        const record = TestRecordWithName.create({ name: "Test" }, publicGroup);
+
+        const updates: co.loaded<typeof TestRecordWithName>[] = [];
+        TestRecordWithName.subscribe(
+          record.$jazz.id,
+          {
+            loadAs: clientAccount,
+          },
+          (record) => {
+            expectTypeOf<typeof record.name>().toEqualTypeOf<CoPlainText>();
+            updates.push(record);
+          },
+        );
+
+        await waitFor(() => expect(updates.length).toBe(1));
+        expect(updates[0]?.name.toUpperCase()).toEqual("TEST");
+      });
+
+      test("for CoList", async () => {
+        const TestList = co.list(co.plainText());
+
+        const TestListWithItems = TestList.resolved({ $each: true });
+
+        const list = TestListWithItems.create(["Test"], publicGroup);
+
+        const updates: co.loaded<typeof TestListWithItems>[] = [];
+        TestListWithItems.subscribe(
+          list.$jazz.id,
+          {
+            loadAs: clientAccount,
+          },
+          (list) => {
+            expectTypeOf<(typeof list)[0]>().toEqualTypeOf<CoPlainText>();
+            updates.push(list);
+          },
+        );
+
+        await waitFor(() => expect(updates.length).toBe(1));
+        expect(updates[0]?.[0]?.toUpperCase()).toEqual("TEST");
+      });
+
+      // TODO fix - this is not working when providing an explicit resolve query either
+      test.skip("for CoFeed", async () => {
+        const TestFeed = co.feed(co.plainText());
+
+        const TestFeedWithItems = TestFeed.resolved({ $each: true });
+
+        const feed = TestFeedWithItems.create(["Test"], publicGroup);
+
+        const updates: co.loaded<typeof TestFeedWithItems>[] = [];
+        TestFeedWithItems.subscribe(
+          feed.$jazz.id,
+          {
+            loadAs: clientAccount,
+          },
+          (feed) => {
+            updates.push(feed);
+          },
+        );
+
+        await waitFor(() => expect(updates.length).toBe(1));
+        expect(updates[0]?.inCurrentSession?.value.toUpperCase()).toEqual(
+          "TEST",
+        );
+      });
+
+      test("for Account", async () => {
+        const AccountWithProfile = co.account().resolved({ profile: true });
+
+        const account = await AccountWithProfile.createAs(serverAccount, {
+          creationProps: { name: "Hermes Puggington" },
+        });
+        account.$jazz.set(
+          "profile",
+          co.profile().create({ name: "Hermes Puggington" }, publicGroup),
+        );
+
+        const updates: co.loaded<typeof AccountWithProfile>[] = [];
+        AccountWithProfile.subscribe(
+          account.$jazz.id,
+          {
+            loadAs: clientAccount,
+          },
+          (account) => {
+            updates.push(account);
+          },
+        );
+
+        await waitFor(() => expect(updates.length).toBe(1));
+        expect(updates[0]?.profile.name).toBe("Hermes Puggington");
+      });
     });
 
     describe("on merge()", () => {

@@ -95,7 +95,9 @@ export class CoListSchema<
   }
 
   subscribe<
-    const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoListInstanceCoValuesMaybeLoaded<T>
+    > = DefaultResolveQuery,
   >(
     id: string,
     options: SubscribeListenerOptions<CoListInstanceCoValuesMaybeLoaded<T>, R>,
@@ -104,7 +106,11 @@ export class CoListSchema<
       unsubscribe: () => void,
     ) => void,
   ): () => void {
-    return this.coValueClass.subscribe(id, options, listener);
+    return this.coValueClass.subscribe(
+      id,
+      withSchemaResolveQuery(options, this.resolve),
+      listener,
+    );
   }
 
   getCoValueClass(): typeof CoList {

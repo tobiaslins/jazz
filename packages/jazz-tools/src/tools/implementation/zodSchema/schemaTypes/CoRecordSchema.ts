@@ -87,7 +87,8 @@ export interface CoRecordSchema<
   subscribe<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-    > = true,
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(
     id: ID<CoRecordInstanceCoValuesMaybeLoaded<K, V>>,
     options: SubscribeListenerOptions<
