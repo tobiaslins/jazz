@@ -782,9 +782,8 @@ function getResolveQuery(
   if (resolveQuery) {
     return resolveQuery;
   }
-  // Check the schema is a CoValue schema (and not a CoValue class), and that there is a
-  // default resolve query (i.e. that it is not `false`).
-  if ("resolve" in Schema && Schema.resolve) {
+  // Check the schema is a CoValue schema (and not a CoValue class)
+  if ("resolve" in Schema) {
     return Schema.resolve;
   }
   return true;

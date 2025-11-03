@@ -166,7 +166,8 @@ export class CoMapSchema<
   upsertUnique<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
-    > = true,
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(options: {
     value: Simplify<CoMapSchemaInit<Shape>>;
     unique: CoValueUniqueness["uniqueness"];
@@ -181,13 +182,17 @@ export class CoMapSchema<
     >
   > {
     // @ts-expect-error
-    return this.coValueClass.upsertUnique(options);
+    return this.coValueClass.upsertUnique(
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   loadUnique<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
-    > = true,
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(
     unique: CoValueUniqueness["uniqueness"],
     ownerID: string,
@@ -204,7 +209,12 @@ export class CoMapSchema<
     >
   > {
     // @ts-expect-error
-    return this.coValueClass.loadUnique(unique, ownerID, options);
+    return this.coValueClass.loadUnique(
+      unique,
+      ownerID,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   /**

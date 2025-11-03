@@ -500,7 +500,7 @@ describe("Schema.resolved()", () => {
         );
         account.$jazz.set(
           "root",
-          TestAccount.shape.root.create({ text: "Hello" }, publicGroup),
+          TestAccount.shape.root.create({ text: "Test" }, publicGroup),
         );
         const accountList = AccountList.create([account], publicGroup);
 
@@ -528,46 +528,140 @@ describe("Schema.resolved()", () => {
         });
 
         assertLoaded(mergedAccount);
-        expect(mergedAccount.root.text.toUpperCase()).toEqual("HELLO!!");
+        expect(mergedAccount.root.text.toUpperCase()).toEqual("TEST!!");
       });
     });
 
     describe("on upsertUnique()", () => {
       test("for CoMap", async () => {
-        // TODO
-      });
-
-      // TODO
-    });
-
-    describe("on loadUnique()", () => {
-      test("for CoMap", async () => {
-        // TODO
-      });
-
-      // TODO
-    });
-
-    describe("the default resolve query is overridden with provided resolve queries", () => {
-      test("for CoMap", async () => {
         const TestMap = co.map({ name: co.plainText() });
 
         const TestMapWithName = TestMap.resolved({ name: true });
 
-        const map = TestMapWithName.create({ name: "Hello" }, publicGroup);
-
-        const loadedMap = await TestMapWithName.load(map.$jazz.id, {
-          loadAs: clientAccount,
-          resolve: true,
+        const map = await TestMapWithName.upsertUnique({
+          value: { name: "Test" },
+          unique: "test-upsertUnique-coList",
+          owner: publicGroup,
         });
 
-        assertLoaded(loadedMap);
-        expect(loadedMap.name.$jazz.loadingState).toEqual(
-          CoValueLoadingState.LOADING,
-        );
+        assertLoaded(map);
+        expect(map.name.toUpperCase()).toEqual("TEST");
       });
 
-      // TODO test other container schemas
+      test("for CoRecord", async () => {
+        const TestRecord = co.record(z.string(), co.plainText());
+
+        const TestRecordWithName = TestRecord.resolved({ name: true });
+
+        const record = await TestRecordWithName.upsertUnique({
+          value: { name: "Test" },
+          unique: "test-upsertUnique-coRecord",
+          owner: publicGroup,
+        });
+
+        assertLoaded(record);
+        expect(record.name?.toUpperCase()).toEqual("TEST");
+      });
+
+      test("for CoList", async () => {
+        const TestList = co.list(co.plainText());
+
+        const TestListWithItems = TestList.resolved({ $each: true });
+
+        const list = await TestListWithItems.upsertUnique({
+          value: ["Test"],
+          unique: "test-upsertUnique-coList",
+          owner: publicGroup,
+        });
+
+        assertLoaded(list);
+        expect(list[0]?.toUpperCase()).toEqual("TEST");
+      });
+    });
+
+    describe("on loadUnique()", () => {
+      let group: Group;
+      beforeAll(async () => {
+        group = Group.create();
+      });
+
+      test("for CoMap", async () => {
+        const TestMap = co.map({ name: co.plainText() });
+        const TestMapWithName = TestMap.resolved({ name: true });
+
+        const map = TestMapWithName.create(
+          { name: "Test" },
+          {
+            unique: "test-loadUnique-coMap",
+            owner: group,
+          },
+        );
+
+        const loadedMap = await TestMapWithName.loadUnique(
+          "test-loadUnique-coMap",
+          group.$jazz.id,
+        );
+
+        assertLoaded(loadedMap);
+        expect(loadedMap.name.toUpperCase()).toEqual("TEST");
+      });
+
+      test("for CoRecord", async () => {
+        const TestRecord = co.record(z.string(), co.plainText());
+        const TestRecordWithName = TestRecord.resolved({ name: true });
+
+        const record = TestRecordWithName.create(
+          { name: "Test" },
+          {
+            unique: "test-loadUnique-coRecord",
+            owner: group,
+          },
+        );
+
+        const loadedRecord = await TestRecordWithName.loadUnique(
+          "test-loadUnique-coRecord",
+          group.$jazz.id,
+        );
+
+        assertLoaded(loadedRecord);
+        expect(loadedRecord.name?.toUpperCase()).toEqual("TEST");
+      });
+
+      test("for CoList", async () => {
+        const TestList = co.list(co.plainText());
+        const TestListWithItems = TestList.resolved({ $each: true });
+
+        const list = TestListWithItems.create(["Test"], {
+          unique: "test-loadUnique-coList",
+          owner: group,
+        });
+
+        const loadedList = await TestListWithItems.loadUnique(
+          "test-loadUnique-coList",
+          group.$jazz.id,
+        );
+
+        assertLoaded(loadedList);
+        expect(loadedList[0]?.toUpperCase()).toEqual("TEST");
+      });
+    });
+
+    test("the default resolve query is overridden with provided resolve queries", async () => {
+      const TestMap = co.map({ name: co.plainText() });
+
+      const TestMapWithName = TestMap.resolved({ name: true });
+
+      const map = TestMapWithName.create({ name: "Test" }, publicGroup);
+
+      const loadedMap = await TestMapWithName.load(map.$jazz.id, {
+        loadAs: clientAccount,
+        resolve: true,
+      });
+
+      assertLoaded(loadedMap);
+      expect(loadedMap.name.$jazz.loadingState).toEqual(
+        CoValueLoadingState.LOADING,
+      );
     });
 
     test("works with recursive schemas", async () => {
