@@ -1,4 +1,4 @@
-import { Task, TodoProject } from "./1_schema";
+import { TaskWithText, TodoProjectWithTasks } from "./1_schema";
 
 import {
   Button,
@@ -13,7 +13,6 @@ import {
   TableRow,
 } from "./basicComponents";
 
-import { Loaded } from "jazz-tools";
 import { useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
 import uniqolor from "uniqolor";
@@ -35,22 +34,14 @@ export function ProjectTodoTable() {
   // content - whether we create edits locally, load persisted data, or receive
   // sync updates from other devices or participants!
   // It also recursively resolves and subsribes to all referenced CoValues.
-  const project = useCoState(TodoProject, projectId, {
-    resolve: {
-      tasks: {
-        $each: {
-          text: true,
-        },
-      },
-    },
-  });
+  const project = useCoState(TodoProjectWithTasks, projectId);
 
   // `createTask` is similar to `createProject` we saw earlier, creating a new CoMap
   // for a new task (in the same group as the project), and then
   // adding that as an item to the project's list of tasks.
   const createTask = (text: string) => {
     if (!project.$isLoaded || !text) return;
-    const task = Task.create(
+    const task = TaskWithText.create(
       {
         done: false,
         text,
@@ -119,7 +110,7 @@ export function TaskRow({
   task,
   deleteTask,
 }: {
-  task: Loaded<typeof Task, { text: true }>;
+  task: TaskWithText;
   deleteTask: (taskId: string) => void;
 }) {
   // Here we see for the first time how we can access edit history

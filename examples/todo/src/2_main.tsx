@@ -15,7 +15,11 @@ import {
   useLogOut,
 } from "jazz-tools/react";
 import React from "react";
-import { TodoAccount, TodoProject } from "./1_schema.ts";
+import {
+  TodoAccount,
+  TodoProject,
+  TodoAccountWithProjects,
+} from "./1_schema.ts";
 import { NewProjectForm } from "./3_NewProjectForm.tsx";
 import { ProjectTodoTable } from "./4_ProjectTodoTable.tsx";
 import { apiKey } from "./apiKey.ts";
@@ -118,9 +122,7 @@ export default function App() {
 }
 
 function HomeScreen() {
-  const me = useAccount(TodoAccount, {
-    resolve: { root: { projects: { $each: { $onError: "catch" } } } },
-  });
+  const me = useAccount(TodoAccountWithProjects);
   const navigate = useNavigate();
 
   const projects = me.$isLoaded ? me.root.projects : [];
