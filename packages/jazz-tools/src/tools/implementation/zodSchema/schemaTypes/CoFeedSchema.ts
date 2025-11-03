@@ -73,7 +73,10 @@ export class CoFeedSchema<
   }
 
   unstable_merge<
-    const R extends RefsToResolve<CoFeedInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoFeedInstanceCoValuesMaybeLoaded<T>
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(
     id: string,
     options: {
@@ -82,8 +85,12 @@ export class CoFeedSchema<
       branch: BranchDefinition;
     },
   ): Promise<void> {
-    // @ts-expect-error
-    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
+    return unstable_mergeBranchWithResolve(
+      this.coValueClass,
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   subscribe(

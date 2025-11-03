@@ -98,7 +98,10 @@ export class AccountSchema<
     return this.coValueClass.createAs(as, options);
   }
 
-  unstable_merge<R extends ResolveQuery<AccountSchema<Shape>>>(
+  unstable_merge<
+    // @ts-expect-error
+    R extends ResolveQuery<AccountSchema<Shape>> = DefaultResolveQuery,
+  >(
     id: string,
     options: {
       loadAs?: Account | AnonymousJazzAgent;
@@ -106,8 +109,12 @@ export class AccountSchema<
       branch: BranchDefinition;
     },
   ): Promise<void> {
-    // @ts-expect-error
-    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
+    return unstable_mergeBranchWithResolve(
+      this.coValueClass,
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   subscribe<

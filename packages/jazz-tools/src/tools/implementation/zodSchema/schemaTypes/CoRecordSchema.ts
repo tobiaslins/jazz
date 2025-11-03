@@ -71,7 +71,8 @@ export interface CoRecordSchema<
   unstable_merge<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-    > = true,
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(
     id: string,
     options: {

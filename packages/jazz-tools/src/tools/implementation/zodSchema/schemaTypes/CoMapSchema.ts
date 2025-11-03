@@ -106,7 +106,8 @@ export class CoMapSchema<
   unstable_merge<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
-    > = true,
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(
     id: string,
     options: {
@@ -118,8 +119,12 @@ export class CoMapSchema<
       branch: BranchDefinition;
     },
   ): Promise<void> {
-    // @ts-expect-error
-    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
+    return unstable_mergeBranchWithResolve(
+      this.coValueClass,
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   subscribe<
