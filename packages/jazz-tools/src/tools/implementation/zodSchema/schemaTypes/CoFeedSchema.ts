@@ -17,13 +17,17 @@ import { CoFeedSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
-import { CoreCoValueSchema } from "./CoValueSchema.js";
+import { CoreCoValueSchema, CoreResolveQuery } from "./CoValueSchema.js";
+import { withSchemaResolveQuery } from "../../schemaUtils.js";
 
-export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
-  implements CoreCoFeedSchema<T>
+export class CoFeedSchema<
+  T extends AnyZodOrCoValueSchema,
+  DefaultResolveQuery extends CoreResolveQuery = true,
+> implements CoreCoFeedSchema<T>
 {
   collaborative = true as const;
   builtin = "CoFeed" as const;
+  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     public element: T,
@@ -47,7 +51,10 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
   }
 
   load<
-    const R extends RefsToResolve<CoFeedInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoFeedInstanceCoValuesMaybeLoaded<T>
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(
     id: string,
     options?: {
@@ -57,7 +64,11 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
     },
   ): Promise<MaybeLoaded<Resolved<CoFeedInstanceCoValuesMaybeLoaded<T>, R>>> {
     // @ts-expect-error
-    return this.coValueClass.load(id, options);
+    return this.coValueClass.load(
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   unstable_merge<
@@ -103,6 +114,16 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
   optional(): CoOptionalSchema<this> {
     return coOptionalDefiner(this);
   }
+
+  resolved<
+    const R extends RefsToResolve<CoFeedInstanceCoValuesMaybeLoaded<T>> = true,
+  >(
+    resolveQuery: RefsToResolveStrict<CoFeedInstanceCoValuesMaybeLoaded<T>, R>,
+  ): CoFeedSchema<T, R> {
+    const copy = new CoFeedSchema<T, R>(this.element, this.coValueClass);
+    copy.resolve = resolveQuery as R;
+    return copy;
+  }
 }
 
 export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
@@ -112,6 +133,7 @@ export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
     collaborative: true as const,
     builtin: "CoFeed" as const,
     element,
+    resolve: true as const,
   };
 }
 

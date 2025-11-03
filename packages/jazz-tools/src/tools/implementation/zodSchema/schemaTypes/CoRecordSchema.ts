@@ -20,7 +20,7 @@ import { InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded } from "../typeConverter
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
-import { CoreCoValueSchema } from "./CoValueSchema.js";
+import { CoreCoValueSchema, CoreResolveQuery } from "./CoValueSchema.js";
 
 type CoRecordInit<
   K extends z.core.$ZodString<string>,
@@ -32,6 +32,7 @@ type CoRecordInit<
 export interface CoRecordSchema<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
+  DefaultResolveQuery extends CoreResolveQuery = true,
 > extends CoreCoRecordSchema<K, V> {
   create(
     init: Simplify<CoRecordInit<K, V>>,
@@ -51,7 +52,8 @@ export interface CoRecordSchema<
   load<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-    > = true,
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(
     id: ID<CoRecordInstanceCoValuesMaybeLoaded<K, V>>,
     options?: {
@@ -139,6 +141,19 @@ export interface CoRecordSchema<
   getCoValueClass: () => typeof CoMap;
 
   optional(): CoOptionalSchema<this>;
+
+  resolve: DefaultResolveQuery;
+
+  resolved<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesMaybeLoaded<K, V>
+    > = true,
+  >(
+    resolveQuery: RefsToResolveStrict<
+      CoRecordInstanceCoValuesMaybeLoaded<K, V>,
+      R
+    >,
+  ): CoRecordSchema<K, V, R>;
 }
 
 type CoRecordSchemaDefinition<

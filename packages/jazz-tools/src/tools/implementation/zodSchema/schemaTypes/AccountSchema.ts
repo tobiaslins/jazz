@@ -24,6 +24,8 @@ import {
   createCoreCoMapSchema,
 } from "./CoMapSchema.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
+import { CoreResolveQuery } from "./CoValueSchema.js";
+import { withSchemaResolveQuery } from "../../schemaUtils.js";
 
 export type BaseProfileShape = {
   name: z.core.$ZodString<string>;
@@ -41,13 +43,16 @@ export type DefaultAccountShape = {
   root: CoMapSchema<{}>;
 };
 
-export class AccountSchema<Shape extends BaseAccountShape = DefaultAccountShape>
-  implements CoreAccountSchema<Shape>
+export class AccountSchema<
+  Shape extends BaseAccountShape = DefaultAccountShape,
+  DefaultResolveQuery extends CoreResolveQuery = true,
+> implements CoreAccountSchema<Shape>
 {
   collaborative = true as const;
   builtin = "Account" as const;
   shape: Shape;
   getDefinition: () => CoMapSchemaDefinition;
+  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     coreSchema: CoreAccountSchema<Shape>,
@@ -64,7 +69,10 @@ export class AccountSchema<Shape extends BaseAccountShape = DefaultAccountShape>
     return this.coValueClass.create(options);
   }
 
-  load<R extends ResolveQuery<AccountSchema<Shape>>>(
+  load<
+    // @ts-expect-error
+    const R extends ResolveQuery<AccountSchema<Shape>> = DefaultResolveQuery,
+  >(
     id: string,
     options?: {
       loadAs?: Account | AnonymousJazzAgent;
@@ -72,7 +80,11 @@ export class AccountSchema<Shape extends BaseAccountShape = DefaultAccountShape>
     },
   ): Promise<MaybeLoaded<Loaded<AccountSchema<Shape>, R>>> {
     // @ts-expect-error
-    return this.coValueClass.load(id, options);
+    return this.coValueClass.load(
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   /** @internal */
@@ -122,7 +134,7 @@ export class AccountSchema<Shape extends BaseAccountShape = DefaultAccountShape>
       account: Loaded<AccountSchema<Shape>>,
       creationProps?: { name: string },
     ) => void,
-  ): AccountSchema<Shape> {
+  ): AccountSchema<Shape, DefaultResolveQuery> {
     (this.coValueClass.prototype as Account).migrate = async function (
       this,
       creationProps,
@@ -140,6 +152,17 @@ export class AccountSchema<Shape extends BaseAccountShape = DefaultAccountShape>
 
   optional(): CoOptionalSchema<this> {
     return coOptionalDefiner(this);
+  }
+
+  resolved<R extends ResolveQuery<AccountSchema<Shape>>>(
+    resolveQuery: RefsToResolveStrict<AccountSchema<Shape>, R>,
+  ): AccountSchema<Shape, R> {
+    const coreSchema: CoreAccountSchema<Shape> = createCoreAccountSchema(
+      this.shape,
+    );
+    const copy = new AccountSchema<Shape, R>(coreSchema, this.coValueClass);
+    copy.resolve = resolveQuery as R;
+    return copy;
   }
 }
 

@@ -19,19 +19,20 @@ import {
   unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
-import { removeGetters } from "../../schemaUtils.js";
+import { removeGetters, withSchemaResolveQuery } from "../../schemaUtils.js";
 import { CoMapSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded.js";
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema, AnyZodSchema } from "../zodSchema.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
-import { CoreCoValueSchema } from "./CoValueSchema.js";
+import { CoreCoValueSchema, CoreResolveQuery } from "./CoValueSchema.js";
 
 export class CoMapSchema<
   Shape extends z.core.$ZodLooseShape,
   CatchAll extends AnyZodOrCoValueSchema | unknown = unknown,
   Owner extends Account | Group = Account | Group,
+  DefaultResolveQuery extends CoreResolveQuery = true,
 > implements CoreCoMapSchema<Shape, CatchAll>
 {
   collaborative = true as const;
@@ -39,6 +40,7 @@ export class CoMapSchema<
   shape: Shape;
   catchAll?: CatchAll;
   getDefinition: () => CoMapSchemaDefinition;
+  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     coreSchema: CoreCoMapSchema<Shape, CatchAll>,
@@ -75,7 +77,8 @@ export class CoMapSchema<
   load<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
-    > = true,
+      // @ts-expect-error
+    > = DefaultResolveQuery,
   >(
     id: string,
     options?: {
@@ -93,7 +96,11 @@ export class CoMapSchema<
     >
   > {
     // @ts-expect-error
-    return this.coValueClass.load(id, options);
+    return this.coValueClass.load(
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   unstable_merge<
@@ -221,7 +228,7 @@ export class CoMapSchema<
         true
       >,
     ) => undefined,
-  ): CoMapSchema<Shape, CatchAll, Owner> {
+  ): CoMapSchema<Shape, CatchAll, Owner, DefaultResolveQuery> {
     // @ts-expect-error
     this.coValueClass.prototype.migrate = migration;
     return this;
@@ -292,6 +299,28 @@ export class CoMapSchema<
     // @ts-expect-error the partial shape contains all required keys
     return partialCoMapSchema;
   }
+
+  resolved<
+    const R extends RefsToResolve<
+      Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
+    > = true,
+  >(
+    resolveQuery: RefsToResolveStrict<
+      Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap,
+      R
+    >,
+  ): CoMapSchema<Shape, CatchAll, Owner, R> {
+    const coreSchema: CoreCoMapSchema<Shape, CatchAll> = createCoreCoMapSchema(
+      this.shape,
+      this.catchAll,
+    );
+    const copy = new CoMapSchema<Shape, CatchAll, Owner, R>(
+      coreSchema,
+      this.coValueClass,
+    );
+    copy.resolve = resolveQuery as R;
+    return copy;
+  }
 }
 
 export function createCoreCoMapSchema<
@@ -328,6 +357,7 @@ export function createCoreCoMapSchema<
         return propValues;
       },
     }),
+    resolve: true as const,
   };
 }
 
