@@ -1,4 +1,4 @@
-import { Group, Loaded } from "jazz-tools";
+import { Group } from "jazz-tools";
 import { useAccount, useCoState } from "jazz-tools/react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
@@ -20,7 +20,7 @@ export function CreateOrganization() {
 
   if (!me.$isLoaded) return;
 
-  const onSave = (draft: Loaded<typeof DraftOrganization>) => {
+  const onSave = (draft: DraftOrganization) => {
     const validation = validateDraftOrganization(draft);
     setErrors(validation.errors);
     if (validation.errors.length > 0) {
@@ -29,7 +29,7 @@ export function CreateOrganization() {
 
     const group = Group.create();
 
-    me.root.organizations.$jazz.push(draft as Loaded<typeof Organization>);
+    me.root.organizations.$jazz.push(draft as Organization);
 
     me.root.$jazz.set(
       "draftOrganization",
@@ -60,7 +60,7 @@ function CreateOrganizationForm({
   onSave,
 }: {
   id: string;
-  onSave: (draft: Loaded<typeof DraftOrganization>) => void;
+  onSave: (draft: DraftOrganization) => void;
 }) {
   const draft = useCoState(DraftOrganization, id);
 
