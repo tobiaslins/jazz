@@ -52,6 +52,12 @@ export class AccountSchema<
   builtin = "Account" as const;
   shape: Shape;
   getDefinition: () => CoMapSchemaDefinition;
+
+  /**
+   * Default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   * @default true
+   */
   resolve: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
@@ -168,6 +174,10 @@ export class AccountSchema<
     return coOptionalDefiner(this);
   }
 
+  /**
+   * Adds a default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   */
   resolved<R extends ResolveQuery<AccountSchema<Shape>>>(
     resolveQuery: RefsToResolveStrict<AccountSchema<Shape>, R>,
   ): AccountSchema<Shape, R> {

@@ -29,6 +29,12 @@ export class CoListSchema<
 {
   collaborative = true as const;
   builtin = "CoList" as const;
+
+  /**
+   * Default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   * @default true
+   */
   resolve: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
@@ -174,6 +180,10 @@ export class CoListSchema<
     return coOptionalDefiner(this);
   }
 
+  /**
+   * Adds a default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   */
   resolved<
     const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
   >(

@@ -40,6 +40,12 @@ export class CoMapSchema<
   shape: Shape;
   catchAll?: CatchAll;
   getDefinition: () => CoMapSchemaDefinition;
+
+  /**
+   * Default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   * @default true
+   */
   resolve: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
@@ -320,6 +326,10 @@ export class CoMapSchema<
     return partialCoMapSchema;
   }
 
+  /**
+   * Adds a default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   */
   resolved<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
