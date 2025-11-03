@@ -1,14 +1,10 @@
-import { MusicaAccount } from "@/1_schema.ts";
+import { MusicaAccount, PlaylistWithTracks } from "@/1_schema.ts";
 import { createAccountSubscriptionContext } from "jazz-tools/react-core";
 
 export const { Provider: AccountProvider, useSelector: useAccountSelector } =
   createAccountSubscriptionContext(MusicaAccount, {
     root: {
-      rootPlaylist: {
-        tracks: {
-          $each: true,
-        },
-      },
+      rootPlaylist: PlaylistWithTracks.resolve,
       playlists: {
         $each: {
           $onError: "catch",

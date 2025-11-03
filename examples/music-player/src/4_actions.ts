@@ -1,6 +1,11 @@
 import { getAudioFileData } from "@/lib/audio/getAudioFileData";
 import { Group } from "jazz-tools";
-import { MusicTrack, MusicaAccount, Playlist } from "./1_schema";
+import {
+  MusicTrack,
+  MusicaAccount,
+  Playlist,
+  PlaylistWithTracks,
+} from "./1_schema";
 
 /**
  * Walkthrough: Actions
@@ -84,9 +89,7 @@ export async function addTrackToPlaylist(
   track: MusicTrack,
 ) {
   const { tracks } = await playlist.$jazz.ensureLoaded({
-    resolve: {
-      tracks: { $each: true },
-    },
+    resolve: PlaylistWithTracks.resolve,
   });
 
   const isPartOfThePlaylist = tracks.some((t) => t.$jazz.id === track.$jazz.id);
