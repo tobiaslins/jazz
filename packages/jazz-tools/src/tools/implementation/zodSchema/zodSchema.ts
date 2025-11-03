@@ -136,3 +136,6 @@ export type ResolveQueryStrict<
   LoadedAndRequired<InstanceOfSchemaCoValuesMaybeLoaded<T>>,
   R
 >;
+
+export type SchemaResolveQuery<T extends CoValueClassOrSchema> =
+  T extends CoreCoValueSchema ? T["resolve"] : true;

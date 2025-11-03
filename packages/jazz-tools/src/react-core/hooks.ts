@@ -23,6 +23,7 @@ import {
   NotLoaded,
   ResolveQuery,
   ResolveQueryStrict,
+  SchemaResolveQuery,
   SubscriptionScope,
   coValueClassFromCoValueClassOrSchema,
   createUnloadedCoValue,
@@ -88,7 +89,8 @@ export function useIsAuthenticated() {
 
 export function useCoValueSubscription<
   S extends CoValueClassOrSchema,
-  const R extends ResolveQuery<S>,
+  // @ts-expect-error
+  const R extends ResolveQuery<S> = SchemaResolveQuery<S>,
 >(
   Schema: S,
   id: string | undefined | null,
@@ -118,10 +120,12 @@ export function useCoValueSubscription<
       };
     }
 
+    const resolve = getResolveQuery(Schema, options?.resolve);
+
     const node = contextManager.getCurrentValue()!.node;
     const subscription = new SubscriptionScope<any>(
       node,
-      options?.resolve ?? true,
+      resolve,
       id,
       {
         ref: coValueClassFromCoValueClassOrSchema(Schema),
@@ -363,7 +367,8 @@ function useGetCurrentValue<C extends CoValue>(
  */
 export function useCoState<
   S extends CoValueClassOrSchema,
-  const R extends ResolveQuery<S> = true,
+  // @ts-expect-error
+  const R extends ResolveQuery<S> = SchemaResolveQuery<S>,
   TSelectorReturn = MaybeLoaded<Loaded<S, R>>,
 >(
   /** The CoValue schema or class constructor */
@@ -424,7 +429,8 @@ export function useCoState<
 
 export function useSubscriptionSelector<
   S extends CoValueClassOrSchema,
-  R extends ResolveQuery<S>,
+  // @ts-expect-error
+  const R extends ResolveQuery<S> = SchemaResolveQuery<S>,
   TSelectorReturn = MaybeLoaded<Loaded<S, R>>,
 >(
   subscription: CoValueSubscription<S, R>,
@@ -458,7 +464,8 @@ export function useSubscriptionSelector<
 
 export function useAccountSubscription<
   S extends AccountClass<Account> | AnyAccountSchema,
-  const R extends ResolveQuery<S>,
+  // @ts-expect-error
+  const R extends ResolveQuery<S> = SchemaResolveQuery<S>,
 >(
   Schema: S,
   options?: {
@@ -479,8 +486,7 @@ export function useAccountSubscription<
       };
     }
 
-    // We don't need type validation here, since it's mostly to help users on public API
-    const resolve: any = options?.resolve ?? true;
+    const resolve = getResolveQuery(Schema, options?.resolve);
 
     const node = contextManager.getCurrentValue()!.node;
     const subscription = new SubscriptionScope<any>(
@@ -621,7 +627,8 @@ export function useAccountSubscription<
  */
 export function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
-  R extends ResolveQuery<A> = true,
+  // @ts-expect-error
+  const R extends ResolveQuery<A> = SchemaResolveQuery<A>,
   TSelectorReturn = MaybeLoaded<Loaded<A, R>>,
 >(
   /** The account schema to use. Defaults to the base Account schema */
@@ -765,4 +772,20 @@ export function useSyncConnectionStatus() {
   );
 
   return connected;
+}
+
+function getResolveQuery(
+  Schema: CoValueClassOrSchema,
+  // We don't need type validation here, since this is an internal API
+  resolveQuery?: ResolveQuery<any>,
+): ResolveQuery<any> {
+  if (resolveQuery) {
+    return resolveQuery;
+  }
+  // Check the schema is a CoValue schema (and not a CoValue class), and that there is a
+  // default resolve query (i.e. that it is not `false`).
+  if ("resolve" in Schema && Schema.resolve) {
+    return Schema.resolve;
+  }
+  return true;
 }

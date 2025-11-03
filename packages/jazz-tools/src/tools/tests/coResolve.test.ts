@@ -229,12 +229,67 @@ describe("Schema.resolved()", () => {
       });
     });
 
+    describe("on subscribe()", () => {
+      test("for CoMap", async () => {
+        // TODO
+      });
+
+      // TODO
+    });
+
+    describe("on merge()", () => {
+      test("for CoMap", async () => {
+        // TODO
+      });
+
+      // TODO
+    });
+
+    describe("on upsertUnique()", () => {
+      test("for CoMap", async () => {
+        // TODO
+      });
+
+      // TODO
+    });
+
+    describe("on loadUnique()", () => {
+      test("for CoMap", async () => {
+        // TODO
+      });
+
+      // TODO
+    });
+
+    describe("the default resolve query is overridden with provided resolve queries", () => {
+      test("for CoMap", async () => {
+        const TestMap = co.map({ name: co.plainText() });
+
+        const TestMapWithName = TestMap.resolved({ name: true });
+
+        const map = TestMapWithName.create({ name: "Hello" }, publicGroup);
+
+        const loadedMap = await TestMapWithName.load(map.$jazz.id, {
+          loadAs: clientAccount,
+          resolve: true,
+        });
+
+        assertLoaded(loadedMap);
+        expect(loadedMap.name.$jazz.loadingState).toEqual(
+          CoValueLoadingState.LOADING,
+        );
+      });
+
+      // TODO test other container schemas
+    });
+
     test("works with recursive schemas", async () => {
       const Person = co.map({
-        get friends(): co.List<typeof Person> {
-          return co.list(Person);
+        get friends(): co.List<typeof Person, { $each: true }> {
+          return Friends;
         },
       });
+      const Friends = co.list(Person).resolved({ $each: true });
 
       const PersonWithFriends = Person.resolved({
         friends: { $each: true },
