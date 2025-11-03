@@ -14,12 +14,6 @@ export function EditOrder(props: { id: string }) {
   const owner = useMemo(() => Group.create(), []);
 
   const order = useCoState(BubbleTeaOrder, props.id, {
-    resolve: {
-      addOns: {
-        $each: true,
-      },
-      instructions: true,
-    },
     unstable_branch: {
       name: "edit-order",
       owner,

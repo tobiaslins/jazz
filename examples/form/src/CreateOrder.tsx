@@ -24,9 +24,7 @@ export function CreateOrder(props: { id: string }) {
   const router = useIframeHashRouter();
   const [errors, setErrors] = useState<string[]>([]);
 
-  const newOrder = useCoState(PartialBubbleTeaOrder, props.id, {
-    resolve: { addOns: true, instructions: true },
-  });
+  const newOrder = useCoState(PartialBubbleTeaOrder, props.id);
 
   if (!newOrder.$isLoaded) return;
 
