@@ -15,7 +15,7 @@ import {
   createJazzTestGuest,
   setupJazzTestSync,
 } from "../testing.js";
-import { act, renderHook } from "./testUtils.js";
+import { act, renderHook, waitFor } from "./testUtils.js";
 
 beforeEach(async () => {
   await setupJazzTestSync();
@@ -228,6 +228,42 @@ describe("useAccount", () => {
       CoValueLoadingState.UNAVAILABLE,
     );
     expect(result.current.agent).toBe(account.guest);
+  });
+
+  it("should use the schema's resolve query if no resolve query is provided", async () => {
+    const AccountRoot = co.map({
+      name: co.plainText(),
+    });
+
+    const AccountSchema = co
+      .account({
+        root: AccountRoot,
+        profile: co.profile(),
+      })
+      .withMigration((account, creationProps) => {
+        if (!account.$jazz.refs.root) {
+          account.$jazz.set("root", { name: "John Doe" });
+        }
+      })
+      .resolved({
+        root: { name: true },
+      });
+
+    const account = await createJazzTestAccount({
+      AccountSchema,
+      isCurrentActiveAccount: true,
+    });
+
+    const { result } = renderHook(() => useAccount(AccountSchema), {
+      account,
+    });
+
+    await waitFor(() => {
+      expect(result.current).not.toBeNull();
+    });
+
+    assertLoaded(result.current);
+    expect(result.current.root.name.toUpperCase()).toBe("JOHN DOE");
   });
 
   it("should work with branches - create branch, edit and merge", async () => {

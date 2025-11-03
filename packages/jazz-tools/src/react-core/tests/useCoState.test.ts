@@ -602,6 +602,43 @@ describe("useCoState", () => {
     expect(renderings).toEqual([true]);
   });
 
+  it("should use the schema's resolve query if no resolve query is provided", async () => {
+    const Person = co.map({
+      name: co.plainText(),
+    });
+    const PersonWithName = Person.resolved({ name: true });
+
+    const group = Group.create();
+    group.addMember("everyone", "writer");
+
+    const person = Person.create(
+      {
+        name: "John Doe",
+      },
+      group,
+    );
+
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const { result } = renderHook(
+      () => {
+        return useCoState(PersonWithName, person.$jazz.id);
+      },
+      {
+        account,
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current).not.toBeNull();
+    });
+
+    assertLoaded(result.current);
+    expect(result.current.name.toUpperCase()).toBe("JOHN DOE");
+  });
+
   it("should work with branches - create branch, edit and merge", async () => {
     const Person = co.map({
       name: z.string(),
