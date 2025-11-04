@@ -1318,8 +1318,8 @@ describe("loading coValues from server", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> server | CONTENT Group header: true new: After: 0 New: 3 expectContentUntil: header/5",
-        "client -> server | CONTENT ParentGroup header: true new: After: 0 New: 5 expectContentUntil: header/7",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | CONTENT ParentGroup header: true new: After: 0 New: 5",
         "client -> server | CONTENT Group header: false new: After: 3 New: 2",
         "client -> server | CONTENT ParentGroup header: false new: After: 5 New: 2",
         "client -> server | CONTENT Map header: true new: After: 0 New: 1",

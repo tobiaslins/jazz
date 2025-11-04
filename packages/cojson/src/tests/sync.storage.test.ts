@@ -709,8 +709,8 @@ describe("client syncs with a server with storage", () => {
       }),
     ).toMatchInlineSnapshot(`
       [
-        "client -> server | CONTENT Group header: true new: After: 0 New: 3 expectContentUntil: header/5",
-        "client -> server | CONTENT Map header: true new:  expectContentUntil: header/1",
+        "client -> server | CONTENT Group header: true new: After: 0 New: 3",
+        "client -> server | CONTENT Map header: true new: ",
         "client -> server | CONTENT Group header: false new: After: 3 New: 2",
         "client -> server | CONTENT Map header: false new: After: 0 New: 1",
         "server -> client | KNOWN Group sessions: header/3",

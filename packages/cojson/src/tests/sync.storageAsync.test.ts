@@ -211,7 +211,7 @@ describe("client with storage syncs with server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> storage | CONTENT InitialMap header: true new:  expectContentUntil: header/1",
+        "client -> storage | CONTENT InitialMap header: true new: ",
         "client -> storage | CONTENT ChildMap header: true new: After: 0 New: 1",
         "client -> storage | CONTENT InitialMap header: false new: After: 0 New: 1",
       ]
