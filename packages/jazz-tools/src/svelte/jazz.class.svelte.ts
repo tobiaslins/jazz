@@ -6,6 +6,7 @@ import type {
   CoValue,
   CoValueClassOrSchema,
   CoValueFromRaw,
+  SchemaResolveQuery,
   InstanceOfSchema,
   Loaded,
   MaybeLoaded,
@@ -51,7 +52,8 @@ type CoStateId = string | undefined | null;
 
 export class CoState<
   V extends CoValueClassOrSchema,
-  R extends ResolveQuery<V> = true,
+  // @ts-expect-error
+  R extends ResolveQuery<V> = SchemaResolveQuery<V>,
 > {
   #value: MaybeLoaded<Loaded<V, R>> = createUnloadedCoValue(
     "",
@@ -143,7 +145,8 @@ export class AccountCoState<
   A extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
-  R extends ResolveQuery<A> = true,
+  // @ts-expect-error
+  R extends ResolveQuery<A> = SchemaResolveQuery<A>,
 > {
   #value: MaybeLoaded<Loaded<A, R>> = createUnloadedCoValue(
     "",
