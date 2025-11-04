@@ -2,12 +2,10 @@ import { useAccount } from "jazz-tools/react";
 import { UsersIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { JazzAccount } from "../schema.ts";
+import { JazzAccountWithOrganizations } from "../schema.ts";
 
 export function OrganizationSelector({ className }: { className?: string }) {
-  const me = useAccount(JazzAccount, {
-    resolve: { root: { organizations: { $each: { $onError: "catch" } } } },
-  });
+  const me = useAccount(JazzAccountWithOrganizations);
 
   const navigate = useNavigate();
 

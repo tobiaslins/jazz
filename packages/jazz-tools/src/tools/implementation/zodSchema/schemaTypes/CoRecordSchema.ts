@@ -20,7 +20,7 @@ import { InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded } from "../typeConverter
 import { z } from "../zodReExport.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
-import { CoreCoValueSchema } from "./CoValueSchema.js";
+import { CoreCoValueSchema, CoreResolveQuery } from "./CoValueSchema.js";
 
 type CoRecordInit<
   K extends z.core.$ZodString<string>,
@@ -32,6 +32,7 @@ type CoRecordInit<
 export interface CoRecordSchema<
   K extends z.core.$ZodString<string>,
   V extends AnyZodOrCoValueSchema,
+  DefaultResolveQuery extends CoreResolveQuery = true,
 > extends CoreCoRecordSchema<K, V> {
   create(
     init: Simplify<CoRecordInit<K, V>>,
@@ -51,7 +52,8 @@ export interface CoRecordSchema<
   load<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-    > = true,
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: ID<CoRecordInstanceCoValuesMaybeLoaded<K, V>>,
     options?: {
@@ -69,10 +71,11 @@ export interface CoRecordSchema<
   unstable_merge<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-    > = true,
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: string,
-    options?: {
+    options: {
       resolve?: RefsToResolveStrict<
         CoRecordInstanceCoValuesMaybeLoaded<K, V>,
         R
@@ -85,7 +88,8 @@ export interface CoRecordSchema<
   subscribe<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-    > = true,
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: ID<CoRecordInstanceCoValuesMaybeLoaded<K, V>>,
     options: SubscribeListenerOptions<
@@ -108,7 +112,8 @@ export interface CoRecordSchema<
   upsertUnique<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-    > = true,
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(options: {
     value: Simplify<CoRecordInit<K, V>>;
     unique: CoValueUniqueness["uniqueness"];
@@ -121,7 +126,8 @@ export interface CoRecordSchema<
   loadUnique<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-    > = true,
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
@@ -139,6 +145,28 @@ export interface CoRecordSchema<
   getCoValueClass: () => typeof CoMap;
 
   optional(): CoOptionalSchema<this>;
+
+  /**
+   * Default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   * @default true
+   */
+  resolve: DefaultResolveQuery;
+
+  /**
+   * Adds a default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   */
+  resolved<
+    const R extends RefsToResolve<
+      CoRecordInstanceCoValuesMaybeLoaded<K, V>
+    > = true,
+  >(
+    resolveQuery: RefsToResolveStrict<
+      CoRecordInstanceCoValuesMaybeLoaded<K, V>,
+      R
+    >,
+  ): CoRecordSchema<K, V, R>;
 }
 
 type CoRecordSchemaDefinition<

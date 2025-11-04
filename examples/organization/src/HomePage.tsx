@@ -2,18 +2,10 @@ import { useAccount } from "jazz-tools/react";
 import { Layout } from "./Layout.tsx";
 import { CreateOrganization } from "./components/CreateOrganization.tsx";
 import { Heading } from "./components/Heading.tsx";
-import { JazzAccount } from "./schema";
+import { JazzAccountWithOrganizations } from "./schema";
 
 export function HomePage() {
-  const me = useAccount(JazzAccount, {
-    resolve: {
-      root: {
-        organizations: {
-          $each: { $onError: "catch" },
-        },
-      },
-    },
-  });
+  const me = useAccount(JazzAccountWithOrganizations);
 
   if (!me.$isLoaded) return;
 

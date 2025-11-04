@@ -1,21 +1,15 @@
-import { co } from "jazz-tools";
 import {
   BubbleTeaAddOnTypes,
   BubbleTeaBaseTeaTypes,
   PartialBubbleTeaOrder,
 } from "./schema.ts";
 
-type ResolveQuery = {
-  addOns: true;
-  instructions: true;
-};
-
 export function OrderForm({
   order,
   onSave,
   onCancel,
 }: {
-  order: co.loaded<typeof PartialBubbleTeaOrder, ResolveQuery>;
+  order: PartialBubbleTeaOrder;
   onSave: (e: React.FormEvent<HTMLFormElement>) => void;
   onCancel?: () => void;
 }) {

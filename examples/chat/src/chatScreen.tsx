@@ -18,12 +18,12 @@ import {
 
 const INITIAL_MESSAGES_TO_SHOW = 30;
 
+const ChatWithMessages = Chat.resolved({
+  $each: true,
+});
+
 export function ChatScreen(props: { chatID: string }) {
-  const chat = useCoState(Chat, props.chatID, {
-    resolve: {
-      $each: true,
-    },
-  });
+  const chat = useCoState(ChatWithMessages, props.chatID);
   const me = useAccount();
   const [showNLastMessages, setShowNLastMessages] = useState(
     INITIAL_MESSAGES_TO_SHOW,

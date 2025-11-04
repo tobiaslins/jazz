@@ -1,6 +1,6 @@
 import { useCoState } from "jazz-tools/react";
 import { useParams } from "react-router";
-import { Playlist } from "./1_schema";
+import { PlaylistWithTracks } from "./1_schema";
 import { uploadMusicTracks } from "./4_actions";
 import { MediaPlayer } from "./5_useMediaPlayer";
 import { FileUploadButton } from "./components/FileUploadButton";
@@ -37,12 +37,7 @@ export function HomePage({ mediaPlayer }: { mediaPlayer: MediaPlayer }) {
       (me.$isLoaded ? me.root.$jazz.refs.rootPlaylist.id : undefined),
   });
 
-  const playlist = useCoState(Playlist, playlistId, {
-    resolve: {
-      tracks: {
-        $each: true,
-      },
-    },
+  const playlist = useCoState(PlaylistWithTracks, playlistId, {
     select: (playlist) => (playlist.$isLoaded ? playlist : undefined),
   });
 

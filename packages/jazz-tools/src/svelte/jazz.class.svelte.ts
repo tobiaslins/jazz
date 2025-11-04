@@ -6,6 +6,7 @@ import type {
   CoValue,
   CoValueClassOrSchema,
   CoValueFromRaw,
+  SchemaResolveQuery,
   InstanceOfSchema,
   Loaded,
   MaybeLoaded,
@@ -51,7 +52,8 @@ type CoStateId = string | undefined | null;
 
 export class CoState<
   V extends CoValueClassOrSchema,
-  R extends ResolveQuery<V> = true,
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+  R extends ResolveQuery<V> = SchemaResolveQuery<V>,
 > {
   #value: MaybeLoaded<Loaded<V, R>> = createUnloadedCoValue(
     "",
@@ -90,13 +92,14 @@ export class CoState<
           );
         }
         const agent = "me" in ctx ? ctx.me : ctx.guest;
+        const resolve = getResolveQuery(Schema, options?.resolve);
 
         const unsubscribe = subscribeToCoValue(
           coValueClassFromCoValueClassOrSchema(Schema),
           id,
           {
             // @ts-expect-error The resolve query type isn't compatible with the coValueClassFromCoValueClassOrSchema conversion
-            resolve: options?.resolve,
+            resolve,
             loadAs: agent,
             onUnavailable: () => {
               this.update(
@@ -142,7 +145,8 @@ export class AccountCoState<
   A extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
-  R extends ResolveQuery<A> = true,
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+  R extends ResolveQuery<A> = SchemaResolveQuery<A>,
 > {
   #value: MaybeLoaded<Loaded<A, R>> = createUnloadedCoValue(
     "",
@@ -177,13 +181,13 @@ export class AccountCoState<
         }
 
         const me = ctx.me;
+        const resolve = getResolveQuery(Schema, options?.resolve);
 
         const unsubscribe = subscribeToCoValue(
           coValueClassFromCoValueClassOrSchema(Schema),
           me.$jazz.id,
           {
-            // @ts-expect-error The resolve query type isn't compatible with the coValueClassFromCoValueClassOrSchema conversion
-            resolve: options?.resolve,
+            resolve,
             loadAs: me,
             onUnavailable: () => {
               this.update(
@@ -305,4 +309,19 @@ export class SyncConnectionStatus {
     this.#subscribe();
     return this.#ctx.current?.connected() ?? false;
   }
+}
+
+function getResolveQuery(
+  Schema: CoValueClassOrSchema,
+  // We don't need type validation here, since this is an internal API
+  resolveQuery?: ResolveQuery<any>,
+): ResolveQuery<any> {
+  if (resolveQuery) {
+    return resolveQuery;
+  }
+  // Check the schema is a CoValue schema (and not a CoValue class)
+  if ("resolve" in Schema) {
+    return Schema.resolve;
+  }
+  return true;
 }

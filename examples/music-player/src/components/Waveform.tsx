@@ -1,11 +1,10 @@
 import { MusicTrack, MusicTrackWaveform } from "@/1_schema";
 import { usePlayerCurrentTime } from "@/lib/audio/usePlayerCurrentTime";
 import { cn } from "@/lib/utils";
-import { Loaded } from "jazz-tools";
 import { useCoState } from "jazz-tools/react";
 
 export function Waveform(props: {
-  track: Loaded<typeof MusicTrack>;
+  track: MusicTrack;
   height: number;
   className?: string;
   showProgress?: boolean;

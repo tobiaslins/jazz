@@ -19,13 +19,23 @@ import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimiti
 import { InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded.js";
 import { AnyZodOrCoValueSchema } from "../zodSchema.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
-import { CoreCoValueSchema } from "./CoValueSchema.js";
+import { CoreCoValueSchema, CoreResolveQuery } from "./CoValueSchema.js";
+import { withSchemaResolveQuery } from "../../schemaUtils.js";
 
-export class CoListSchema<T extends AnyZodOrCoValueSchema>
-  implements CoreCoListSchema<T>
+export class CoListSchema<
+  T extends AnyZodOrCoValueSchema,
+  DefaultResolveQuery extends CoreResolveQuery = true,
+> implements CoreCoListSchema<T>
 {
   collaborative = true as const;
   builtin = "CoList" as const;
+
+  /**
+   * Default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   * @default true
+   */
+  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     public element: T,
@@ -57,7 +67,10 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
   }
 
   load<
-    const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: string,
     options?: {
@@ -67,25 +80,39 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
     },
   ): Promise<MaybeLoaded<Resolved<CoListInstanceCoValuesMaybeLoaded<T>, R>>> {
     // @ts-expect-error
-    return this.coValueClass.load(id, options);
+    return this.coValueClass.load(
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   unstable_merge<
-    const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: string,
-    options?: {
+    options: {
       resolve?: RefsToResolveStrict<CoListInstanceCoValuesMaybeLoaded<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
       branch: BranchDefinition;
     },
   ): Promise<void> {
-    // @ts-expect-error
-    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
+    return unstable_mergeBranchWithResolve(
+      this.coValueClass,
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   subscribe<
-    const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: string,
     options: SubscribeListenerOptions<CoListInstanceCoValuesMaybeLoaded<T>, R>,
@@ -94,7 +121,11 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
       unsubscribe: () => void,
     ) => void,
   ): () => void {
-    return this.coValueClass.subscribe(id, options, listener);
+    return this.coValueClass.subscribe(
+      id,
+      withSchemaResolveQuery(options, this.resolve),
+      listener,
+    );
   }
 
   getCoValueClass(): typeof CoList {
@@ -111,7 +142,10 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
   }
 
   upsertUnique<
-    const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(options: {
     value: CoListSchemaInit<T>;
     unique: CoValueUniqueness["uniqueness"];
@@ -119,11 +153,17 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
     resolve?: RefsToResolveStrict<CoListInstanceCoValuesMaybeLoaded<T>, R>;
   }): Promise<MaybeLoaded<Resolved<CoListInstanceCoValuesMaybeLoaded<T>, R>>> {
     // @ts-expect-error
-    return this.coValueClass.upsertUnique(options);
+    return this.coValueClass.upsertUnique(
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   loadUnique<
-    const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     unique: CoValueUniqueness["uniqueness"],
     ownerID: ID<Account> | ID<Group>,
@@ -133,11 +173,30 @@ export class CoListSchema<T extends AnyZodOrCoValueSchema>
     },
   ): Promise<MaybeLoaded<Resolved<CoListInstanceCoValuesMaybeLoaded<T>, R>>> {
     // @ts-expect-error
-    return this.coValueClass.loadUnique(unique, ownerID, options);
+    return this.coValueClass.loadUnique(
+      unique,
+      ownerID,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   optional(): CoOptionalSchema<this> {
     return coOptionalDefiner(this);
+  }
+
+  /**
+   * Adds a default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   */
+  resolved<
+    const R extends RefsToResolve<CoListInstanceCoValuesMaybeLoaded<T>> = true,
+  >(
+    resolveQuery: RefsToResolveStrict<CoListInstanceCoValuesMaybeLoaded<T>, R>,
+  ): CoListSchema<T, R> {
+    const copy = new CoListSchema<T, R>(this.element, this.coValueClass);
+    copy.resolve = resolveQuery as R;
+    return copy;
   }
 }
 
@@ -148,6 +207,7 @@ export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
     collaborative: true as const,
     builtin: "CoList" as const,
     element,
+    resolve: true as const,
   };
 }
 

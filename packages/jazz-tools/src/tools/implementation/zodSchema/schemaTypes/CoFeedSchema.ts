@@ -10,6 +10,7 @@ import {
   Resolved,
   SubscribeListenerOptions,
   coOptionalDefiner,
+  parseSubscribeRestArgs,
   unstable_mergeBranchWithResolve,
 } from "../../../internal.js";
 import { AnonymousJazzAgent } from "../../anonymousJazzAgent.js";
@@ -17,13 +18,23 @@ import { CoFeedSchemaInit } from "../typeConverters/CoFieldSchemaInit.js";
 import { InstanceOrPrimitiveOfSchema } from "../typeConverters/InstanceOrPrimitiveOfSchema.js";
 import { InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded } from "../typeConverters/InstanceOrPrimitiveOfSchemaCoValuesMaybeLoaded.js";
 import { CoOptionalSchema } from "./CoOptionalSchema.js";
-import { CoreCoValueSchema } from "./CoValueSchema.js";
+import { CoreCoValueSchema, CoreResolveQuery } from "./CoValueSchema.js";
+import { withSchemaResolveQuery } from "../../schemaUtils.js";
 
-export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
-  implements CoreCoFeedSchema<T>
+export class CoFeedSchema<
+  T extends AnyZodOrCoValueSchema,
+  DefaultResolveQuery extends CoreResolveQuery = true,
+> implements CoreCoFeedSchema<T>
 {
   collaborative = true as const;
   builtin = "CoFeed" as const;
+
+  /**
+   * Default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   * @default true
+   */
+  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     public element: T,
@@ -47,7 +58,10 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
   }
 
   load<
-    const R extends RefsToResolve<CoFeedInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoFeedInstanceCoValuesMaybeLoaded<T>
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: string,
     options?: {
@@ -57,21 +71,32 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
     },
   ): Promise<MaybeLoaded<Resolved<CoFeedInstanceCoValuesMaybeLoaded<T>, R>>> {
     // @ts-expect-error
-    return this.coValueClass.load(id, options);
+    return this.coValueClass.load(
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   unstable_merge<
-    const R extends RefsToResolve<CoFeedInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoFeedInstanceCoValuesMaybeLoaded<T>
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: string,
-    options?: {
+    options: {
       resolve?: RefsToResolveStrict<CoFeedInstanceCoValuesMaybeLoaded<T>, R>;
       loadAs?: Account | AnonymousJazzAgent;
       branch: BranchDefinition;
     },
   ): Promise<void> {
-    // @ts-expect-error
-    return unstable_mergeBranchWithResolve(this.coValueClass, id, options);
+    return unstable_mergeBranchWithResolve(
+      this.coValueClass,
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+    );
   }
 
   subscribe(
@@ -82,7 +107,10 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
     ) => void,
   ): () => void;
   subscribe<
-    const R extends RefsToResolve<CoFeedInstanceCoValuesMaybeLoaded<T>> = true,
+    const R extends RefsToResolve<
+      CoFeedInstanceCoValuesMaybeLoaded<T>
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
+    > = DefaultResolveQuery,
   >(
     id: string,
     options: SubscribeListenerOptions<CoFeedInstanceCoValuesMaybeLoaded<T>, R>,
@@ -91,9 +119,14 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
       unsubscribe: () => void,
     ) => void,
   ): () => void;
-  subscribe(...args: [any, ...any[]]) {
-    // @ts-expect-error
-    return this.coValueClass.subscribe(...args);
+  subscribe(id: string, ...args: any) {
+    const { options, listener } = parseSubscribeRestArgs(args);
+    return this.coValueClass.subscribe(
+      id,
+      // @ts-expect-error
+      withSchemaResolveQuery(options, this.resolve),
+      listener,
+    );
   }
 
   getCoValueClass(): typeof CoFeed {
@@ -102,6 +135,20 @@ export class CoFeedSchema<T extends AnyZodOrCoValueSchema>
 
   optional(): CoOptionalSchema<this> {
     return coOptionalDefiner(this);
+  }
+
+  /**
+   * Adds a default resolve query to be used when loading instances of this schema.
+   * This resolve query will be used when no resolve query is provided to the load method.
+   */
+  resolved<
+    const R extends RefsToResolve<CoFeedInstanceCoValuesMaybeLoaded<T>> = true,
+  >(
+    resolveQuery: RefsToResolveStrict<CoFeedInstanceCoValuesMaybeLoaded<T>, R>,
+  ): CoFeedSchema<T, R> {
+    const copy = new CoFeedSchema<T, R>(this.element, this.coValueClass);
+    copy.resolve = resolveQuery as R;
+    return copy;
   }
 }
 
@@ -112,6 +159,7 @@ export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
     collaborative: true as const,
     builtin: "CoFeed" as const,
     element,
+    resolve: true as const,
   };
 }
 

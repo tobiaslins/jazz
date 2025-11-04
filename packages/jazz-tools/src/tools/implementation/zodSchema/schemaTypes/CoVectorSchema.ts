@@ -22,12 +22,14 @@ export function createCoreCoVectorSchema(
     collaborative: true as const,
     builtin: "CoVector" as const,
     dimensions,
+    resolve: true as const,
   };
 }
 
 export class CoVectorSchema implements CoreCoVectorSchema {
   readonly collaborative = true as const;
   readonly builtin = "CoVector" as const;
+  readonly resolve = true as const;
 
   constructor(
     public dimensions: number,

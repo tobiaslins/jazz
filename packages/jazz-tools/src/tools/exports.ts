@@ -111,6 +111,7 @@ export {
   coValueClassFromCoValueClassOrSchema,
   type InstanceOfSchema,
   type InstanceOfSchemaCoValuesMaybeLoaded,
+  type SchemaResolveQuery,
   type CoValueClassOrSchema,
   CoValueLoadingState,
   type MaybeLoaded,
