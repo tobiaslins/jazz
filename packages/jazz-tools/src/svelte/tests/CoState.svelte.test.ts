@@ -50,7 +50,7 @@ describe("CoState", () => {
     });
     expect(screen.getByTestId("is-loaded").textContent).toBe("true");
     const stateValue = JSON.parse(
-      screen.getByTestId("state-value").textContent,
+      screen.getByTestId("state-value").textContent ?? "",
     );
     expect(stateValue.name).toBe("John Doe");
   });

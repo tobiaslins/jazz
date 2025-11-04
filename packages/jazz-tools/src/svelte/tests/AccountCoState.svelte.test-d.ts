@@ -1,6 +1,6 @@
 import { co, CoPlainText } from "jazz-tools";
 import { assertLoaded, createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
-import { describe, expectTypeOf, test } from "vitest";
+import { beforeEach, describe, expectTypeOf, test } from "vitest";
 import { AccountCoState } from "../jazz.class.svelte";
 
 describe("AccountCoState", () => {
