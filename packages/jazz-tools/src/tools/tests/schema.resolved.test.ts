@@ -184,7 +184,7 @@ describe("Schema.resolved()", () => {
         expect(loadedList[0]?.toUpperCase()).toBe("TEST");
       });
 
-      // TODO fix - this is not working when providing an explicit resolve query either:
+      // TODO fix - `$each` does not load nested CoValues when providing an explicit resolve query either:
       // TestFeed.load(feed.$jazz.id, {
       //   loadAs: clientAccount,
       //   resolve: {
@@ -306,7 +306,7 @@ describe("Schema.resolved()", () => {
         expect(updates[0]?.[0]?.toUpperCase()).toEqual("TEST");
       });
 
-      // TODO fix - this is not working when providing an explicit resolve query either
+      // TODO fix - `$each` does not load nested CoValues when providing an explicit resolve query either
       test.skip("for CoFeed", async () => {
         const TestFeed = co.feed(co.plainText());
 
@@ -443,7 +443,7 @@ describe("Schema.resolved()", () => {
         expect(mergedList[0]?.toUpperCase()).toEqual("TEST!!");
       });
 
-      // TODO fix - this is not working when providing an explicit resolve query either
+      // TODO fix - `$each` does not load nested CoValues when providing an explicit resolve query either
       test.skip("for CoFeed", async () => {
         const TestFeed = co.feed(co.plainText());
 
