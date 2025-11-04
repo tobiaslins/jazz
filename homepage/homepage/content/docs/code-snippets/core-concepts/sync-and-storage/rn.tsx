@@ -1,4 +1,3 @@
-import * as React from "react";
 import { JazzReactNativeProvider } from "jazz-tools/react-native";
 import { JazzExpoProvider } from "jazz-tools/expo";
 
@@ -10,7 +9,6 @@ export function MyApp({ children }: { children: React.ReactNode }) {
     <JazzReactNativeProvider
       sync={{
         peer: `wss://cloud.jazz.tools/?key=${apiKey}`,
-        // ...
       }}
     >
       {children}

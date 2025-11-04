@@ -37,3 +37,23 @@ function DashboardPageComponent() {
   );
 }
 // #endregion
+
+// #region ReactNative
+import { View, Text } from "react-native";
+export default function DashboardPage() {
+  const me = useAccount(MyAppAccount, {
+    resolve: { profile: true, root: { myChats: { $each: true } } },
+  });
+
+  if (!me.$isLoaded) return <Text>Loading...</Text>;
+
+  return (
+    <View>
+      <Text>Logged in as {me.profile.name}</Text>
+      {me.root.myChats.map((chat) => (
+        <ChatPreview key={chat.$jazz.id} chat={chat} />
+      ))}
+    </View>
+  );
+}
+// #endregion

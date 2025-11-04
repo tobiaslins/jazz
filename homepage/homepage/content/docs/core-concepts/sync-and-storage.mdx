@@ -1,4 +1,4 @@
-import { Alert, ContentByFramework, CodeGroup } from '@/components/forMdx'
+import { Alert, ContentByFramework, CodeGroup, ReactLogo, RNLogo, ExpoLogo, SvelteLogo, TabbedCodeGroup, TabbedCodeGroupItem, VanillaLogo } from '@/components/forMdx'
 import GetAPIKey from "@/components/docs/snippets/GetAPIKey.mdx";
 
 export const metadata = {
@@ -15,7 +15,7 @@ For sync and storage, you can either use Jazz Cloud for zero-config magic, or ru
 
 <ContentByFramework framework={["vanilla"]}>
   Replace the API key in the sync server URL with your API key.
-  <CodeGroup>
+  <CodeGroup className="mb-4">
   ```
   wss://cloud.jazz.tools/?key=YOUR_API_KEY
   ```
@@ -26,34 +26,28 @@ For sync and storage, you can either use Jazz Cloud for zero-config magic, or ru
   Replace the API key in the Jazz provider sync server URL with your API key:
 </ContentByFramework>
 
-{/* TODO: Replace with TCG */}
-<ContentByFramework framework="react">
-  <CodeGroup>
-  ```tsx react.tsx#Basic
-  ```
-  </CodeGroup>
-</ContentByFramework>
-
-<ContentByFramework framework="react-native">
-  <CodeGroup>
-  ```tsx rn.tsx#Basic
-  ```
-  </CodeGroup>
-</ContentByFramework>
-
-<ContentByFramework framework="react-native-expo">
-  <CodeGroup>
-  ```tsx rn.tsx#Expo
-  ```
-  </CodeGroup>
-</ContentByFramework>
-
-<ContentByFramework framework="svelte">
-  <CodeGroup>
+<TabbedCodeGroup id="api-key" default="react" savedPreferenceKey="framework">
+<TabbedCodeGroupItem label="Vanilla" value="vanilla" icon={<VanillaLogo />} preferWrap>
+```tsx vanilla.ts
+```
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
+```tsx react.tsx#Basic
+```
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem label="React Native" value="react-native" icon={<RNLogo />} preferWrap>
+```tsx rn.tsx#Basic
+```
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem label="Expo" value="react-native-expo" icon={<ExpoLogo />} preferWrap>
+```tsx rn.tsx#Expo
+```
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem label="Svelte" value="svelte" icon={<SvelteLogo />} preferWrap>
   ```svelte svelte.svelte
   ```
-  </CodeGroup>
-</ContentByFramework>
+</TabbedCodeGroupItem>
+</TabbedCodeGroup>
 
 Jazz Cloud will
 - sync CoValues in real-time between users and devices
