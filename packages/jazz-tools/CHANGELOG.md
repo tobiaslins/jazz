@@ -1,5 +1,47 @@
 # jazz-tools
 
+## 0.18.37
+
+### Patch Changes
+
+- feecdae: chore: Inspector now prints correctly json fields in covalue history
+- a841071: chore: Inspector's raw data and covalue history are now collapsible
+- 68e0b26: chore: ErrorBoundary around inspector to handle render errors
+- Updated dependencies [0e923d1]
+- Updated dependencies [fd89225]
+  - cojson@0.18.37
+  - cojson-storage-indexeddb@0.18.37
+  - cojson-transport-ws@0.18.37
+
+## 0.18.36
+
+### Patch Changes
+
+- Updated dependencies [af3fe4c]
+  - cojson@0.18.36
+  - cojson-storage-indexeddb@0.18.36
+  - cojson-transport-ws@0.18.36
+
+## 0.18.35
+
+### Patch Changes
+
+- Updated dependencies [d47ac6d]
+  - cojson@0.18.35
+  - cojson-storage-indexeddb@0.18.35
+  - cojson-transport-ws@0.18.35
+
+## 0.18.34
+
+### Patch Changes
+
+- 7a64465: fix: Image's lazy loading placeholder transparency in React Image component
+- Updated dependencies [4a79953]
+- Updated dependencies [d7e5cc8]
+  - cojson@0.18.34
+  - cojson-storage-indexeddb@0.18.34
+  - cojson-transport-ws@0.18.34
+
 ## 0.18.33
 
 ### Patch Changes

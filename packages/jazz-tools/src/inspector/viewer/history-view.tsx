@@ -13,7 +13,6 @@ import { styled } from "goober";
 import { isCoId } from "./types";
 import { AccountOrGroupText } from "./account-or-group-text";
 import { DataTable, ColumnDef } from "../ui/data-table";
-import { Heading } from "../ui/heading";
 import { MapOpPayload } from "cojson/dist/coValues/coMap.js";
 import {
   DeletionOpPayload,
@@ -24,7 +23,7 @@ import {
   BinaryStreamEnd,
 } from "cojson/dist/coValues/coStream.js";
 import { VerifiedTransaction } from "cojson/dist/coValueCore/coValueCore.js";
-import { Icon } from "../ui";
+import { Icon, Accordion } from "../ui";
 
 type HistoryEntry = {
   id: string;
@@ -114,8 +113,7 @@ export function HistoryView({
   ];
 
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <Heading>CoValue history</Heading>
+    <Accordion title="CoValue history" storageKey="jazz-inspector-show-history">
       <DataTable
         columns={columns}
         data={transactions}
@@ -124,7 +122,7 @@ export function HistoryView({
         getRowKey={(row) => row.id}
         emptyMessage="No history available"
       />
-    </section>
+    </Accordion>
   );
 }
 
@@ -251,7 +249,7 @@ function mapTransactionToAction(
 
   // coMap changes
   if (isPropertySet(change)) {
-    return `Property "${change.key}" has been set to "${change.value}"`;
+    return `Property "${change.key}" has been set to ${JSON.stringify(change.value)}`;
   }
 
   if (isPropertyDeletion(change)) {

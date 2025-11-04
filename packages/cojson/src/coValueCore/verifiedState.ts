@@ -1,10 +1,10 @@
-import { Result, err, ok } from "neverthrow";
 import { AnyRawCoValue } from "../coValue.js";
 import {
   createContentMessage,
   exceedsRecommendedSize,
   getTransactionSize,
   addTransactionToContentMessage,
+  knownStateFromContent,
 } from "../coValueContentMessage.js";
 import {
   CryptoProvider,
@@ -20,9 +20,13 @@ import { JsonObject, JsonValue } from "../jsonValue.js";
 import { PermissionsDef as RulesetDef } from "../permissions.js";
 import { NewContentMessage } from "../sync.js";
 import { TryAddTransactionsError } from "./coValueCore.js";
-import { SessionLog, SessionMap } from "./SessionMap.js";
+import { SessionMap } from "./SessionMap.js";
 import { ControlledAccountOrAgent } from "../coValues/account.js";
-import { CoValueKnownState, KnownStateSessions } from "../knownState.js";
+import {
+  CoValueKnownState,
+  getKnownStateToSend,
+  KnownStateSessions,
+} from "../knownState.js";
 
 export type CoValueHeader = {
   type: AnyRawCoValue["type"];
@@ -89,16 +93,14 @@ export class VerifiedState {
     newTransactions: Transaction[],
     newSignature: Signature,
     skipVerify: boolean = false,
-  ): Result<true, TryAddTransactionsError> {
-    const result = this.sessions.addTransaction(
+  ) {
+    this.sessions.addTransaction(
       sessionID,
       signerID,
       newTransactions,
       newSignature,
       skipVerify,
     );
-
-    return result;
   }
 
   makeNewTrustingTransaction(
@@ -158,6 +160,9 @@ export class VerifiedState {
 
   newContentSince(
     knownState: CoValueKnownState | undefined,
+    opts?: {
+      skipExpectContentUntil?: boolean;
+    },
   ): NewContentMessage[] | undefined {
     let currentPiece: NewContentMessage = createContentMessage(
       this.id,
@@ -285,10 +290,19 @@ export class VerifiedState {
     );
 
     if (piecesWithContent.length > 1 || this.isStreaming()) {
-      // Flag that more content is coming
-      firstPiece.expectContentUntil = {
-        ...this.knownStateWithStreaming().sessions,
-      };
+      if (!opts?.skipExpectContentUntil) {
+        // Flag that more content is coming
+        if (knownState) {
+          firstPiece.expectContentUntil = getKnownStateToSend(
+            this.knownStateWithStreaming().sessions,
+            knownState.sessions,
+          );
+        } else {
+          firstPiece.expectContentUntil = {
+            ...this.knownStateWithStreaming().sessions,
+          };
+        }
+      }
     }
 
     if (piecesWithContent.length === 0) {
@@ -304,6 +318,17 @@ export class VerifiedState {
 
   knownStateWithStreaming() {
     return this.sessions.knownStateWithStreaming ?? this.knownState();
+  }
+
+  immutableKnownState() {
+    return this.sessions.immutableKnownState;
+  }
+
+  immutableKnownStateWithStreaming() {
+    return (
+      this.sessions.immutableKnownStateWithStreaming ??
+      this.immutableKnownState()
+    );
   }
 
   isStreaming(): boolean {

@@ -86,6 +86,7 @@ import { LogLevel, logger } from "./logger.js";
 import { CO_VALUE_PRIORITY, getPriorityFromHeader } from "./priority.js";
 import { getDependedOnCoValues } from "./storage/syncUtils.js";
 import { canBeBranched } from "./coValueCore/branching.js";
+import type { PeerState } from "./PeerState.js";
 
 type Value = JsonValue | AnyRawCoValue;
 
@@ -184,6 +185,7 @@ export type {
   OpID,
   AccountRole,
   AvailableCoValueCore,
+  PeerState,
 };
 
 export * from "./storage/index.js";
