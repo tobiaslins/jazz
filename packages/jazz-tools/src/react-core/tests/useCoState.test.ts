@@ -639,6 +639,42 @@ describe("useCoState", () => {
     expect(result.current.name.toUpperCase()).toBe("JOHN DOE");
   });
 
+  it("schema resolve queries can be defined inside React components", async () => {
+    const Person = co.map({
+      name: co.plainText(),
+    });
+    const group = Group.create();
+    group.addMember("everyone", "writer");
+
+    const person = Person.create(
+      {
+        name: "John Doe",
+      },
+      group,
+    );
+
+    const account = await createJazzTestAccount({
+      isCurrentActiveAccount: true,
+    });
+
+    const { result } = renderHook(
+      () => {
+        // Defining the schema's resolve query inside useCoState
+        return useCoState(Person.resolved({ name: true }), person.$jazz.id);
+      },
+      {
+        account,
+      },
+    );
+
+    await waitFor(() => {
+      expect(result.current).not.toBeNull();
+    });
+
+    assertLoaded(result.current);
+    expect(result.current.name.toUpperCase()).toBe("JOHN DOE");
+  });
+
   it("should work with branches - create branch, edit and merge", async () => {
     const Person = co.map({
       name: z.string(),
