@@ -8,6 +8,7 @@ import {
   ParentGroupReferenceRole,
   RawGroup,
   isInheritableRole,
+  isSelfExtension,
 } from "./coValues/group.js";
 import { KeyID } from "./crypto/crypto.js";
 import {
@@ -69,8 +70,6 @@ export function isAccountRole(role?: Role): role is AccountRole {
 function canAdmin(role: Role | undefined): boolean {
   return role === "admin" || role === "manager";
 }
-
-type MemberState = { [agent: RawAccountID | AgentID]: Role; [EVERYONE]?: Role };
 
 let logPermissionErrors = true;
 
@@ -193,79 +192,81 @@ function isHigherRole(a: Role, b: Role | undefined) {
   return a === "writer" && b === "reader";
 }
 
-function resolveMemberStateFromParentReference(
-  coValue: CoValueCore,
-  memberState: MemberState,
-  parentReference: ParentGroupReference,
-  roleMapping: ParentGroupReferenceRole,
-  extendChain: Set<CoValueCore["id"]>,
-) {
-  const parentGroup = coValue.node.expectCoValueLoaded(
-    getParentGroupId(parentReference),
-    "Expected parent group to be loaded",
-  );
+class MemberRoleResolver {
+  private parentGroups = new Map<RawGroup, ParentGroupReferenceRole>();
+  private memberRoles = new Map<RawAccountID | AgentID | Everyone, Role>();
 
-  if (parentGroup.verified.header.ruleset.type !== "group") {
-    return;
+  setDirectRole(member: RawAccountID | AgentID | Everyone, role: Role) {
+    this.memberRoles.set(member, role);
   }
 
-  // Skip circular references
-  if (extendChain.has(parentGroup.id)) {
-    return;
+  removeMember(member: RawAccountID | AgentID | Everyone) {
+    this.memberRoles.delete(member);
   }
 
-  const initialAdmin = parentGroup.verified.header.ruleset.initialAdmin;
-
-  if (!initialAdmin) {
-    throw new Error("Group must have initialAdmin");
+  addParentGroup(parentGroup: RawGroup, roleMapping: ParentGroupReferenceRole) {
+    this.parentGroups.set(parentGroup, roleMapping);
   }
 
-  extendChain.add(parentGroup.id);
+  removeParentGroup(parentGroup: RawGroup) {
+    this.parentGroups.delete(parentGroup);
+  }
 
-  const { memberState: parentGroupMemberState } =
-    determineValidTransactionsForGroup(parentGroup, initialAdmin, extendChain);
+  getDirectRole(member: RawAccountID | AgentID | Everyone) {
+    return this.memberRoles.get(member);
+  }
 
-  for (const agent of Object.keys(parentGroupMemberState) as Array<
-    keyof MemberState
-  >) {
-    const parentRole = parentGroupMemberState[agent];
-    const currentRole = memberState[agent];
+  getRoleAtTime(member: RawAccountID | AgentID | Everyone, time: number) {
+    let role = this.memberRoles.get(member);
 
-    if (isInheritableRole(parentRole)) {
-      if (roleMapping !== "extend" && isHigherRole(roleMapping, currentRole)) {
-        memberState[agent] = roleMapping;
-      } else if (isHigherRole(parentRole, currentRole)) {
-        memberState[agent] = parentRole;
+    for (const [parentGroup, roleMapping] of this.parentGroups.entries()) {
+      const parentRole = parentGroup.atTime(time).roleOfInternal(member);
+
+      if (!parentRole || !isInheritableRole(parentRole)) {
+        continue;
+      }
+
+      const resolvedParentRole =
+        roleMapping === "extend" ? parentRole : roleMapping;
+
+      if (isHigherRole(resolvedParentRole, role)) {
+        role = resolvedParentRole;
       }
     }
+
+    return role;
   }
 }
 
 function determineValidTransactionsForGroup(
   coValue: CoValueCore,
   initialAdmin: RawAccountID | AgentID,
-  extendChain?: Set<CoValueCore["id"]>,
-): { memberState: MemberState } {
+): void {
   coValue.verifiedTransactions.sort(coValue.compareTransactions);
 
-  const memberState: MemberState = {};
   const writeOnlyKeys: Record<RawAccountID | AgentID, KeyID> = {};
   const writeKeys = new Set<string>();
+  const memberRoleResolver = new MemberRoleResolver();
 
   for (const transaction of coValue.verifiedTransactions) {
     const transactor = transaction.author;
-    const transactorRole = memberState[transactor];
+
+    const transactorRole = memberRoleResolver.getRoleAtTime(
+      transactor,
+      transaction.currentMadeAt,
+    );
 
     const tx = transaction.tx;
 
     if (tx.privacy === "private") {
-      if (memberState[transactor] === "admin") {
+      if (transactorRole === "admin") {
         transaction.markValid();
         continue;
       } else {
         logPermissionError(
           "Only admins can make private transactions in groups",
         );
+        transaction.markInvalid();
         continue;
       }
     }
@@ -341,7 +342,6 @@ function determineValidTransactionsForGroup(
         continue;
       }
 
-      // TODO: check validity of agents who the key is revealed to?
       transaction.markValid();
       continue;
     } else if (isParentExtension(change.key)) {
@@ -353,23 +353,33 @@ function determineValidTransactionsForGroup(
         continue;
       }
 
-      extendChain = extendChain ?? new Set([]);
+      const parentGroupId = getParentGroupId(change.key);
 
-      resolveMemberStateFromParentReference(
-        coValue,
-        memberState,
-        change.key,
-        change.value as ParentGroupReferenceRole,
-        extendChain,
+      const parentGroupCore = coValue.node.expectCoValueLoaded(
+        parentGroupId,
+        "Expected parent group to be loaded",
       );
 
-      // Circular reference detected, drop all the transactions involved
-      if (extendChain.has(coValue.id)) {
-        logPermissionError(
-          "Circular extend detected, dropping the transaction",
-        );
+      if (!parentGroupCore.isGroup()) {
+        logPermissionError("Parent group is not a group");
         transaction.markInvalid();
         continue;
+      }
+
+      const parentGroup = expectGroup(parentGroupCore.getCurrentContent());
+
+      if (isSelfExtension(coValue, parentGroup)) {
+        logPermissionError("Parent group is a circular dependency");
+        transaction.markInvalid();
+        continue;
+      }
+
+      const value = change.value as ParentGroupReferenceRole;
+
+      if (value === "revoked") {
+        memberRoleResolver.removeParentGroup(parentGroup);
+      } else {
+        memberRoleResolver.addParentGroup(parentGroup, value);
       }
 
       transaction.markValid();
@@ -460,7 +470,7 @@ function determineValidTransactionsForGroup(
         throw new Error("Expected set operation");
       }
 
-      memberState[change.key] = change.value;
+      memberRoleResolver.setDirectRole(change.key, change.value);
       transaction.markValid();
     }
 
@@ -486,7 +496,10 @@ function determineValidTransactionsForGroup(
       continue;
     }
 
-    const affectedMemberRole = memberState[affectedMember];
+    const affectedMemberRole = memberRoleResolver.getRoleAtTime(
+      affectedMember,
+      transaction.currentMadeAt,
+    );
 
     /**
      * Admins can't:
@@ -568,11 +581,9 @@ function determineValidTransactionsForGroup(
       continue;
     }
 
-    memberState[affectedMember] = change.value;
+    memberRoleResolver.setDirectRole(affectedMember, change.value);
     transaction.markValid();
   }
-
-  return { memberState };
 }
 
 function agentInAccountOrMemberInGroup(
