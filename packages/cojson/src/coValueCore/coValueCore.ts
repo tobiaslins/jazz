@@ -951,6 +951,10 @@ export class CoValueCore {
    * Iterates over the verifiedTransactions and marks them as valid or invalid, based on the group membership of the authors of the transactions  .
    */
   private determineValidTransactions() {
+    if (!this.isCompletelyDownloaded()) {
+      return;
+    }
+
     determineValidTransactions(this);
     this.toValidateTransactions = [];
   }
