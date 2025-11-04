@@ -76,7 +76,7 @@ export class AccountSchema<
   }
 
   load<
-    // @ts-expect-error
+    // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     const R extends ResolveQuery<AccountSchema<Shape>> = DefaultResolveQuery,
   >(
     id: string,
@@ -105,7 +105,7 @@ export class AccountSchema<
   }
 
   unstable_merge<
-    // @ts-expect-error
+    // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     R extends ResolveQuery<AccountSchema<Shape>> = DefaultResolveQuery,
   >(
     id: string,
@@ -126,7 +126,7 @@ export class AccountSchema<
   subscribe<
     const R extends RefsToResolve<
       Simplify<AccountInstance<Shape>>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,

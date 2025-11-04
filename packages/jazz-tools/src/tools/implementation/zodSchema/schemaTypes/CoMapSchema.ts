@@ -112,7 +112,7 @@ export class CoMapSchema<
   unstable_merge<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,
@@ -136,7 +136,7 @@ export class CoMapSchema<
   subscribe<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,
@@ -172,7 +172,7 @@ export class CoMapSchema<
   upsertUnique<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(options: {
     value: Simplify<CoMapSchemaInit<Shape>>;
@@ -197,7 +197,7 @@ export class CoMapSchema<
   loadUnique<
     const R extends RefsToResolve<
       Simplify<CoMapInstanceCoValuesMaybeLoaded<Shape>> & CoMap
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     unique: CoValueUniqueness["uniqueness"],

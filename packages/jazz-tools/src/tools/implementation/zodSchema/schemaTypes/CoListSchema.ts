@@ -69,6 +69,7 @@ export class CoListSchema<
   load<
     const R extends RefsToResolve<
       CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,
@@ -89,6 +90,7 @@ export class CoListSchema<
   unstable_merge<
     const R extends RefsToResolve<
       CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,
@@ -109,6 +111,7 @@ export class CoListSchema<
   subscribe<
     const R extends RefsToResolve<
       CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,
@@ -141,6 +144,7 @@ export class CoListSchema<
   upsertUnique<
     const R extends RefsToResolve<
       CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(options: {
     value: CoListSchemaInit<T>;
@@ -158,6 +162,7 @@ export class CoListSchema<
   loadUnique<
     const R extends RefsToResolve<
       CoListInstanceCoValuesMaybeLoaded<T>
+      // we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     unique: CoValueUniqueness["uniqueness"],

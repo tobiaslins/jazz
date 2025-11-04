@@ -52,7 +52,7 @@ export interface CoRecordSchema<
   load<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: ID<CoRecordInstanceCoValuesMaybeLoaded<K, V>>,
@@ -71,7 +71,7 @@ export interface CoRecordSchema<
   unstable_merge<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,
@@ -88,7 +88,7 @@ export interface CoRecordSchema<
   subscribe<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: ID<CoRecordInstanceCoValuesMaybeLoaded<K, V>>,
@@ -112,7 +112,7 @@ export interface CoRecordSchema<
   upsertUnique<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(options: {
     value: Simplify<CoRecordInit<K, V>>;
@@ -126,7 +126,7 @@ export interface CoRecordSchema<
   loadUnique<
     const R extends RefsToResolve<
       CoRecordInstanceCoValuesMaybeLoaded<K, V>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     unique: CoValueUniqueness["uniqueness"],

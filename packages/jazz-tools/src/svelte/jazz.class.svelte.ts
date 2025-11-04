@@ -52,7 +52,7 @@ type CoStateId = string | undefined | null;
 
 export class CoState<
   V extends CoValueClassOrSchema,
-  // @ts-expect-error
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
   R extends ResolveQuery<V> = SchemaResolveQuery<V>,
 > {
   #value: MaybeLoaded<Loaded<V, R>> = createUnloadedCoValue(
@@ -145,7 +145,7 @@ export class AccountCoState<
   A extends
     | (AccountClass<Account> & CoValueFromRaw<Account>)
     | AnyAccountSchema,
-  // @ts-expect-error
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
   R extends ResolveQuery<A> = SchemaResolveQuery<A>,
 > {
   #value: MaybeLoaded<Loaded<A, R>> = createUnloadedCoValue(

@@ -60,7 +60,7 @@ export class CoFeedSchema<
   load<
     const R extends RefsToResolve<
       CoFeedInstanceCoValuesMaybeLoaded<T>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,
@@ -81,7 +81,7 @@ export class CoFeedSchema<
   unstable_merge<
     const R extends RefsToResolve<
       CoFeedInstanceCoValuesMaybeLoaded<T>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,
@@ -109,7 +109,7 @@ export class CoFeedSchema<
   subscribe<
     const R extends RefsToResolve<
       CoFeedInstanceCoValuesMaybeLoaded<T>
-      // @ts-expect-error
+      // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
     > = DefaultResolveQuery,
   >(
     id: string,

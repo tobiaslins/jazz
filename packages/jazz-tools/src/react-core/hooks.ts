@@ -89,7 +89,7 @@ export function useIsAuthenticated() {
 
 export function useCoValueSubscription<
   S extends CoValueClassOrSchema,
-  // @ts-expect-error
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
   const R extends ResolveQuery<S> = SchemaResolveQuery<S>,
 >(
   Schema: S,
@@ -367,7 +367,7 @@ function useGetCurrentValue<C extends CoValue>(
  */
 export function useCoState<
   S extends CoValueClassOrSchema,
-  // @ts-expect-error
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
   const R extends ResolveQuery<S> = SchemaResolveQuery<S>,
   TSelectorReturn = MaybeLoaded<Loaded<S, R>>,
 >(
@@ -429,7 +429,7 @@ export function useCoState<
 
 export function useSubscriptionSelector<
   S extends CoValueClassOrSchema,
-  // @ts-expect-error
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
   const R extends ResolveQuery<S> = SchemaResolveQuery<S>,
   TSelectorReturn = MaybeLoaded<Loaded<S, R>>,
 >(
@@ -464,7 +464,7 @@ export function useSubscriptionSelector<
 
 export function useAccountSubscription<
   S extends AccountClass<Account> | AnyAccountSchema,
-  // @ts-expect-error
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
   const R extends ResolveQuery<S> = SchemaResolveQuery<S>,
 >(
   Schema: S,
@@ -627,7 +627,7 @@ export function useAccountSubscription<
  */
 export function useAccount<
   A extends AccountClass<Account> | AnyAccountSchema,
-  // @ts-expect-error
+  // @ts-expect-error we can't statically enforce the schema's resolve query is a valid resolve query, but in practice it is
   const R extends ResolveQuery<A> = SchemaResolveQuery<A>,
   TSelectorReturn = MaybeLoaded<Loaded<A, R>>,
 >(
