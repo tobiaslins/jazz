@@ -664,6 +664,33 @@ describe("Schema.resolved()", () => {
       );
     });
 
+    test("nested schemas' resolve queries are ignored when loading the parent schema", async () => {
+      const TestMap = co.map({
+        name: co.plainText(),
+      });
+      const TestMapWithName = TestMap.resolved({ name: true });
+      const ParentMap = co.map({
+        child: TestMapWithName,
+      });
+      const ParentMapWithChild = ParentMap.resolved({ child: true });
+
+      const parentMap = ParentMapWithChild.create(
+        { child: { name: "Test" } },
+        publicGroup,
+      );
+
+      const loadedParentMap = await ParentMapWithChild.load(
+        parentMap.$jazz.id,
+        {
+          loadAs: clientAccount,
+        },
+      );
+
+      assertLoaded(loadedParentMap);
+      expect(loadedParentMap.child.$isLoaded).toEqual(true);
+      expect(loadedParentMap.child.name.$isLoaded).toEqual(false);
+    });
+
     test("works with recursive schemas", async () => {
       const Person = co.map({
         get friends(): co.List<typeof Person, { $each: true }> {
