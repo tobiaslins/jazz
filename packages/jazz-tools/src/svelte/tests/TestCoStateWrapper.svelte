@@ -16,6 +16,8 @@
 <div data-testid="costate-wrapper">
   <div data-testid="loading-state">{state.current.$jazz.loadingState}</div>
   <div data-testid="is-loaded">{state.current.$isLoaded ? 'true' : 'false'}</div>
-  <div data-testid="state-value">{JSON.stringify(state.current.toJSON())}</div>
+  {#if state.current.$isLoaded}
+    <div data-testid="state-value">{JSON.stringify(state.current.toJSON())}</div>
+  {/if}
 </div>
 
