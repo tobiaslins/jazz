@@ -31,7 +31,7 @@ function getNewContentSince(
     throw new Error(`CoValue ${coValue.id} is not verified`);
   }
 
-  const contentMessage = coValue.verified.newContentSince(knownState)?.[0];
+  const contentMessage = coValue.newContentSince(knownState)?.[0];
 
   if (!contentMessage) {
     throw new Error(`No new content available for coValue ${coValue.id}`);
@@ -295,7 +295,7 @@ describe("StorageApiAsync", () => {
       const contentMessage = getNewContentSince(group.core, knownState);
       const correctionCallback = vi.fn((known) => {
         expect(known).toEqual(emptyKnownState(group.id));
-        return group.core.verified.newContentSince(known);
+        return group.core.newContentSince(known);
       });
 
       // Get initial known state
@@ -339,7 +339,7 @@ describe("StorageApiAsync", () => {
       const contentMessage = getNewContentSince(group.core, knownState);
       const correctionCallback = vi.fn((known) => {
         expect(known).toEqual(initialKnownState);
-        return group.core.verified.newContentSince(known);
+        return group.core.newContentSince(known);
       });
 
       // Get initial storage known state
@@ -539,16 +539,16 @@ describe("StorageApiAsync", () => {
         }),
       ).toMatchInlineSnapshot(`
         [
-          "test -> test-storage | CONTENT Core header: false new: After: 1 New: 1",
-          "test -> test-storage | CONTENT Core2 header: false new: After: 1 New: 1",
+          "test -> test-storage | CONTENT Core header: false new: After: 1 New: 1 expectContentUntil: header/3",
+          "test -> test-storage | CONTENT Core2 header: false new: After: 1 New: 1 expectContentUntil: header/3",
           "test -> test-storage | CONTENT Core header: false new: After: 2 New: 1",
           "test -> test-storage | CONTENT Core2 header: false new: After: 2 New: 1",
           "test-storage -> test | KNOWN CORRECTION Core sessions: empty",
           "test -> test-storage | CONTENT Core header: true new: After: 0 New: 3",
           "test-storage -> test | KNOWN CORRECTION Core2 sessions: empty",
           "test -> test-storage | CONTENT Core2 header: true new: After: 0 New: 3",
-          "test -> test-storage | CONTENT Core header: false new: After: 3 New: 1",
-          "test -> test-storage | CONTENT Core2 header: false new: After: 3 New: 1",
+          "test -> test-storage | CONTENT Core header: false new: After: 3 New: 1 expectContentUntil: header/5",
+          "test -> test-storage | CONTENT Core2 header: false new: After: 3 New: 1 expectContentUntil: header/5",
           "test -> test-storage | CONTENT Core header: false new: After: 4 New: 1",
           "test -> test-storage | CONTENT Core2 header: false new: After: 4 New: 1",
         ]
@@ -606,14 +606,14 @@ describe("StorageApiAsync", () => {
         }),
       ).toMatchInlineSnapshot(`
         [
-          "test -> test-storage | CONTENT Core header: false new: After: 1 New: 1",
-          "test -> test-storage | CONTENT Core2 header: false new: After: 1 New: 1",
+          "test -> test-storage | CONTENT Core header: false new: After: 1 New: 1 expectContentUntil: header/3",
+          "test -> test-storage | CONTENT Core2 header: false new: After: 1 New: 1 expectContentUntil: header/3",
           "test -> test-storage | CONTENT Core header: false new: After: 2 New: 1",
           "test -> test-storage | CONTENT Core2 header: false new: After: 2 New: 1",
           "test-storage -> test | KNOWN CORRECTION Core sessions: empty",
           "test -> test-storage | CONTENT Core header: true new: After: 0 New: 3",
-          "test -> test-storage | CONTENT Core header: false new: After: 3 New: 1",
-          "test -> test-storage | CONTENT Core2 header: false new: After: 3 New: 1",
+          "test -> test-storage | CONTENT Core header: false new: After: 3 New: 1 expectContentUntil: header/5",
+          "test -> test-storage | CONTENT Core2 header: false new: After: 3 New: 1 expectContentUntil: header/5",
           "test -> test-storage | CONTENT Core header: false new: After: 4 New: 1",
           "test -> test-storage | CONTENT Core2 header: false new: After: 4 New: 1",
         ]

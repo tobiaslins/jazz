@@ -214,7 +214,7 @@ describe("client with storage syncs with server", () => {
     ).toMatchInlineSnapshot(`
       [
         "client -> storage | CONTENT Group header: true new: After: 0 New: 3",
-        "client -> storage | CONTENT InitialMap header: true new: ",
+        "client -> storage | CONTENT InitialMap header: true new:  expectContentUntil: header/1",
         "client -> storage | CONTENT ChildMap header: true new: After: 0 New: 1",
         "client -> storage | CONTENT InitialMap header: false new: After: 0 New: 1",
       ]
@@ -304,28 +304,28 @@ describe("client syncs with a server with storage", () => {
       [
         "client -> storage | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | CONTENT Group header: true new: After: 0 New: 5",
-        "client -> storage | CONTENT Map header: true new: After: 0 New: 20",
-        "client -> server | CONTENT Map header: true new: After: 0 New: 20",
-        "client -> storage | CONTENT Map header: false new: After: 20 New: 21",
-        "client -> server | CONTENT Map header: false new: After: 20 New: 21",
-        "client -> storage | CONTENT Map header: false new: After: 41 New: 21",
-        "client -> server | CONTENT Map header: false new: After: 41 New: 21",
-        "client -> storage | CONTENT Map header: false new: After: 62 New: 21",
-        "client -> server | CONTENT Map header: false new: After: 62 New: 21",
-        "client -> storage | CONTENT Map header: false new: After: 83 New: 17",
-        "client -> server | CONTENT Map header: false new: After: 83 New: 17",
+        "client -> storage | CONTENT Map header: true new: After: 0 New: 21 expectContentUntil: header/100",
+        "client -> server | CONTENT Map header: true new: After: 0 New: 21 expectContentUntil: header/100",
+        "client -> storage | CONTENT Map header: false new: After: 21 New: 21",
+        "client -> server | CONTENT Map header: false new: After: 21 New: 21",
+        "client -> storage | CONTENT Map header: false new: After: 42 New: 21",
+        "client -> server | CONTENT Map header: false new: After: 42 New: 21",
+        "client -> storage | CONTENT Map header: false new: After: 63 New: 21",
+        "client -> server | CONTENT Map header: false new: After: 63 New: 21",
+        "client -> storage | CONTENT Map header: false new: After: 84 New: 16",
+        "client -> server | CONTENT Map header: false new: After: 84 New: 16",
         "server -> client | KNOWN Group sessions: header/5",
         "server -> storage | CONTENT Group header: true new: After: 0 New: 5",
-        "server -> client | KNOWN Map sessions: header/20",
-        "server -> storage | CONTENT Map header: true new: After: 0 New: 20",
-        "server -> client | KNOWN Map sessions: header/41",
-        "server -> storage | CONTENT Map header: false new: After: 20 New: 21",
-        "server -> client | KNOWN Map sessions: header/62",
-        "server -> storage | CONTENT Map header: false new: After: 41 New: 21",
-        "server -> client | KNOWN Map sessions: header/83",
-        "server -> storage | CONTENT Map header: false new: After: 62 New: 21",
+        "server -> client | KNOWN Map sessions: header/21",
+        "server -> storage | CONTENT Map header: true new: After: 0 New: 21",
+        "server -> client | KNOWN Map sessions: header/42",
+        "server -> storage | CONTENT Map header: false new: After: 21 New: 21",
+        "server -> client | KNOWN Map sessions: header/63",
+        "server -> storage | CONTENT Map header: false new: After: 42 New: 21",
+        "server -> client | KNOWN Map sessions: header/84",
+        "server -> storage | CONTENT Map header: false new: After: 63 New: 21",
         "server -> client | KNOWN Map sessions: header/100",
-        "server -> storage | CONTENT Map header: false new: After: 83 New: 17",
+        "server -> storage | CONTENT Map header: false new: After: 84 New: 16",
       ]
     `);
 
@@ -357,11 +357,12 @@ describe("client syncs with a server with storage", () => {
         "client -> storage | LOAD Map sessions: empty",
         "storage -> client | CONTENT Group header: true new: After: 0 New: 5",
         "client -> server | LOAD Group sessions: header/5",
-        "storage -> client | CONTENT Map header: true new: After: 0 New: 41 expectContentUntil: header/100",
+        "storage -> client | CONTENT Map header: true new: After: 0 New: 21 expectContentUntil: header/100",
         "client -> server | LOAD Map sessions: header/100",
-        "storage -> client | CONTENT Map header: true new: After: 41 New: 21",
-        "storage -> client | CONTENT Map header: true new: After: 62 New: 21",
-        "storage -> client | CONTENT Map header: true new: After: 83 New: 17",
+        "storage -> client | CONTENT Map header: true new: After: 21 New: 21",
+        "storage -> client | CONTENT Map header: true new: After: 42 New: 21",
+        "storage -> client | CONTENT Map header: true new: After: 63 New: 21",
+        "storage -> client | CONTENT Map header: true new: After: 84 New: 16",
         "server -> client | KNOWN Group sessions: header/5",
         "server -> client | KNOWN Map sessions: header/100",
       ]
@@ -398,7 +399,7 @@ describe("client syncs with a server with storage", () => {
 
     await largeMap.core.waitForSync();
 
-    const newContentChunks = largeMap.core.verified.newContentSince(
+    const newContentChunks = largeMap.core.newContentSince(
       emptyKnownState(largeMap.id),
     );
 

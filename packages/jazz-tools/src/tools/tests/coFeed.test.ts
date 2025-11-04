@@ -795,7 +795,7 @@ describe("FileStream large file loading", async () => {
 
     const loadedChunks = loadedStream.getChunks({ allowUnfinished: true });
     expect(loadedChunks).not.toBeNull();
-    expect(loadedChunks?.finished).toBe(undefined);
+    expect(loadedChunks?.finished).toBeFalsy();
 
     expect(loadedStream.$jazz.raw.core.knownState()).not.toEqual(
       largeStream.$jazz.raw.core.knownState(),

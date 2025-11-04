@@ -293,12 +293,12 @@ export class CoFeed<out Item = any> extends CoValueBase implements CoValue {
   static load<F extends CoFeed, const R extends RefsToResolve<F> = true>(
     this: CoValueClass<F>,
     id: ID<F>,
-    options: {
+    options?: {
       resolve?: RefsToResolveStrict<F, R>;
       loadAs?: Account | AnonymousJazzAgent;
     },
   ): Promise<MaybeLoaded<Resolved<F, R>>> {
-    return loadCoValueWithoutMe(this, id, options);
+    return loadCoValueWithoutMe(this, id, options ?? {});
   }
 
   /**

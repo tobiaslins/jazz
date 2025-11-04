@@ -14,6 +14,7 @@ import {
   type CoID,
   type CoValueCore,
   type RawAccount,
+  RawAccountID,
   type RawCoValue,
   StorageAPI,
 } from "../exports.js";
@@ -540,6 +541,13 @@ export function setupTestNode(
         isSyncServer: opts.isSyncServer,
       });
     },
+    disconnect: () => {
+      const allPeers = Object.values(node.syncManager.peers);
+      allPeers.forEach((peer) => {
+        peer.gracefulShutdown();
+      });
+      node.syncManager.peers = {};
+    },
   };
 
   return ctx;
@@ -550,14 +558,34 @@ export async function setupTestAccount(
     isSyncServer?: boolean;
     connected?: boolean;
     storage?: StorageAPI;
+    accountID?: RawAccountID;
+    accountSecret?: AgentSecret;
   } = {},
 ) {
-  const ctx = await LocalNode.withNewlyCreatedAccount({
-    peers: [],
-    crypto: Crypto,
-    creationProps: { name: "Client" },
-    storage: opts.storage,
-  });
+  const ctx =
+    opts.accountSecret && opts.accountID
+      ? {
+          node: await LocalNode.withLoadedAccount({
+            peers: [
+              getSyncServerConnectedPeer({
+                peerId: opts.accountID,
+              }).peer,
+            ],
+            crypto: Crypto,
+            storage: opts.storage,
+            accountID: opts.accountID,
+            accountSecret: opts.accountSecret,
+            sessionID: Crypto.newRandomSessionID(opts.accountID),
+          }),
+          accountID: opts.accountID,
+          accountSecret: opts.accountSecret,
+        }
+      : await LocalNode.withNewlyCreatedAccount({
+          peers: [],
+          crypto: Crypto,
+          creationProps: { name: "Client" },
+          storage: opts.storage,
+        });
 
   if (opts.isSyncServer) {
     syncServer.current = ctx.node;
@@ -570,7 +598,7 @@ export async function setupTestAccount(
   }) {
     const { peer, peerStateOnServer, peerOnServer } =
       getSyncServerConnectedPeer({
-        peerId: ctx.node.getCurrentAgent().id,
+        peerId: ctx.node.currentSessionID,
         syncServerName: opts?.syncServerName,
         ourName: opts?.ourName,
         syncServer: opts?.syncServer,
@@ -627,6 +655,13 @@ export async function setupTestAccount(
     connectToSyncServer,
     addStorage,
     addAsyncStorage,
+    spawnNewSession: () => {
+      return setupTestAccount({
+        accountID: ctx.accountID,
+        accountSecret: ctx.accountSecret,
+        connected: true,
+      });
+    },
     disconnect: () => {
       const allPeers = ctx.node.syncManager.getPeers(ctx.accountID);
       allPeers.forEach((peer) => {
@@ -715,8 +750,7 @@ export function createAccountInNode(node: LocalNode) {
 
   const accountCoreEntry = node.getCoValue(accountOnTempNode.id);
 
-  const content =
-    accountOnTempNode.core.verified.newContentSince(undefined)?.[0]!;
+  const content = accountOnTempNode.core.newContentSince(undefined)?.[0]!;
 
   node.syncManager.handleNewContent(content, "import");
 

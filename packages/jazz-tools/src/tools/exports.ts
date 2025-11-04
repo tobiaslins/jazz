@@ -35,6 +35,7 @@ export type {
   CoMapEdits,
   LastAndAllCoMapEdits,
   CoFeedEntry,
+  SingleCoFeedEntry,
   TextPos,
   AccountClass,
   AccountCreationProps,

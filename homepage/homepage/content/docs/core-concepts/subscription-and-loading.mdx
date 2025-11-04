@@ -1,4 +1,4 @@
-import { Alert, CodeGroup, ContentByFramework, ReactLogo, SvelteLogo, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
+import { Alert, CodeGroup, ContentByFramework, FileName, ReactLogo, SvelteLogo, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
 
 export const metadata = {
   description: "Learn how to subscribe to CoValues, specify loading depths, and handle loading states and inaccessible data."
@@ -14,6 +14,10 @@ You can load and subscribe to CoValues in one of two ways:
 
 - **shallowly**&hairsp;—&hairsp;all of the primitive fields are available (such as strings, numbers, dates), but the references to other CoValues are not loaded
 - **deeply**&hairsp;—&hairsp;some or all of the referenced CoValues have been loaded
+
+<Alert variant="info" title="Tip">
+  Jazz automatically deduplicates loading. If you subscribe to the same CoValue multiple times in your app, Jazz will only fetch it once. That means you don’t need to deeply load a CoValue *just in case* a child component might need its data, and you don’t have to worry about tracking every possible field your app needs in a top-level query. Instead, pass the CoValue ID to the child component and subscribe there&hairsp;—&hairsp;Jazz will only load what that component actually needs.
+</Alert>
 
 ## Subscription Hooks
 
@@ -168,7 +172,7 @@ See the examples above for practical demonstrations of how to handle these three
 
 ## Deep Loading
 
-When you're working with related CoValues (like tasks in a project), you often need to load nested references as well as the top-level CoValue. 
+When you're working with related CoValues (like tasks in a project), you often need to load nested references as well as the top-level CoValue.
 
 This is particularly the case when working with [CoMaps](/docs/core-concepts/covalues/comaps) that refer to other CoValues or [CoLists](/docs/core-concepts/covalues/colists) of CoValues. You can use `resolve` queries to tell Jazz what data you need to use.
 
@@ -306,8 +310,8 @@ A load operation will be successful **only** if all references requested (both o
 <CodeGroup preferWrap>
 ```ts
 // If permissions on description are restricted:
-const task = await Task.load(taskId, { 
-  resolve: { description: true } 
+const task = await Task.load(taskId, {
+  resolve: { description: true }
 });
 task.$isLoaded // false
 task.$jazz.loadingState // "unauthorized"
@@ -447,9 +451,9 @@ The `co.loaded` type is especially useful when passing data between components, 
 <TabbedCodeGroup id="coloaded" default="react" savedPreferenceKey="framework">
 <TabbedCodeGroupItem label="React" value="react" icon={<ReactLogo />} preferWrap>
 ```tsx
-type ProjectWithTasks = co.loaded<typeof Project, 
+type ProjectWithTasks = co.loaded<typeof Project,
   {
-    tasks: { 
+    tasks: {
       $each: true
     };
   }
@@ -473,9 +477,9 @@ function TaskList({ project }: { project: ProjectWithTasks }) {
 <script lang="ts">
   import { co } from "jazz-tools";
 
-  type ProjectWithTasks = co.loaded<typeof Project, 
+  type ProjectWithTasks = co.loaded<typeof Project,
     {
-      tasks: { 
+      tasks: {
         $each: true
       };
     }
