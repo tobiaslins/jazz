@@ -2,7 +2,7 @@ import { Alert, CodeGroup } from '@/components/forMdx'
 
 # Jazz 0.19.0 - Explicit CoValue loading states
 
-This release introduces explicit loading states when loading CoValues.
+This release introduces explicit loading states when loading CoValues and a new way to define how CoValues are loaded.
 
 ## Motivation
 
@@ -89,6 +89,55 @@ if (!person.$isLoaded) {
       return "Person not found";
   }
 }
+```
+</CodeGroup>
+
+### Schema-level resolve queries
+
+When working with deeply-nested CoValue schemas, you need to handle complex resolve queries, and also make sure that they are in sync with the types of loaded CoValues to avoid type errors or unnecessary loading state checks:
+
+<CodeGroup>
+```tsx
+const account = useAccount(MusicAccount, {
+  resolve: { root: { playlists: { $each: { tracks: { $each: true } } } } },
+});
+
+type AccountWithPlaylists = co.loaded<
+  typeof MusicAccount,
+  { root: { playlists: { $each: { tracks: { $each: true } } } } }
+>;
+function allTracks(account: AccountWithPlaylists): MusicTrack[] {
+  return account.root.playlists.flatMap(playlist => playlist.tracks);
+}
+
+allTracks(account);
+```
+</CodeGroup>
+
+This has been a common source of confusion for users, so we've added a simpler way to define resolve queries.
+
+Schema-level resolve queries allow you specify the resolve query once at the schema level, and that query will be used both when loading CoValues from that schema (when no resolve query is provided by the user) and in `co.loaded` types:
+
+<CodeGroup>
+```tsx
+// `.resolved()` adds a resolve query to a schema
+const PlaylistWithTracks = Playlist.resolved({ tracks: { $each: true } });
+
+const AccountWithPlaylists = MusicAccount.resolved(
+  // Use `.resolve` to get the resolve query from a schema and compose it in other queries
+  { root: { playlists: { $each: PlaylistWithTracks.resolve } } },
+});
+
+// The schema's resolve query will be used if no other resolve query is provided
+const account = useAccount(AccountWithPlaylists);
+
+// `co.loaded` will infer the type of the loaded CoValue using the schema's resolve query.
+type AccountWithPlaylists = co.loaded<typeof AccountWithPlaylists>;
+function allTracks(account: AccountWithPlaylists): MusicTrack[] {
+  return account.root.playlists.flatMap(playlist => playlist.tracks);
+}
+
+allTracks(account);
 ```
 </CodeGroup>
 

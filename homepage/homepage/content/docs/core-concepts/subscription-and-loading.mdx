@@ -303,6 +303,27 @@ const projectWithTasksShallow = useCoState(Project, projectId, {
 </TabbedCodeGroupItem>
 </TabbedCodeGroup>
 
+You can also specify resolve queries at the schema level, using the `.resolved()` method. These queries will be used when loading CoValues from that schema (if no resolve query is provided by the user) and in types defined with [co.loaded](/docs/core-concepts/subscription-and-loading#type-safety-with-coloaded).
+<CodeGroup>
+```ts
+const TaskWithDescription = Task.resolved({
+  description: true,
+});
+const ProjectWithTasks = Project.resolved({
+  tasks: {
+    // Use `.resolve` to get the resolve query from a schema and compose it in other queries
+    $each: TaskWithDescription.resolve,
+  }
+});
+
+// .load() will use the resolve query from the schema
+const project = await ProjectWithTasks.load(projectId);
+if (!project.$isLoaded) throw new Error("Project not found or not accessible");
+// Both the tasks and the descriptions are loaded
+project.tasks[0].description; // CoPlainText
+```
+</CodeGroup>
+
 ## Loading Errors
 
 A load operation will be successful **only** if all references requested (both optional and required) could be successfully loaded. If any reference cannot be loaded, the entire load operation will return a not-loaded CoValue to avoid potential inconsistencies.
