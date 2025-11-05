@@ -332,5 +332,17 @@ describe("CoList", () => {
 
       matches(loadedPerson);
     });
+
+    test("cannot use $each is resolve queries of CoLists that contains non-collaborative values", () => {
+      const ListOfNumbers = co.list(z.number());
+      ListOfNumbers.load("list-id", {
+        resolve: {
+          // @ts-expect-error `$each` is not allowd
+          $each: true,
+          // `$onError` is allowed
+          $onError: "catch",
+        },
+      });
+    });
   });
 });

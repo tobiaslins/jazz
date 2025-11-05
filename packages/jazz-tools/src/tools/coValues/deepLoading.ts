@@ -71,15 +71,17 @@ export type RefsToResolve<
         ? true
         : // Basically V extends CoList - but if we used that we'd introduce circularity into the definition of CoList itself
           V extends ReadonlyArray<infer Item>
-          ?
-              | ({
-                  $each?: RefsToResolve<
-                    AsLoaded<Item>,
-                    DepthLimit,
-                    [0, ...CurrentDepth]
-                  >;
-                } & OnError)
-              | boolean
+          ? LoadedAndRequired<Item> extends CoValue
+            ?
+                | ({
+                    $each?: RefsToResolve<
+                      AsLoaded<Item>,
+                      DepthLimit,
+                      [0, ...CurrentDepth]
+                    >;
+                  } & OnError)
+                | boolean
+            : OnError | boolean
           : // Basically V extends CoMap | Group | Account - but if we used that we'd introduce circularity into the definition of CoMap itself
             V extends { [TypeSym]: "CoMap" | "Group" | "Account" }
             ?
