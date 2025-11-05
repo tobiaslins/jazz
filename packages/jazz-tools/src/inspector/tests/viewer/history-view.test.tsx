@@ -1,6 +1,10 @@
 // @vitest-environment happy-dom
 import { afterEach, assert, beforeAll, describe, expect, it } from "vitest";
-import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
+import {
+  assertLoaded,
+  createJazzTestAccount,
+  setupJazzTestSync,
+} from "jazz-tools/testing";
 import { co, z } from "jazz-tools";
 import {
   cleanup,
@@ -113,7 +117,7 @@ describe("HistoryView", async () => {
       const valueOnAccount2 = await Schema.load(value.$jazz.id, {
         loadAs: account2,
       });
-      assert(valueOnAccount2);
+      assertLoaded(valueOnAccount2);
 
       // This is invalid, since account2 is a reader
       valueOnAccount2.$jazz.set("pet", "cat");
