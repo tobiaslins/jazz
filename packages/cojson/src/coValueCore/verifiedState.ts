@@ -315,14 +315,11 @@ export class VerifiedState {
   }
 
   immutableKnownState() {
-    return this.sessions.immutableKnownState;
+    return this.sessions.getImmutableKnownState();
   }
 
   immutableKnownStateWithStreaming() {
-    return (
-      this.sessions.immutableKnownStateWithStreaming ??
-      this.immutableKnownState()
-    );
+    return this.sessions.getImmutableKnownStateWithStreaming();
   }
 
   isStreaming(): boolean {

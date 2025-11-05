@@ -204,6 +204,37 @@ describe("isStreaming", () => {
     expect(mapInNewSession.core.isStreaming()).toBe(false);
   });
 
+  test("streaming state from clients should be ignored", async () => {
+    const client = setupTestNode();
+
+    const group = client.node.createGroup();
+
+    await group.core.waitForSync();
+
+    const map = fillCoMapWithLargeData(group.createMap());
+
+    await map.core.waitForSync();
+    const newSession = client.spawnNewSession();
+    newSession.connectToSyncServer({
+      ourName: "streamingClient",
+    });
+
+    const content = map.core.verified.newContentSince(undefined);
+    assert(content);
+    const lastChunk = content.pop();
+    assert(lastChunk);
+
+    for (const chunk of content) {
+      newSession.node.syncManager.handleNewContent(chunk, "import");
+    }
+
+    const mapOnServer = jazzCloud.node.getCoValue(map.id);
+    expect(mapOnServer.isStreaming()).toBe(false);
+    expect(mapOnServer.knownState()).toEqual(
+      mapOnServer.knownStateWithStreaming(),
+    );
+  });
+
   test("should be false when getting streaming content that's not really streaming", async () => {
     const client = setupTestNode({
       connected: true,
