@@ -38,7 +38,7 @@ describe("Schema.resolved()", () => {
     ];
 
     for (const Schema of AllSchemas) {
-      expect(Schema.resolve).toBe(true);
+      expect(Schema.resolveQuery).toBe(true);
     }
   });
 
@@ -52,7 +52,7 @@ describe("Schema.resolved()", () => {
         name: true,
       });
 
-      expect(TestMapWithName.resolve).toEqual({
+      expect(TestMapWithName.resolveQuery).toEqual({
         name: true,
       });
     });
@@ -64,7 +64,7 @@ describe("Schema.resolved()", () => {
         name: true,
       });
 
-      expect(TestRecordWithName.resolve).toEqual({
+      expect(TestRecordWithName.resolveQuery).toEqual({
         name: true,
       });
     });
@@ -76,7 +76,7 @@ describe("Schema.resolved()", () => {
         $each: true,
       });
 
-      expect(TestListWithItems.resolve).toEqual({
+      expect(TestListWithItems.resolveQuery).toEqual({
         $each: true,
       });
     });
@@ -88,7 +88,7 @@ describe("Schema.resolved()", () => {
         $each: true,
       });
 
-      expect(TestFeedWithItems.resolve).toEqual({
+      expect(TestFeedWithItems.resolveQuery).toEqual({
         $each: true,
       });
     });
@@ -100,7 +100,7 @@ describe("Schema.resolved()", () => {
         profile: true,
       });
 
-      expect(TestAccountWithName.resolve).toEqual({
+      expect(TestAccountWithName.resolveQuery).toEqual({
         profile: true,
       });
     });
@@ -486,7 +486,7 @@ describe("Schema.resolved()", () => {
           .resolved({ profile: true, root: { text: true } });
         const AccountList = co
           .list(TestAccount)
-          .resolved({ $each: TestAccount.resolve });
+          .resolved({ $each: TestAccount.resolveQuery });
 
         const account = await TestAccount.createAs(serverAccount, {
           creationProps: { name: "Hermes Puggington" },

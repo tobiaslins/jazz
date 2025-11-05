@@ -19,14 +19,14 @@ export function createCoreCoRichTextSchema(): CoreRichTextSchema {
   return {
     collaborative: true as const,
     builtin: "CoRichText" as const,
-    resolve: true as const,
+    resolveQuery: true as const,
   };
 }
 
 export class RichTextSchema implements CoreRichTextSchema {
   readonly collaborative = true as const;
   readonly builtin = "CoRichText" as const;
-  readonly resolve = true as const;
+  readonly resolveQuery = true as const;
 
   constructor(private coValueClass: typeof CoRichText) {}
 

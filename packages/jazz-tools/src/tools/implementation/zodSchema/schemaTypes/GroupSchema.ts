@@ -25,14 +25,14 @@ export function createCoreGroupSchema(): CoreGroupSchema {
   return {
     collaborative: true as const,
     builtin: "Group" as const,
-    resolve: true as const,
+    resolveQuery: true as const,
   };
 }
 
 export class GroupSchema implements CoreGroupSchema {
   readonly collaborative = true as const;
   readonly builtin = "Group" as const;
-  readonly resolve = true as const;
+  readonly resolveQuery = true as const;
 
   getCoValueClass(): typeof Group {
     return Group;

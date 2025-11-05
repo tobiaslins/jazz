@@ -49,7 +49,7 @@ export class CoDiscriminatedUnionSchema<
   readonly collaborative = true as const;
   readonly builtin = "CoDiscriminatedUnion" as const;
   readonly getDefinition: () => CoDiscriminatedUnionSchemaDefinition<Options>;
-  readonly resolve = true as const;
+  readonly resolveQuery = true as const;
 
   constructor(
     coreSchema: CoreCoDiscriminatedUnionSchema<Options>,
@@ -140,7 +140,7 @@ export function createCoreCoDiscriminatedUnionSchema<
         return schemas;
       },
     }),
-    resolve: true as const,
+    resolveQuery: true as const,
   };
 }
 

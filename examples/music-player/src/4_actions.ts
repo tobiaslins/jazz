@@ -89,7 +89,7 @@ export async function addTrackToPlaylist(
   track: MusicTrack,
 ) {
   const { tracks } = await playlist.$jazz.ensureLoaded({
-    resolve: PlaylistWithTracks.resolve,
+    resolve: PlaylistWithTracks.resolveQuery,
   });
 
   const isPartOfThePlaylist = tracks.some((t) => t.$jazz.id === track.$jazz.id);

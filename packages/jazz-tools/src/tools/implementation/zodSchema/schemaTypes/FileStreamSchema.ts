@@ -18,14 +18,14 @@ export function createCoreFileStreamSchema(): CoreFileStreamSchema {
   return {
     collaborative: true as const,
     builtin: "FileStream" as const,
-    resolve: true as const,
+    resolveQuery: true as const,
   };
 }
 
 export class FileStreamSchema implements CoreFileStreamSchema {
   readonly collaborative = true as const;
   readonly builtin = "FileStream" as const;
-  readonly resolve = true as const;
+  readonly resolveQuery = true as const;
 
   constructor(private coValueClass: typeof FileStream) {}
 

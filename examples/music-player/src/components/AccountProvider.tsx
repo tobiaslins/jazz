@@ -4,7 +4,7 @@ import { createAccountSubscriptionContext } from "jazz-tools/react-core";
 export const { Provider: AccountProvider, useSelector: useAccountSelector } =
   createAccountSubscriptionContext(MusicaAccount, {
     root: {
-      rootPlaylist: PlaylistWithTracks.resolve,
+      rootPlaylist: PlaylistWithTracks.resolveQuery,
       playlists: {
         $each: {
           $onError: "catch",

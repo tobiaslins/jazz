@@ -139,4 +139,4 @@ export type ResolveQueryStrict<
 >;
 
 export type SchemaResolveQuery<T extends CoValueClassOrSchema> =
-  T extends CoreCoValueSchema ? T["resolve"] : true;
+  T extends CoreCoValueSchema ? T["resolveQuery"] : true;

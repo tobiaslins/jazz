@@ -311,8 +311,8 @@ const TaskWithDescription = Task.resolved({
 });
 const ProjectWithTasks = Project.resolved({
   tasks: {
-    // Use `.resolve` to get the resolve query from a schema and compose it in other queries
-    $each: TaskWithDescription.resolve,
+    // Use `.resolveQuery` to get the resolve query from a schema and compose it in other queries
+    $each: TaskWithDescription.resolveQuery,
   }
 });
 

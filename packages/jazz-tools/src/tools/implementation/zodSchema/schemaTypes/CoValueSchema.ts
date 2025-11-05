@@ -16,7 +16,7 @@ export interface CoreCoValueSchema {
    */
   builtin: string;
 
-  resolve: CoreResolveQuery;
+  resolveQuery: CoreResolveQuery;
 }
 
 /**

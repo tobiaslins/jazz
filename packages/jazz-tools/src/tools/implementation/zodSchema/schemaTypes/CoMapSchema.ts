@@ -46,7 +46,7 @@ export class CoMapSchema<
    * This resolve query will be used when no resolve query is provided to the load method.
    * @default true
    */
-  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
+  resolveQuery: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     coreSchema: CoreCoMapSchema<Shape, CatchAll>,
@@ -105,7 +105,7 @@ export class CoMapSchema<
     return this.coValueClass.load(
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -129,7 +129,7 @@ export class CoMapSchema<
       this.coValueClass,
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -155,7 +155,7 @@ export class CoMapSchema<
     // @ts-expect-error
     return this.coValueClass.subscribe(
       id,
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
       listener,
     );
   }
@@ -190,7 +190,7 @@ export class CoMapSchema<
     // @ts-expect-error
     return this.coValueClass.upsertUnique(
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -219,7 +219,7 @@ export class CoMapSchema<
       unique,
       ownerID,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -348,7 +348,7 @@ export class CoMapSchema<
       coreSchema,
       this.coValueClass,
     );
-    copy.resolve = resolveQuery as R;
+    copy.resolveQuery = resolveQuery as R;
     return copy;
   }
 }
@@ -387,7 +387,7 @@ export function createCoreCoMapSchema<
         return propValues;
       },
     }),
-    resolve: true as const,
+    resolveQuery: true as const,
   };
 }
 

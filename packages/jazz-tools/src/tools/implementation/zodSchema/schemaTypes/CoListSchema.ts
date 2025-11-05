@@ -35,7 +35,7 @@ export class CoListSchema<
    * This resolve query will be used when no resolve query is provided to the load method.
    * @default true
    */
-  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
+  resolveQuery: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     public element: T,
@@ -82,7 +82,7 @@ export class CoListSchema<
     return this.coValueClass.load(
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -102,7 +102,7 @@ export class CoListSchema<
       this.coValueClass,
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -120,7 +120,7 @@ export class CoListSchema<
   ): () => void {
     return this.coValueClass.subscribe(
       id,
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
       listener,
     );
   }
@@ -151,7 +151,7 @@ export class CoListSchema<
     // @ts-expect-error
     return this.coValueClass.upsertUnique(
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -172,7 +172,7 @@ export class CoListSchema<
       unique,
       ownerID,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -190,7 +190,7 @@ export class CoListSchema<
     resolveQuery: RefsToResolveStrict<CoListInstanceCoValuesMaybeLoaded<T>, R>,
   ): CoListSchema<T, R> {
     const copy = new CoListSchema<T, R>(this.element, this.coValueClass);
-    copy.resolve = resolveQuery as R;
+    copy.resolveQuery = resolveQuery as R;
     return copy;
   }
 }
@@ -202,7 +202,7 @@ export function createCoreCoListSchema<T extends AnyZodOrCoValueSchema>(
     collaborative: true as const,
     builtin: "CoList" as const,
     element,
-    resolve: true as const,
+    resolveQuery: true as const,
   };
 }
 

@@ -20,14 +20,14 @@ export function createCoreCoPlainTextSchema(): CorePlainTextSchema {
   return {
     collaborative: true as const,
     builtin: "CoPlainText" as const,
-    resolve: true as const,
+    resolveQuery: true as const,
   };
 }
 
 export class PlainTextSchema implements CorePlainTextSchema {
   readonly collaborative = true as const;
   readonly builtin = "CoPlainText" as const;
-  readonly resolve = true as const;
+  readonly resolveQuery = true as const;
 
   constructor(private coValueClass: typeof CoPlainText) {}
 

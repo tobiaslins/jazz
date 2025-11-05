@@ -126,7 +126,9 @@ export type MusicaAccount = co.loaded<typeof MusicaAccount>;
 
 export const MusicaAccountWithPlaylists = MusicaAccount.resolved({
   root: {
-    playlists: { $each: { $onError: "catch", ...PlaylistWithTracks.resolve } },
+    playlists: {
+      $each: { $onError: "catch", ...PlaylistWithTracks.resolveQuery },
+    },
   },
 });
 

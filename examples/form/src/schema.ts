@@ -78,7 +78,7 @@ export const JazzAccount = co
 export const AccountWithOrders = JazzAccount.resolved({
   root: {
     orders: {
-      $each: BubbleTeaOrder.resolve,
+      $each: BubbleTeaOrder.resolveQuery,
     },
   },
 });

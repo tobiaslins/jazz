@@ -34,7 +34,7 @@ export class CoFeedSchema<
    * This resolve query will be used when no resolve query is provided to the load method.
    * @default true
    */
-  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
+  resolveQuery: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     public element: T,
@@ -74,7 +74,7 @@ export class CoFeedSchema<
     return this.coValueClass.load(
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -95,7 +95,7 @@ export class CoFeedSchema<
       this.coValueClass,
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -124,7 +124,7 @@ export class CoFeedSchema<
     return this.coValueClass.subscribe(
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
       listener,
     );
   }
@@ -147,7 +147,7 @@ export class CoFeedSchema<
     resolveQuery: RefsToResolveStrict<CoFeedInstanceCoValuesMaybeLoaded<T>, R>,
   ): CoFeedSchema<T, R> {
     const copy = new CoFeedSchema<T, R>(this.element, this.coValueClass);
-    copy.resolve = resolveQuery as R;
+    copy.resolveQuery = resolveQuery as R;
     return copy;
   }
 }
@@ -159,7 +159,7 @@ export function createCoreCoFeedSchema<T extends AnyZodOrCoValueSchema>(
     collaborative: true as const,
     builtin: "CoFeed" as const,
     element,
-    resolve: true as const,
+    resolveQuery: true as const,
   };
 }
 

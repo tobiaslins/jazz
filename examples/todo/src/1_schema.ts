@@ -45,7 +45,7 @@ export const TodoProject = co.map({
 
 export const TodoProjectWithTasks = TodoProject.resolved({
   tasks: {
-    $each: TaskWithText.resolve,
+    $each: TaskWithText.resolveQuery,
   },
 });
 

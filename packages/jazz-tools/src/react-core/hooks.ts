@@ -783,8 +783,8 @@ function getResolveQuery(
     return resolveQuery;
   }
   // Check the schema is a CoValue schema (and not a CoValue class)
-  if ("resolve" in Schema) {
-    return Schema.resolve;
+  if ("resolveQuery" in Schema) {
+    return Schema.resolveQuery;
   }
   return true;
 }

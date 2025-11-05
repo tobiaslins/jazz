@@ -124,8 +124,8 @@ Schema-level resolve queries allow you specify the resolve query once at the sch
 const PlaylistWithTracks = Playlist.resolved({ tracks: { $each: true } });
 
 const AccountWithPlaylists = MusicAccount.resolved(
-  // Use `.resolve` to get the resolve query from a schema and compose it in other queries
-  { root: { playlists: { $each: PlaylistWithTracks.resolve } } },
+  // Use `.resolveQuery` to get the resolve query from a schema and compose it in other queries
+  { root: { playlists: { $each: PlaylistWithTracks.resolveQuery } } },
 });
 
 // The schema's resolve query will be used if no other resolve query is provided

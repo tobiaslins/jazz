@@ -58,7 +58,7 @@ export class AccountSchema<
    * This resolve query will be used when no resolve query is provided to the load method.
    * @default true
    */
-  resolve: DefaultResolveQuery = true as DefaultResolveQuery;
+  resolveQuery: DefaultResolveQuery = true as DefaultResolveQuery;
 
   constructor(
     coreSchema: CoreAccountSchema<Shape>,
@@ -89,7 +89,7 @@ export class AccountSchema<
     return this.coValueClass.load(
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -119,7 +119,7 @@ export class AccountSchema<
       this.coValueClass,
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
     );
   }
 
@@ -139,7 +139,7 @@ export class AccountSchema<
     return this.coValueClass.subscribe(
       id,
       // @ts-expect-error
-      withSchemaResolveQuery(options, this.resolve),
+      withSchemaResolveQuery(options, this.resolveQuery),
       listener,
     );
   }
@@ -185,7 +185,7 @@ export class AccountSchema<
       this.shape,
     );
     const copy = new AccountSchema<Shape, R>(coreSchema, this.coValueClass);
-    copy.resolve = resolveQuery as R;
+    copy.resolveQuery = resolveQuery as R;
     return copy;
   }
 }
