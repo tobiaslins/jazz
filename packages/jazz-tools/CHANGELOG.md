@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.18.38
+
+### Patch Changes
+
+- 349ca48: feat: Invalid transaction's error messages are now shown in the inspector
+- Updated dependencies [349ca48]
+- Updated dependencies [68781a0]
+  - cojson@0.18.38
+  - cojson-storage-indexeddb@0.18.38
+  - cojson-transport-ws@0.18.38
+
 ## 0.18.37
 
 ### Patch Changes
