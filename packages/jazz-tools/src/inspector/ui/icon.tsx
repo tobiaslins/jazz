@@ -2,12 +2,14 @@ import { CautionIcon } from "./icons/caution.js";
 import { ChevronDownIcon } from "./icons/chevron-down-icon.js";
 import { DeleteIcon } from "./icons/delete-icon.js";
 import { LinkIcon } from "./icons/link-icon.js";
+import { HistoryIcon } from "./icons/history.js";
 
 const icons = {
   caution: CautionIcon,
   chevronDown: ChevronDownIcon,
   delete: DeleteIcon,
   link: LinkIcon,
+  history: HistoryIcon,
 };
 
 // copied from tailwind line height https://tailwindcss.com/docs/font-size
