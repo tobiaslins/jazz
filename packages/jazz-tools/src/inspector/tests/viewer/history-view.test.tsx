@@ -1,6 +1,10 @@
 // @vitest-environment happy-dom
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
-import { createJazzTestAccount, setupJazzTestSync } from "jazz-tools/testing";
+import { afterEach, assert, beforeAll, describe, expect, it } from "vitest";
+import {
+  assertLoaded,
+  createJazzTestAccount,
+  setupJazzTestSync,
+} from "jazz-tools/testing";
 import { co, z } from "jazz-tools";
 import {
   cleanup,
@@ -45,7 +49,7 @@ describe("HistoryView", async () => {
       .create({ foo: "bar" }, account);
 
     render(
-      <HistoryView coValue={value.$jazz.raw} node={value.$jazz.localNode} />,
+      <HistoryView coValue={value.$jazz.raw} node={account.$jazz.localNode} />,
     );
 
     expect(
@@ -69,7 +73,10 @@ describe("HistoryView", async () => {
       value.$jazz.delete("certified");
 
       render(
-        <HistoryView coValue={value.$jazz.raw} node={value.$jazz.localNode} />,
+        <HistoryView
+          coValue={value.$jazz.raw}
+          node={account.$jazz.localNode}
+        />,
       );
 
       const history = [
@@ -82,8 +89,6 @@ describe("HistoryView", async () => {
         'Property "certified" has been deleted',
       ].toReversed(); // Default sort is descending
 
-      expect(screen.getAllByRole("row")).toHaveLength(history.length + 2);
-
       await waitFor(() => {
         expect(screen.getAllByRole("row")[2]?.textContent).toContain(
           account.$jazz.id,
@@ -92,6 +97,56 @@ describe("HistoryView", async () => {
 
       expect(extractActions()).toEqual(history);
     });
+
+    it("should render invalid changes", async () => {
+      const account2 = await createJazzTestAccount();
+      const group = co.group().create(account);
+      group.addMember(account2, "reader");
+
+      const Schema = co.map({
+        pet: z.string(),
+        age: z.number(),
+        certified: z.boolean().optional(),
+      });
+
+      const value = Schema.create(
+        { pet: "dog", age: 10, certified: false },
+        group,
+      );
+
+      const valueOnAccount2 = await Schema.load(value.$jazz.id, {
+        loadAs: account2,
+      });
+      assertLoaded(valueOnAccount2);
+
+      // This is invalid, since account2 is a reader
+      valueOnAccount2.$jazz.set("pet", "cat");
+
+      render(
+        <HistoryView
+          coValue={valueOnAccount2.$jazz.raw}
+          node={account2.$jazz.localNode}
+        />,
+      );
+
+      const history = [
+        'Property "pet" has been set to "dog"',
+        'Property "age" has been set to 10',
+        'Property "certified" has been set to false',
+
+        // Account2 can't write to the value
+        'Property "pet" has been set to "cat"Invalid transaction: Transactor has no write permissions',
+      ].toReversed(); // Default sort is descending
+
+      await waitFor(() => {
+        expect(screen.getAllByRole("row")[2]?.textContent).toContain(
+          account2.$jazz.id,
+        );
+      });
+
+      expect(extractActions()).toEqual(history);
+    });
+
     it("should render co.map changes with json", async () => {
       const d = new Date();
       const value = co
@@ -147,7 +202,10 @@ describe("HistoryView", async () => {
       value.$jazz.shift();
 
       render(
-        <HistoryView coValue={value.$jazz.raw} node={value.$jazz.localNode} />,
+        <HistoryView
+          coValue={value.$jazz.raw}
+          node={account.$jazz.localNode}
+        />,
       );
 
       const history = [
@@ -194,7 +252,10 @@ describe("HistoryView", async () => {
       value.$jazz.shift();
 
       render(
-        <HistoryView coValue={value.$jazz.raw} node={value.$jazz.localNode} />,
+        <HistoryView
+          coValue={value.$jazz.raw}
+          node={account.$jazz.localNode}
+        />,
       );
 
       const history = [
@@ -223,8 +284,11 @@ describe("HistoryView", async () => {
       const group3 = co.group().create(account);
       group3.addMember(group, "inherit");
 
-      const { container } = render(
-        <HistoryView coValue={group.$jazz.raw} node={group.$jazz.localNode} />,
+      render(
+        <HistoryView
+          coValue={group.$jazz.raw}
+          node={account.$jazz.localNode}
+        />,
       );
 
       const history = [

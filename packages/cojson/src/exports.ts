@@ -3,6 +3,7 @@ import { type RawCoValue } from "./coValue.js";
 import {
   CoValueCore,
   idforHeader,
+  enablePermissionErrors,
   type AvailableCoValueCore,
 } from "./coValueCore/coValueCore.js";
 import { CoValueUniqueness } from "./coValueCore/verifiedState.js";
@@ -60,7 +61,7 @@ import { AgentSecret, textDecoder, textEncoder } from "./crypto/crypto.js";
 import type { AgentID, RawCoID, SessionID } from "./ids.js";
 import type { JsonObject, JsonValue } from "./jsonValue.js";
 import type * as Media from "./media.js";
-import { disablePermissionErrors, isAccountRole } from "./permissions.js";
+import { isAccountRole } from "./permissions.js";
 import type { Peer, SyncMessage } from "./sync.js";
 import {
   DisconnectedError,
@@ -111,7 +112,7 @@ export const cojsonInternals = {
   getPriorityFromHeader,
   getGroupDependentKeyList,
   getGroupDependentKey,
-  disablePermissionErrors,
+  enablePermissionErrors,
   SyncManager,
   CO_VALUE_LOADING_CONFIG,
   CO_VALUE_PRIORITY,

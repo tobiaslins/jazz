@@ -31,6 +31,7 @@ type HistoryEntry = {
   action: string;
   timestamp: Date;
   isValid: boolean;
+  validationErrorMessage: string | undefined;
 };
 
 export function HistoryView({
@@ -85,7 +86,18 @@ export function HistoryView({
     {
       id: "action",
       header: "Action",
-      accessor: (row) => row.action,
+      accessor: (row) => {
+        if (row.isValid) return row.action;
+
+        return (
+          <>
+            {row.action}
+            <span style={{ color: "red", display: "block" }}>
+              Invalid transaction: {row.validationErrorMessage}
+            </span>
+          </>
+        );
+      },
       sortable: false,
       filterable: true,
       sortFn: (a, b) => a.action.localeCompare(b.action),
@@ -131,10 +143,6 @@ function getTransactionChanges(
         readKey,
       ) ?? []
     );
-
-    // const decryptedString = coValue.core.verified.sessions.get(tx.txID.sessionID)?.impl.decryptNextTransactionChangesJson(tx.txID.txIndex, readKey);
-
-    // return decryptedString ? [decryptedString] : [];
   }
 
   return tx.changes ?? (tx.tx as any).changes ?? [];
@@ -150,6 +158,7 @@ function getHistory(coValue: RawCoValue): HistoryEntry[] {
       action: mapTransactionToAction(change, coValue),
       timestamp: new Date(tx.currentMadeAt),
       isValid: tx.isValid,
+      validationErrorMessage: tx.validationErrorMessage,
     }));
   });
 }

@@ -137,7 +137,7 @@ export async function loadImage(
     };
   }
 
-  if (!imageOrId.original) {
+  if (!imageOrId.original.$isLoaded) {
     console.warn("Unable to find the original image");
     return null;
   }
