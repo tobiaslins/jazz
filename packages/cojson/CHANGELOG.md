@@ -1,5 +1,14 @@
 # cojson
 
+## 0.18.38
+
+### Patch Changes
+
+- 349ca48: chore: improve error logging for invalid transactions
+- 68781a0: Disable client-to-client streaming state propagation
+  - cojson-core-wasm@0.18.38
+  - cojson-core-napi@0.18.38
+
 ## 0.18.37
 
 ### Patch Changes
