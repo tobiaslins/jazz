@@ -20,3 +20,4 @@ Add explicit CoValue loading states:
   - `useLogOut`: returns a function for logging out of the current account
   - `useAgent`: returns the current agent
 - Add a `select` option (and an optional `equalityFn`) to `useAccount` and `useCoState`, and remove `useAccountWithSelector` and `useCoStateWithSelector`.
+- Allow specifying resolve queries at the schema level. Those queries will be used when loading CoValues, if no other resolve query is provided.
