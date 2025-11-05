@@ -43,7 +43,7 @@ function TextEditor({ textId }: { textId: string }) {
 }
 // #endregion
 
-//# region RichTextEditor
+// #region RichTextEditor
 function RichTextEditor() {
   const me = useAccount(JazzAccount, { resolve: { profile: { bio: true } } });
   const editorRef = useRef<HTMLDivElement>(null);
