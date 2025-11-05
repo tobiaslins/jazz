@@ -21,6 +21,29 @@ const highlighterPromise = createHighlighter({
 });
 
 /**
+ * Custom Shiki transformer that applies diff styling based on line-range metadata.
+ * Reads 'add' and 'del' line numbers from meta and applies appropriate classes.
+ */
+function transformerDiffFromMeta() {
+  return {
+    name: 'diff-from-meta',
+    line(node, line) {
+      const add = this.options.meta?.add;
+      const del = this.options.meta?.del;
+      
+      if (add && add.includes(line)) {
+        this.addClassToHast(node, 'diff');
+        this.addClassToHast(node, 'add');
+      }
+      if (del && del.includes(line)) {
+        this.addClassToHast(node, 'diff');
+        this.addClassToHast(node, 'remove');
+      }
+    }
+  };
+}
+
+/**
  * A remark plugin that highlights code blocks
  * @returns {import('unified').Plugin<[], import('mdast').Root>} A remark plugin
  */
@@ -52,15 +75,20 @@ export function highlightPlugin() {
       /** @type {any} */
       let error = null;
       
+      // Extract diff line numbers from hProperties
+      const add = node.data?.hProperties?.add?.split(',').map(Number);
+      const del = node.data?.hProperties?.del?.split(',').map(Number);
+      
       const html = highlighter.codeToHtml(node.value, {
         lang: node.lang,
-        meta: { __raw: node.lang + " " + node.meta },
+        meta: { __raw: node.lang + " " + node.meta, add, del },
         themes: {
           light: "jazz-light",
           dark: "jazz-dark",
         },
 
         transformers: [
+          transformerDiffFromMeta(),
           transformerTwoslash({
             explicitTrigger: true,
             throws: process.env.NODE_ENV === "production",

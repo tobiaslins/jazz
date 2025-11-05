@@ -41,7 +41,7 @@ function matchesAnyPattern(
  * - Extracting specific regions using `#region` markers
  * - Hiding lines with `[!code hide]` or `[!code hide:N]` sentinels
  * - Marking diff additions/removals with `[!code ++]`, `[!code ++:N]`, `[!code --]`, or `[!code --:N]`
- * - Converting standalone diff sentinels to inline notation for Shiki's transformerNotationDiff
+ * - Passing diff line numbers via metadata to custom Shiki transformer for styling
  * - Stripping region markers and sentinel comments from output
  *
  * @param {Options} options - Configuration options
@@ -88,15 +88,16 @@ function matchesAnyPattern(
  *
  * Supported sentinels:
  * - `// [!code hide]` or `// [!code hide:N]` - Hide lines from output
- * - `// [!code ++]` or `// [!code ++:N]` - Mark next N lines (or 1 line) as additions
- * - `// [!code --]` or `// [!code --:N]` - Mark next N lines (or 1 line) as removals
+ * - `// [!code ++]` or `// [!code ++:N]` - Mark next N lines (or 1 line) as additions (green background)
+ * - `// [!code --]` or `// [!code --:N]` - Mark next N lines (or 1 line) as removals (red background)
  * - `// #region Name` / `// #endregion` - Define extractable regions
  * - `// @ts-expect-error`, `// @ts-ignore`, `// @ts-nocheck` - Automatically hidden
  * - HTML-style comments (`<!-- ... -->`) also supported for Svelte files
- * - JSX comments (curly-brace-slash-star format) also supported for React/TSX files
+ * - JSX comments (`{/* ... `) also supported for React/TSX files
  *
- * Standalone diff sentinels (on their own line) are stripped and converted to inline notation
- * that Shiki's transformerNotationDiff can process. Inline diff sentinels are passed through as-is.
+ * Diff sentinels are detected, removed from output, and the affected line numbers are stored in
+ * node.data.hProperties for processing by the custom Shiki transformer. This approach works with
+ * any syntax including JSX where inline comment markers would be invalid.
  */
 export function codeSnippets(options: Options): Function {
   return (tree: any, file: any) => {
@@ -107,7 +108,11 @@ export function codeSnippets(options: Options): Function {
       const params = parseMeta(node.meta);
       if (!params.snippet) return;
 
-      const filePath = resolveSnippetPath(params.snippet, options.dir, file.path);
+      const filePath = resolveSnippetPath(
+        params.snippet,
+        options.dir,
+        file.path,
+      );
 
       if (!fs.existsSync(filePath)) {
         throw new Error(`Snippet not found: ${filePath}`);
@@ -119,7 +124,8 @@ export function codeSnippets(options: Options): Function {
         content = extractRegion(content, params.region, filePath);
       }
 
-      const { clean, highlights } = processAnnotations(content);
+      const { clean, highlights, additions, deletions } =
+        processAnnotations(content);
 
       node.value = clean;
       node.data ||= {};
@@ -128,22 +134,28 @@ export function codeSnippets(options: Options): Function {
       if (highlights.length) {
         node.data.hProperties.highlight = highlights.join(",");
       }
+      if (additions.length) {
+        node.data.hProperties.add = additions.join(",");
+      }
+      if (deletions.length) {
+        node.data.hProperties.del = deletions.join(",");
+      }
     });
   };
 }
 
 /**
  * Resolves a snippet path with smart path resolution.
- * 
+ *
  * For short paths (just filename), tries to resolve relative to the current MDX file's
  * corresponding code-snippets directory first, then falls back to the base snippets directory.
- * 
+ *
  * Example:
  * - MDX file: content/docs/core-concepts/schemas/accounts-and-migrations.mdx
  * - Snippet: schema.ts
  * - First try: content/docs/code-snippets/core-concepts/schemas/accounts-and-migrations/schema.ts
  * - Fallback: content/docs/code-snippets/schema.ts
- * 
+ *
  * For paths with directories, only tries relative to base snippets directory.
  */
 function resolveSnippetPath(
@@ -272,6 +284,8 @@ function stripRegionMarkers(source: string, region: string) {
 function processAnnotations(source: string) {
   const lines = source.split("\n");
   const highlights: number[] = [];
+  const additions: number[] = [];
+  const deletions: number[] = [];
 
   const hideWithCountPatterns = createMultiStylePattern(
     `\\[!code\\s*hide:\\s*(\\d+)\\s*\\]`,
@@ -288,12 +302,8 @@ function processAnnotations(source: string) {
     `@ts-(?:expect-error|ignore|nocheck)`,
   );
 
-  let inHighlightBlock = false;
   let pendingDiff: { type: "add" | "remove"; count: number } | null = null;
-  let highlightNextLine = false;
-  let diffNextLine: "add" | "remove" | null = null;
   let hideCount = 0;
-  let hideNextLine = false;
 
   const cleanLines: string[] = [];
 
@@ -309,12 +319,15 @@ function processAnnotations(source: string) {
 
     // Check for single line hide: [!code hide]
     if (matchesAnyPattern(line, hidePatterns)) {
-      hideNextLine = true;
+      hideCount = 1;
       continue; // Skip sentinel line
     }
 
     // Check for diff markers with count: [!code ++:N] or [!code --:N]
-    const bracketDiffWithCountMatch = matchesAnyPattern(line, diffWithCountPatterns);
+    const bracketDiffWithCountMatch = matchesAnyPattern(
+      line,
+      diffWithCountPatterns,
+    );
     if (bracketDiffWithCountMatch) {
       const [, op, countStr] = bracketDiffWithCountMatch;
       pendingDiff = { type: op === "++" ? "add" : "remove", count: +countStr };
@@ -325,7 +338,7 @@ function processAnnotations(source: string) {
     const bracketDiffMatch = matchesAnyPattern(line, diffPatterns);
     if (bracketDiffMatch) {
       const [, op] = bracketDiffMatch;
-      diffNextLine = op === "++" ? "add" : "remove";
+      pendingDiff = { type: op === "++" ? "add" : "remove", count: 1 };
       continue; // Skip sentinel line
     }
 
@@ -339,33 +352,9 @@ function processAnnotations(source: string) {
       continue;
     }
 
-    // Apply hide count
+    // Apply hide count (skip these lines entirely)
     if (hideCount > 0) {
       hideCount--;
-      continue;
-    }
-
-    // Apply hide next line
-    if (hideNextLine) {
-      hideNextLine = false;
-      continue;
-    }
-
-    // Handle pending diff - add inline notation for Shiki
-    if (pendingDiff) {
-      const diffMarker = pendingDiff.type === "add" ? "// [!code ++]" : "// [!code --]";
-      cleanLines.push(`${line} ${diffMarker}`);
-
-      pendingDiff.count--;
-      if (pendingDiff.count === 0) pendingDiff = null;
-      continue;
-    }
-
-    // Handle diff next line - add inline notation for Shiki
-    if (diffNextLine) {
-      const diffMarker = diffNextLine === "add" ? "// [!code ++]" : "// [!code --]";
-      cleanLines.push(`${line} ${diffMarker}`);
-      diffNextLine = null;
       continue;
     }
 
@@ -373,16 +362,18 @@ function processAnnotations(source: string) {
     cleanLines.push(line);
     const cleanLineNum = cleanLines.length;
 
-    // Apply highlights
-    if (highlightNextLine) {
-      highlights.push(cleanLineNum);
-      highlightNextLine = false;
-    }
-    if (inHighlightBlock) {
-      highlights.push(cleanLineNum);
+    // Track diff lines by their output line number
+    if (pendingDiff) {
+      if (pendingDiff.type === "add") {
+        additions.push(cleanLineNum);
+      } else {
+        deletions.push(cleanLineNum);
+      }
+      pendingDiff.count--;
+      if (pendingDiff.count === 0) pendingDiff = null;
     }
   }
 
   if (cleanLines[cleanLines.length - 1] == "") cleanLines.pop(); // If the last line is blank, pop it off.
-  return { clean: cleanLines.join("\n"), highlights };
+  return { clean: cleanLines.join("\n"), highlights, additions, deletions };
 }
