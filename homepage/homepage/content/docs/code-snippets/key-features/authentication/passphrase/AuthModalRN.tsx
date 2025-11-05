@@ -13,6 +13,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [loginPassphrase, setLoginPassphrase] = useState("");
 
   const auth = usePassphraseAuth({
+    // Must be inside the JazzProvider!
     wordlist: wordlist,
   });
 

@@ -145,7 +145,7 @@ To use the stored ImageDefinition, there are two ways: declaratively, using the 
 ### `<Image>` component [!framework=react,svelte,react-native,react-native-expo]
 <TabbedCodeGroup id="image-component" default="react" savedPreferenceKey="framework">
 <TabbedCodeGroupItem label="React" icon={<ReactLogo />} value="react" preferWrap>
-```tsx react.tsx#GalleryView
+```tsx react-snippet.tsx#GalleryView
 ```
 </TabbedCodeGroupItem>
 <TabbedCodeGroupItem label="Svelte" icon={<SvelteLogo />} value="svelte" preferWrap>
@@ -193,7 +193,7 @@ The `width` and `height` props are used to control the best resolution to use bu
 Let's say we have an image with a width of 1920px and a height of 1080px.
 
 <CodeGroup className="[&_span]:whitespace-normal">
-```tsx react.tsx#MultiImages
+```tsx react-snippet.tsx#MultiImages
 ```
 </CodeGroup>
 
@@ -206,7 +206,7 @@ If the image was generated with progressive loading, the `width` and `height` pr
 The `Image` component supports lazy loading with the [same options as the native browser `loading` attribute].(https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/img#loading). It will generate the blob url for the image when the browser's viewport reaches the image.
 
 <CodeGroup className="[&_span]:whitespace-normal">
-```tsx react.tsx#LazyLoad
+```tsx react-snippet.tsx#LazyLoad
 ```
 </CodeGroup>
 </ContentByFramework>

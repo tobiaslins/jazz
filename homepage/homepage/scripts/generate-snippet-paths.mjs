@@ -85,7 +85,8 @@ function collectPathMappings() {
       const aliases = findAliasesInDir(dir);
       if (aliases.size > 0) {
         mappingsByDir[relativePath] = aliases;
-        verbose && console.log(`Found ${aliases.size} aliases in ${relativePath}`);
+        verbose &&
+          console.log(`Found ${aliases.size} aliases in ${relativePath}`);
       }
     }
   }
@@ -125,7 +126,7 @@ function writeLocalTsconfigs(mappingsByDir, allSnippetDirs) {
 
     // Each directory gets its own tsconfig with local path mappings
     const localPaths = Object.fromEntries(
-      [...aliases].map(alias => [alias, ["./*"]])
+      [...aliases].map((alias) => [alias, ["./*"]]),
     );
 
     // Calculate relative depth to root tsconfig
@@ -152,10 +153,7 @@ function writeLocalTsconfigs(mappingsByDir, allSnippetDirs) {
     }
 
     const tsconfigPath = path.join(SNIPPETS_DIR, dirName, "tsconfig.json");
-    fs.writeFileSync(
-      tsconfigPath,
-      JSON.stringify(localConfig, null, 2) + "\n",
-    );
+    fs.writeFileSync(tsconfigPath, JSON.stringify(localConfig, null, 2) + "\n");
     verbose && console.log(`Wrote ${tsconfigPath}`);
   }
 }

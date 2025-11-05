@@ -1,4 +1,3 @@
-import * as React from "@/react";
 import { co, ImageDefinition } from "jazz-tools";
 
 // #region GalleryView

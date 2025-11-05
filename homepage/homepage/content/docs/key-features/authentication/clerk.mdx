@@ -2,7 +2,7 @@ export const metadata = {
   description: "Integrate Clerk with your Jazz app to authenticate users. This method combines Clerk's comprehensive authentication services with Jazz's local-first capabilities."
 };
 
-import { CodeGroup, ContentByFramework } from "@/components/forMdx";
+import { CodeGroup, ContentByFramework, FileName, ReactLogo, ExpoLogo, RNLogo, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
 
 # Clerk Authentication
 
@@ -27,39 +27,40 @@ This authentication method is not fully local-first, as login and signup need to
 - **Enterprise features**: SSO, SAML, and other advanced options
 
 ## Implementation
-{/* TODO: Convert to TCG */}
-{/* TODO: Add Svelte */}
+
 <ContentByFramework framework="react">
 Use `<JazzReactProviderWithClerk />` to wrap your app:
-
-<CodeGroup>
-```tsx react.tsx#Basic
-```
-</CodeGroup>
 </ContentByFramework>
 
 <ContentByFramework framework="react-native-expo">
 Use `<JazzExpoProviderWithClerk />` to wrap your app.
+</ContentByFramework>
 
-<CodeGroup>
+<FileName>App.tsx</FileName>
+
+<TabbedCodeGroup default="react" savedPreferenceKey="framework" id="wrap-in-provider" className="mb-4">
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
+```tsx react-snippet.tsx#Basic
+```
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem icon={<ExpoLogo />} label="Expo" value="react-native-expo" preferWrap>
 ```tsx expo.tsx#Basic
 ```
-</CodeGroup>
-</ContentByFramework>
+</TabbedCodeGroupItem>
+</TabbedCodeGroup>
 
-<ContentByFramework framework="react">
-<CodeGroup className="mt-4">
-```tsx react.tsx#AuthButton
+<FileName>AuthButton.tsx</FileName>
+<TabbedCodeGroup default="react" savedPreferenceKey="framework" id="wrap-in-provider" >
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
+```tsx react-snippet.tsx#AuthButton
 ```
-</CodeGroup>
-</ContentByFramework>
 
-<ContentByFramework framework="react-native-expo">
-<CodeGroup>
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem icon={<ExpoLogo />} label="Expo" value="react-native-expo" preferWrap>
 ```tsx expo.tsx#AuthButton
 ```
-</CodeGroup>
-</ContentByFramework>
+</TabbedCodeGroupItem>
+</TabbedCodeGroup>
 
 ## Examples
 

@@ -4,7 +4,7 @@ const organization = Organization.create({ name: "Garden Computing" });
 // #region CreateInviteLink
 import { createInviteLink } from "jazz-tools/react";
 
-createInviteLink(organization, "writer"); // or reader, admin, writeOnly
+const inviteLink = createInviteLink(organization, "writer"); // or reader, admin, writeOnly
 // #endregion
 
 // #region AcceptInvite

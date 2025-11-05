@@ -13,7 +13,7 @@ const MusicaAccountRoot = co.map({
   rootPlaylist: Playlist,
 });
 
-const MusicaAccount = co.account({
+export const MusicaAccount = co.account({
   root: MusicaAccountRoot,
   profile: co.profile(),
 });

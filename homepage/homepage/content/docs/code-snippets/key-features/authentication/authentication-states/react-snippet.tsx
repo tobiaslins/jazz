@@ -1,4 +1,3 @@
-import * as React from "react";
 import { JazzReactProvider } from "jazz-tools/react";
 
 // #region Basic
@@ -28,6 +27,10 @@ function App() {
 }
 const apiKey = "you@example.com";
 
+function example1() {
+  // Don't auto indent
+  // prettier-ignore
+  return (
 // #region SyncSettings
 <JazzReactProvider
   sync={{
@@ -38,9 +41,15 @@ const apiKey = "you@example.com";
   }}
 >
   <App />
-</JazzReactProvider>;
+</JazzReactProvider>
 // #endregion
+)
+}
 
+function example2() {
+  // Don't auto indent
+  // prettier-ignore
+  return (
 // #region DisableAnonSync
 <JazzReactProvider
   sync={{
@@ -50,9 +59,15 @@ const apiKey = "you@example.com";
   }}
 >
   <App />
-</JazzReactProvider>;
+</JazzReactProvider>
 // #endregion
+  )
+}
 
+function example3() {
+  // Don't auto indent
+  // prettier-ignore
+  return (
 // #region GuestModeAccess
 <JazzReactProvider
   // Enable Guest Mode for public content
@@ -64,5 +79,7 @@ const apiKey = "you@example.com";
   }}
 >
   <App />
-</JazzReactProvider>;
+</JazzReactProvider>
 // #endregion
+  )
+}

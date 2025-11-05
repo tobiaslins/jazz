@@ -2,7 +2,7 @@ export const metadata = {
   description: "Passphrase authentication lets users log into any device using a recovery phrase consisting of multiple words (similar to cryptocurrency wallets). "
 };
 
-import { CodeGroup, ContentByFramework } from "@/components/forMdx";
+import { CodeGroup, ContentByFramework, ExpoLogo, ReactLogo, SvelteLogo, RNLogo, TabbedCodeGroup, TabbedCodeGroupItem, VanillaLogo } from "@/components/forMdx";
 
 # Passphrase Authentication
 
@@ -26,22 +26,30 @@ You can use one of the ready-to-use wordlists from the [BIP39 repository](https:
 - **Offline capable**: No external dependencies
 
 ## Implementation
+You can implement passphrase authentication in your application quickly and easily:
 
-{/* TODO: Convert to TCG */}
-{/* TODO: Add Svelte */}
-<ContentByFramework framework="react">
-<CodeGroup>
+<TabbedCodeGroup default="react" savedPreferenceKey="framework" id="use-passphrase">
+  <TabbedCodeGroupItem icon={<VanillaLogo />} label="Vanilla" value="vanilla" preferWrap>
+  ```ts AuthModal.ts#PassphraseAuth
+  ```
+  </TabbedCodeGroupItem>
+<TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
 ```tsx AuthModal.tsx#Basic
 ```
-</CodeGroup>
-</ContentByFramework>
-
-<ContentByFramework framework={["react-native", "react-native-expo"]}>
-<CodeGroup>
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" preferWrap>
+```svelte AuthModal.svelte
+```
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem icon={<RNLogo />} label="React Native" value="react-native" preferWrap>
 ```tsx AuthModalRN.tsx#Basic
 ```
-</CodeGroup>
-</ContentByFramework>
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem icon={<ExpoLogo />} label="Expo" value="react-native-expo" preferWrap>
+```tsx AuthModalRN.tsx#Basic
+```
+</TabbedCodeGroupItem>
+</TabbedCodeGroup>
 
 ## Examples
 

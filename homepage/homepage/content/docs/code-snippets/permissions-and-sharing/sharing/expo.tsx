@@ -14,3 +14,9 @@ useAcceptInviteNative({
   },
 });
 // #endregion
+
+// #region CreateInviteLink
+import { createInviteLink } from "jazz-tools/expo";
+
+const inviteLink = createInviteLink(organization, "writer");
+// #endregion
