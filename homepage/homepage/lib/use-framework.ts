@@ -54,9 +54,12 @@ export const useFramework = () => {
       lastRedirectedTo = newPath;
       router.replace(newPath, { scroll: false });
       // Reset the flag after navigation completes
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         isRedirecting = false;
       }, 200);
+      return () => {
+        clearTimeout(timeout);
+      }
     }
   }, [mounted, savedFramework, pathname, router]);
 

@@ -71,13 +71,6 @@ export function FrameworkSelect({
   }, [defaultFramework, initialized]);
 
   useEffect(() => {
-    window.addEventListener(TAB_CHANGE_EVENT, handleTabChange);
-    return () => {
-      window.removeEventListener(TAB_CHANGE_EVENT, handleTabChange);
-    };
-  }, []);
-
-  useEffect(() => {
     const timer = setTimeout(() => {
       window.dispatchEvent(
         new CustomEvent(TAB_CHANGE_EVENT, {
