@@ -62,7 +62,7 @@ importers:
         version: 15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next-themes:
         specifier: ^0.2.1
-        version: 0.2.1(next@15.2.1(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 0.2.1(next@15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       postcss:
         specifier: ^8
         version: 8.5.6
@@ -132,10 +132,10 @@ importers:
         version: 2.0.13
       '@vercel/analytics':
         specifier: ^1.3.1
-        version: 1.5.0(next@15.2.1(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(svelte@5.41.1)
+        version: 1.5.0(next@15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(svelte@5.41.1)
       '@vercel/speed-insights':
         specifier: ^1.0.12
-        version: 1.2.0(next@15.2.1(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(svelte@5.41.1)
+        version: 1.2.0(next@15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(svelte@5.41.1)
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -159,7 +159,7 @@ importers:
         version: 15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next-themes:
         specifier: ^0.2.1
-        version: 0.2.1(next@15.2.1(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 0.2.1(next@15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react:
         specifier: catalog:react
         version: 19.1.0
@@ -3618,6 +3618,9 @@ packages:
     resolution: {integrity: sha512-wzsgA6WOq+09wrU1tsJ09udeR/YZRaeArL9e1wPbFg3GG2yDnC2ldKpxs4xunpFF9DgqCqOIra3bc1HWrJ37Ww==}
     engines: {node: '>=0.4.x'}
 
+  fraction.js@4.3.7:
+    resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
+
   fresh@0.5.2:
     resolution: {integrity: sha512-zJ2mQYM18rEFOudeV4GShTGIQ7RbzA7ozbU9I/XBpm7kqgMywgmylMwXHxZJmkVoYkna9d2pVXVXPdYTP9ej8Q==}
     engines: {node: '>= 0.6'}
@@ -4548,6 +4551,10 @@ packages:
 
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
+    engines: {node: '>=0.10.0'}
+
+  normalize-range@0.1.2:
+    resolution: {integrity: sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==}
     engines: {node: '>=0.10.0'}
 
   nth-check@2.1.1:
@@ -9003,19 +9010,7 @@ snapshots:
       react: 19.1.0
       svelte: 5.41.1
 
-  '@vercel/analytics@1.5.0(next@15.2.1(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(svelte@5.41.1)':
-    optionalDependencies:
-      next: 15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      svelte: 5.41.1
-
   '@vercel/speed-insights@1.2.0(next@15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(svelte@5.41.1)':
-    optionalDependencies:
-      next: 15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      svelte: 5.41.1
-
-  '@vercel/speed-insights@1.2.0(next@15.2.1(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(svelte@5.41.1)':
     optionalDependencies:
       next: 15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react: 19.1.0
@@ -9909,6 +9904,8 @@ snapshots:
       signal-exit: 4.1.0
 
   format@0.2.2: {}
+
+  fraction.js@4.3.7: {}
 
   fresh@0.5.2: {}
 
@@ -11343,12 +11340,6 @@ snapshots:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
 
-  next-themes@0.2.1(next@15.2.1(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
-    dependencies:
-      next: 15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
-      react: 19.1.0
-      react-dom: 19.1.0(react@19.1.0)
-
   next@15.2.1(@babel/core@7.28.4)(@playwright/test@1.55.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
       '@next/env': 15.2.1
@@ -11389,6 +11380,8 @@ snapshots:
   node-releases@2.0.19: {}
 
   normalize-path@3.0.0: {}
+
+  normalize-range@0.1.2: {}
 
   nth-check@2.1.1:
     dependencies:
