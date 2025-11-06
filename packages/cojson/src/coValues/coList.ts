@@ -87,6 +87,7 @@ export class RawCoList<
   /** @internal */
   knownTransactions: Record<RawCoID, number>;
   totalValidTransactions: number = 0;
+  version: number = 0;
 
   lastValidTransaction: number | undefined;
 
@@ -661,16 +662,18 @@ export class RawCoList<
 
   /** @internal */
   rebuildFromCore() {
-    const listAfter = new RawCoList(this.core) as this;
+    this.version++;
 
-    this.afterStart = listAfter.afterStart;
-    this.beforeEnd = listAfter.beforeEnd;
-    this.insertions = listAfter.insertions;
-    this.lastValidTransaction = listAfter.lastValidTransaction;
-    this.knownTransactions = listAfter.knownTransactions;
-    this.totalValidTransactions = listAfter.totalValidTransactions;
-    this.deletionsByInsertion = listAfter.deletionsByInsertion;
+    this.afterStart = [];
+    this.beforeEnd = [];
+    this.insertions = {};
+    this.lastValidTransaction = undefined;
+    this.knownTransactions = { [this.core.id]: 0 };
+    this.totalValidTransactions = 0;
+    this.deletionsByInsertion = {};
     this._cachedEntries = undefined;
+
+    this.processNewTransactions();
   }
 }
 
