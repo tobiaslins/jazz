@@ -144,8 +144,6 @@ export function ChatScreen({ navigation }: { navigation: any }) {
       });
 
       if (!result.didCancel && result.assets?.[0].uri) {
-        // Creates ImageDefinition with a blurry placeholder, limited to 1024px on the longest side, and multiple resolutions automatically.
-        // See the options below for more details.
         const image = await createImage(result.assets[0].uri, {
           owner: loadedChat.$jazz.owner,
           placeholder: "blur",
