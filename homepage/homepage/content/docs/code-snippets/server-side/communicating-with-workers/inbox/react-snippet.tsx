@@ -19,6 +19,7 @@ function EventComponent({ event }: { event: co.loaded<typeof Event> }) {
     );
 
     alert(`Ticket booked: ${ticketId}`);
+    setIsLoading(false);
   };
 
   return (
