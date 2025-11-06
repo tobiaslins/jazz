@@ -173,10 +173,7 @@ export class SubscriptionScope<D extends CoValue> {
     } else {
       const hasChanged =
         update.totalValidTransactions !== this.totalValidTransactions ||
-        update.version !== this.version ||
-        // Checking the identity of the raw value makes us cover the cases where the group
-        // has been updated and the coValues that don't update the totalValidTransactions value (e.g. FileStream)
-        this.value.value.$jazz.raw !== update;
+        update.version !== this.version;
 
       if (this.loadChildren()) {
         this.updateValue(createCoValue(this.schema, update, this));
