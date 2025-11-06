@@ -2,7 +2,9 @@
   import { AccountCoState } from "jazz-tools/svelte";
   import { JazzFestAccount } from "$lib/schema";
   const me = new AccountCoState(JazzFestAccount, {
-    resolve: { root: { myFestival: true } }
+    resolve: { root: { myFestival: {
+      $each: true
+    } } }
   });
 </script>
 
