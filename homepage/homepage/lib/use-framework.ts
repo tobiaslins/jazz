@@ -1,8 +1,15 @@
 "use client";
-import { DEFAULT_FRAMEWORK, Framework, isValidFramework } from "@/content/framework";
+import {
+  DEFAULT_FRAMEWORK,
+  Framework,
+  isValidFramework,
+} from "@/content/framework";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TAB_CHANGE_EVENT, isFrameworkChange } from "@garden-co/design-system/src/types/tabbed-code-group";
+import {
+  TAB_CHANGE_EVENT,
+  isFrameworkChange,
+} from "@garden-co/design-system/src/types/tabbed-code-group";
 
 // Global tracking to prevent multiple simultaneous redirects
 // (since useFramework is called by multiple components on the same page)
@@ -37,11 +44,12 @@ export const useFramework = () => {
       }
     };
     window.addEventListener(TAB_CHANGE_EVENT as any, handleTabChange);
-    return () => window.removeEventListener(TAB_CHANGE_EVENT as any, handleTabChange);
+    return () =>
+      window.removeEventListener(TAB_CHANGE_EVENT as any, handleTabChange);
   }, []);
 
   useEffect(() => {
-    if (!mounted || !savedFramework || !pathname.startsWith('/docs')) return;
+    if (!mounted || !savedFramework || !pathname.startsWith("/docs")) return;
 
     const parts = pathname.split("/");
     const newPath = parts.toSpliced(2, 1, savedFramework).join("/");
@@ -59,10 +67,10 @@ export const useFramework = () => {
       }, 200);
       return () => {
         clearTimeout(timeout);
-      }
+        isRedirecting = false;
+      };
     }
   }, [mounted, savedFramework, pathname, router]);
-
 
   if (mounted && savedFramework) return savedFramework;
   if (framework && isValidFramework(framework)) return framework;
