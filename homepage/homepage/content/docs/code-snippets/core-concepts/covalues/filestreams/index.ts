@@ -155,7 +155,6 @@ console.log("Upload complete!");
 // #endregion
 
 // #region LoadById
-// @ts-expect-error Options is required by the type at the moment, but not really necessary.
 const fileStreamFromId = await co.fileStream().load(fileStreamId);
 
 if (fileStream.$isLoaded) {
