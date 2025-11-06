@@ -10,7 +10,7 @@ import {
   DropdownMenu,
 } from "@garden-co/design-system/src/components/organisms/Dropdown";
 import clsx from "clsx";
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   TAB_CHANGE_EVENT,
@@ -33,33 +33,47 @@ export function FrameworkSelect({
     useState<Framework>(defaultFramework);
   const [initialized, setInitialized] = useState(false);
 
-  const selectFramework = useCallback((newFramework: Framework, shouldNavigate = true) => {
-    setSelectedFramework(newFramework);
-    onSelect && onSelect(newFramework);
-    localStorage.setItem("_tcgpref_framework", newFramework);
-
-    // Dispatch event to notify other components (including useFramework)
-    // The useFramework hook will handle the actual navigation
-    window.dispatchEvent(
-      new CustomEvent(TAB_CHANGE_EVENT, {
-        detail: {
-          key: "framework",
-          value: newFramework,
-        },
-      }),
-    );
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => {
+    onSelectRef.current = onSelect;
   }, [onSelect]);
 
-  const handleTabChange = useCallback((event: CustomEvent<TabChangeEventDetail>) => {
-    if (isFrameworkChange(event.detail)) {
-      selectFramework(event.detail.value as Framework, false);
-    }
-  }, [selectFramework]);
+  const selectFramework = useCallback(
+    (newFramework: Framework, shouldNavigate = true) => {
+      setSelectedFramework(newFramework);
+      onSelectRef.current && onSelectRef.current(newFramework);
+      localStorage.setItem("_tcgpref_framework", newFramework);
+
+      // Dispatch event to notify other components (including useFramework)
+      // The useFramework hook will handle the actual navigation
+      window.dispatchEvent(
+        new CustomEvent(TAB_CHANGE_EVENT, {
+          detail: {
+            key: "framework",
+            value: newFramework,
+          },
+        }),
+      );
+    },
+    [],
+  );
+
+  const handleTabChange = useCallback(
+    (event: CustomEvent<TabChangeEventDetail>) => {
+      if (isFrameworkChange(event.detail)) {
+        selectFramework(event.detail.value as Framework, false);
+      }
+    },
+    [selectFramework],
+  );
 
   useEffect(() => {
     window.addEventListener(TAB_CHANGE_EVENT, handleTabChange as EventListener);
     return () => {
-      window.removeEventListener(TAB_CHANGE_EVENT, handleTabChange as EventListener);
+      window.removeEventListener(
+        TAB_CHANGE_EVENT,
+        handleTabChange as EventListener,
+      );
     };
   }, [handleTabChange]);
 
@@ -83,7 +97,6 @@ export function FrameworkSelect({
     }, 0);
     return () => clearTimeout(timer);
   }, [defaultFramework]);
-
 
   return (
     <Dropdown>
