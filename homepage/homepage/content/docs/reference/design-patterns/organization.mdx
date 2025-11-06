@@ -2,7 +2,7 @@ export const metadata = {
   description: "Learn how to share a set of data between users through organizations."
 };
 
-import { CodeGroup, FileName, ReactLogo, SvelteLogo, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
+import { CodeGroup, FileName, ReactLogo, SvelteLogo, ExpoLogo, RNLogo, VanillaLogo, TabbedCodeGroup, TabbedCodeGroupItem } from "@/components/forMdx";
 
 # How to share data between users through Organizations
 
@@ -20,7 +20,7 @@ For this example, users within an `Organization` will be sharing `Project`s.
 
 <FileName>schema.ts</FileName>
 <CodeGroup>
-```ts schema.ts#Basic
+```ts permissions-and-sharing/sharing/schema.ts#Basic
 ```
 </CodeGroup>
 
@@ -31,7 +31,7 @@ Learn more about [defining schemas](/docs/core-concepts/covalues/overview).
 Let's add the list of `Organization`s to the user's Account `root` so they can access them.
 
 <CodeGroup>
-```ts schema.ts#AddToRoot
+```tsx permissions-and-sharing/sharing/schema.ts#AddToAccount
 ```
 </CodeGroup>
 
@@ -54,15 +54,25 @@ Here's how you can generate an [invite link](/docs/permissions-and-sharing/shari
 
 When the user accepts the invite, add the `Organization` to the user's `organizations` list.
 
-{/* TODO: other frameworks */}
-
 <TabbedCodeGroup default="react" savedPreferenceKey="framework" id="accept-invite">
+  <TabbedCodeGroupItem icon={<VanillaLogo />} label="Vanilla" value="vanilla" preferWrap>
+  ```ts permissions-and-sharing/sharing/create-invite-link.ts#ConsumeLink
+  ```
+  </TabbedCodeGroupItem>
 <TabbedCodeGroupItem icon={<ReactLogo />} label="React" value="react" preferWrap>
-```tsx react-snippet.tsx
+```tsx permissions-and-sharing/sharing/react-snippet.tsx#AcceptInvite
 ```
 </TabbedCodeGroupItem>
 <TabbedCodeGroupItem icon={<SvelteLogo />} label="Svelte" value="svelte" preferWrap>
-```svelte svelte.svelte
+```tsx permissions-and-sharing/sharing/svelte.svelte
+```
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem icon={<RNLogo />} label="React Native" value="react-native" preferWrap>
+```tsx permissions-and-sharing/sharing/rn.tsx#AcceptInvite
+```
+</TabbedCodeGroupItem>
+<TabbedCodeGroupItem icon={<ExpoLogo />} label="Expo" value="react-native-expo" preferWrap>
+```ts permissions-and-sharing/sharing/expo.tsx#AcceptInvite
 ```
 </TabbedCodeGroupItem>
 </TabbedCodeGroup>

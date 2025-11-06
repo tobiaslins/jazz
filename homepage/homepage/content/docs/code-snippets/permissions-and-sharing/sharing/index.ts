@@ -14,7 +14,10 @@ group.addMember("everyone", "writer");
 }
 
 import { Organization } from "./schema";
-const organization = Organization.create({ name: "Garden Computing" });
+const organization = Organization.create({
+  name: "Garden Computing",
+  projects: [],
+});
 const organizationId = organization.$jazz.id;
 const inviteSecret = "inviteSecret_z";
 const account = Account.getMe();
