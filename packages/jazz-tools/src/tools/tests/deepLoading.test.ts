@@ -435,7 +435,7 @@ test("The resolve type accepts keys from optional fields", async () => {
   expect(pets[0]?.owner?.name).toEqual("Rex");
 });
 
-test("The resolve type doesn't accept keys from discriminated unions", async () => {
+test("The resolve type accepts keys from discriminated unions", async () => {
   const Person = co.map({
     name: z.string(),
   });
@@ -449,24 +449,25 @@ test("The resolve type doesn't accept keys from discriminated unions", async () 
   const Pet = co.discriminatedUnion("type", [Dog, Cat]);
   const Pets = co.list(Pet);
 
-  const pets = await Pets.create([
+  const pets = Pets.create([
     Dog.create({ type: "dog", owner: Person.create({ name: "Rex" }) }),
+    Cat.create({ type: "cat" }),
   ]);
 
   await pets.$jazz.ensureLoaded({
-    resolve: {
-      $each: true,
-    },
-  });
-
-  await pets.$jazz.ensureLoaded({
-    // @ts-expect-error cannot resolve owner
     resolve: { $each: { owner: true } },
   });
 
   expect(pets).toBeTruthy();
-  if (pets?.[0]?.type === "dog") {
-    expect(pets[0].owner?.name).toEqual("Rex");
+
+  for (const pet of pets) {
+    if (pet.type === "dog") {
+      expect(pet.owner?.name).toEqual("Rex");
+    } else {
+      expect("owner" in pet).toEqual(false);
+      // @ts-expect-error - this should still not appear in the types
+      expect(pet.owner).toBeUndefined();
+    }
   }
 });
 
