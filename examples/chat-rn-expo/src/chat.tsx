@@ -283,7 +283,7 @@ export default function ChatScreen() {
               <TouchableOpacity
                 onPress={imageUploading ? undefined : sendPhoto}
                 style={styles.sendButton}
-                testID="send-button"
+                testID="send-photo-button"
               >
                 {imageUploading ? (
                   <Animated.Text style={{ transform: [{ rotate: spin }] }}>
