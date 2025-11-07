@@ -1,5 +1,13 @@
 # cojson
 
+## 0.19.1
+
+### Patch Changes
+
+- afd2ded: Reuse the same instance of the raw coValue view on invalidation from permissions
+  - cojson-core-wasm@0.19.1
+  - cojson-core-napi@0.19.1
+
 ## 0.19.0
 
 ### Patch Changes

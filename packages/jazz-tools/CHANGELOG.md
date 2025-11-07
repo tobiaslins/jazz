@@ -1,5 +1,15 @@
 # jazz-tools
 
+## 0.19.1
+
+### Patch Changes
+
+- f444bd9: Add `resolve` support for `co.discriminatedUnion`
+- Updated dependencies [afd2ded]
+  - cojson@0.19.1
+  - cojson-storage-indexeddb@0.19.1
+  - cojson-transport-ws@0.19.1
+
 ## 0.19.0
 
 ### Minor Changes
