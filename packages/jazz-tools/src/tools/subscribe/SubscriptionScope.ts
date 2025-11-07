@@ -594,17 +594,6 @@ export class SubscriptionScope<D extends CoValue> {
     const descriptor = map.$jazz.getDescriptor(key);
 
     if (!descriptor) {
-      this.childErrors.set(
-        key,
-        new JazzError(undefined, CoValueLoadingState.UNAVAILABLE, [
-          {
-            code: "validationError",
-            message: `The ref ${key} requested on ${map.constructor.name} is not defined in the schema`,
-            params: {},
-            path: [key],
-          },
-        ]),
-      );
       return undefined;
     }
 
