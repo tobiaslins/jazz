@@ -284,7 +284,7 @@ export function ChatScreen({ navigation }: { navigation: any }) {
               <TextInput
                 style={styles.messageInput}
                 value={imageUploading ? "Uploading..." : message}
-                onChangeText={imageUploading ? undefined : sendMessage}
+                onChangeText={imageUploading ? undefined : (v) => setMessage(v)}
                 placeholder={
                   imageUploading ? "Uploading..." : "Type a message..."
                 }
@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   },
   messageInput: {
     flex: 1,
-    height: 32,
+    height: 42,
     paddingHorizontal: 8,
   },
   sendButton: {
