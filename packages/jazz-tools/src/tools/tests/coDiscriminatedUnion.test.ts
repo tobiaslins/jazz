@@ -505,19 +505,30 @@ describe("co.discriminatedUnion", () => {
     const Person = co.map({
       name: z.string(),
     });
+    // Schema without a friend
     const Bird = co.map({
+      type: z.literal("bird"),
       species: z.string(),
     });
+    // Schema with a friend
     const Dog = co.map({
       type: z.literal("dog"),
       friend: Person,
     });
+    // Schema with a friend that has a nested field
     const Cat = co.map({
       type: z.literal("cat"),
-      friend: Bird,
+      get friend() {
+        return Cat.optional();
+      },
     });
-    const Pet = co.discriminatedUnion("type", [Dog, Cat]);
+    const Pet = co.discriminatedUnion("type", [Dog, Cat, Bird]);
     const Pets = co.list(Pet);
+
+    const bird = Bird.create({
+      type: "bird",
+      species: "Parrot",
+    });
 
     const dog = Dog.create({
       type: "dog",
@@ -526,13 +537,13 @@ describe("co.discriminatedUnion", () => {
 
     const cat = Cat.create({
       type: "cat",
-      friend: Bird.create({ species: "Parrot" }),
+      friend: { type: "cat", friend: { type: "cat" } },
     });
 
-    const pets = Pets.create([dog, cat]);
+    const pets = Pets.create([dog, cat, bird]);
 
     const loadedPets = await Pets.load(pets.$jazz.id, {
-      resolve: { $each: { friend: true } },
+      resolve: { $each: { friend: { friend: true } } },
     });
 
     assertLoaded(loadedPets);
@@ -543,7 +554,7 @@ describe("co.discriminatedUnion", () => {
         // @ts-expect-error - no species on Person
         expect(pet.friend.species).toBeUndefined();
       } else if (pet.type === "cat") {
-        expect(pet.friend.species).toEqual("Parrot");
+        expect(pet.friend?.friend?.type).toEqual("cat");
         // @ts-expect-error - no name on Bird
         expect(pet.friend.name).toBeUndefined();
       }
