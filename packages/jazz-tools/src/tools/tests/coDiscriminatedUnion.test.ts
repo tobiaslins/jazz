@@ -544,7 +544,7 @@ describe("co.discriminatedUnion", () => {
     const pets = Pets.create([dog, cat, bird]);
 
     const loadedPets = await Pets.load(pets.$jazz.id, {
-      resolve: { $each: { friend: { $each: { friend: true } } } },
+      resolve: { $each: { friend: { $each: { friend: true }, bird: true } } },
     });
 
     assertLoaded(loadedPets);
@@ -552,6 +552,7 @@ describe("co.discriminatedUnion", () => {
     for (const pet of loadedPets) {
       if (pet.type === "dog") {
         expect(pet.friend.name).toEqual("John Doe");
+        expect(pet.friend.bird.species).toEqual("Parrot");
         // @ts-expect-error - no species on Person
         expect(pet.friend.species).toBeUndefined();
       } else if (pet.type === "cat") {
