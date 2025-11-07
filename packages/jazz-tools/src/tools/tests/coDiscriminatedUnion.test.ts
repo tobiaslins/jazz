@@ -502,24 +502,25 @@ describe("co.discriminatedUnion", () => {
   });
 
   test("load co.discriminatedUnion list with different schemas on deep resolved fields", async () => {
-    const Person = co.map({
-      name: z.string(),
-    });
-    // Schema without a friend
+    // Schema without nested CoValues
     const Bird = co.map({
       type: z.literal("bird"),
       species: z.string(),
     });
-    // Schema with a friend
+    const Person = co.map({
+      name: z.string(),
+      bird: Bird,
+    });
+    // Schema with a nested CoValue
     const Dog = co.map({
       type: z.literal("dog"),
       friend: Person,
     });
-    // Schema with a friend that has a nested field
+    // Same attribute (friend) with a completely different schema (list)
     const Cat = co.map({
       type: z.literal("cat"),
       get friend() {
-        return Cat.optional();
+        return co.list(Cat);
       },
     });
     const Pet = co.discriminatedUnion("type", [Dog, Cat, Bird]);
@@ -532,18 +533,18 @@ describe("co.discriminatedUnion", () => {
 
     const dog = Dog.create({
       type: "dog",
-      friend: Person.create({ name: "John Doe" }),
+      friend: Person.create({ name: "John Doe", bird }),
     });
 
     const cat = Cat.create({
       type: "cat",
-      friend: { type: "cat", friend: { type: "cat" } },
+      friend: [{ type: "cat", friend: [{ type: "cat", friend: [] }] }],
     });
 
     const pets = Pets.create([dog, cat, bird]);
 
     const loadedPets = await Pets.load(pets.$jazz.id, {
-      resolve: { $each: { friend: { friend: true } } },
+      resolve: { $each: { friend: { $each: { friend: true } } } },
     });
 
     assertLoaded(loadedPets);
@@ -554,7 +555,7 @@ describe("co.discriminatedUnion", () => {
         // @ts-expect-error - no species on Person
         expect(pet.friend.species).toBeUndefined();
       } else if (pet.type === "cat") {
-        expect(pet.friend?.friend?.type).toEqual("cat");
+        expect(pet.friend[0]?.type).toEqual("cat");
         // @ts-expect-error - no name on Bird
         expect(pet.friend.name).toBeUndefined();
       }
