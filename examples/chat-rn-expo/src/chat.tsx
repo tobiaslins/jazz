@@ -272,7 +272,7 @@ export default function ChatScreen() {
               <TextInput
                 style={styles.messageInput}
                 value={imageUploading ? "Uploading..." : message}
-                onChangeText={imageUploading ? undefined : sendMessage}
+                onChangeText={imageUploading ? undefined : (v) => setMessage(v)}
                 placeholder={
                   imageUploading ? "Uploading..." : "Type a message..."
                 }
