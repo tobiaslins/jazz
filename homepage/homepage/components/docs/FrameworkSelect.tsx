@@ -32,6 +32,7 @@ export function FrameworkSelect({
   const [selectedFramework, setSelectedFramework] =
     useState<Framework>(defaultFramework);
   const [initialized, setInitialized] = useState(false);
+  const selectedFrameworkRef = useRef(selectedFramework);
 
   const onSelectRef = useRef(onSelect);
   useEffect(() => {
@@ -39,21 +40,26 @@ export function FrameworkSelect({
   }, [onSelect]);
 
   const selectFramework = useCallback(
-    (newFramework: Framework, shouldNavigate = true) => {
+    (newFramework: Framework, shouldDispatch = true) => {
+      if (selectedFrameworkRef.current === newFramework) return;
+
+      selectedFrameworkRef.current = newFramework;
       setSelectedFramework(newFramework);
       onSelectRef.current && onSelectRef.current(newFramework);
       localStorage.setItem("_tcgpref_framework", newFramework);
 
-      // Dispatch event to notify other components (including useFramework)
-      // The useFramework hook will handle the actual navigation
-      window.dispatchEvent(
-        new CustomEvent(TAB_CHANGE_EVENT, {
-          detail: {
-            key: "framework",
-            value: newFramework,
-          },
-        }),
-      );
+      if (shouldDispatch) {
+        // Dispatch event to notify other components (including useFramework)
+        // The useFramework hook will handle the actual navigation
+        window.dispatchEvent(
+          new CustomEvent(TAB_CHANGE_EVENT, {
+            detail: {
+              key: "framework",
+              value: newFramework,
+            },
+          }),
+        );
+      }
     },
     [],
   );
@@ -85,15 +91,21 @@ export function FrameworkSelect({
   }, [defaultFramework, initialized]);
 
   useEffect(() => {
+    selectedFrameworkRef.current = selectedFramework;
+  }, [selectedFramework]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent(TAB_CHANGE_EVENT, {
-          detail: {
-            key: "framework",
-            value: defaultFramework,
-          },
-        }),
-      );
+      if (selectedFrameworkRef.current !== defaultFramework) {
+        window.dispatchEvent(
+          new CustomEvent(TAB_CHANGE_EVENT, {
+            detail: {
+              key: "framework",
+              value: defaultFramework,
+            },
+          }),
+        );
+      }
     }, 0);
     return () => clearTimeout(timer);
   }, [defaultFramework]);
