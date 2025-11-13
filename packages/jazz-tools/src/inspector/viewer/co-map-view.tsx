@@ -1,11 +1,11 @@
-import { JsonObject, JsonValue, LocalNode, RawCoMap } from "cojson";
+import { JsonObject, LocalNode, RawCoMap } from "cojson";
 import { PageInfo } from "./types";
 import { GridView } from "./grid-view.js";
 import { useState, useMemo } from "react";
-import { MapOpPayload } from "cojson/dist/coValues/coMap.js";
-import { Button, Icon } from "../ui";
+import { Button, Icon, Input, Modal } from "../ui";
 import { styled } from "goober";
 import { restoreCoMapToTimestamp } from "../utils/history";
+import { CoValueEditor } from "./co-value-editor.js";
 
 export function CoMapView({
   coValue,
@@ -20,10 +20,74 @@ export function CoMapView({
 }) {
   return (
     <>
-      <GridView data={data} onNavigate={onNavigate} node={node} />
+      <GridView
+        data={data}
+        onNavigate={onNavigate}
+        node={node}
+        coValue={coValue}
+      />
       <div>
+        <AddPropertyModal coValue={coValue} node={node} />{" "}
         <RestoreSnapshotModal coValue={coValue} />
       </div>
+    </>
+  );
+}
+
+function AddPropertyModal({
+  coValue,
+  node,
+}: {
+  coValue: RawCoMap;
+  node: LocalNode;
+}) {
+  const [isAddPropertyModalOpen, setIsAddPropertyModalOpen] = useState(false);
+  const [propertyName, setPropertyName] = useState("");
+
+  const openAddPropertyModal = () => {
+    setIsAddPropertyModalOpen(true);
+    setPropertyName("");
+  };
+
+  const handleCancel = () => {
+    setIsAddPropertyModalOpen(false);
+    setPropertyName("");
+  };
+
+  return (
+    <>
+      <Button
+        title="Add Property"
+        variant="secondary"
+        onClick={openAddPropertyModal}
+      >
+        <Icon name="edit" />
+      </Button>
+
+      <Modal
+        isOpen={isAddPropertyModalOpen}
+        onClose={handleCancel}
+        heading="Add Property"
+        showButtons={false}
+      >
+        <Input
+          label="Property Name"
+          value={propertyName}
+          onChange={(e) => setPropertyName(e.target.value)}
+          placeholder="Enter property name"
+        />
+        {propertyName && (
+          <EditorContainer>
+            <CoValueEditor
+              node={node}
+              property={propertyName}
+              value={undefined}
+              coValue={coValue}
+              onCancel={handleCancel}
+            />
+          </EditorContainer>
+        )}
+      </Modal>
     </>
   );
 }
@@ -49,6 +113,7 @@ function RestoreSnapshotModal({ coValue }: { coValue: RawCoMap }) {
   };
 
   const handleRestore = () => {
+    if (timestamps.length < 2) return;
     if (timestamps.length === 0) return;
 
     const selectedTimestamp = timestamps[selectedIndex];
@@ -63,159 +128,78 @@ function RestoreSnapshotModal({ coValue }: { coValue: RawCoMap }) {
     setIsRestoreModalOpen(false);
   };
 
+  const handleClose = () => {
+    setIsRestoreModalOpen(false);
+  };
+
   return (
     <>
-      <Button
-        title="Restore to Snapshot"
-        variant="secondary"
-        onClick={openRestoreModal}
-      >
+      <Button title="Timeline" variant="secondary" onClick={openRestoreModal}>
         <Icon name="history" />
       </Button>
 
-      {isRestoreModalOpen && (
-        <ModalOverlay onClick={() => setIsRestoreModalOpen(false)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalHeader>
-              <ModalHeading>Restore to Snapshot</ModalHeading>
-              <CloseButton onClick={() => setIsRestoreModalOpen(false)}>
-                ×
-              </CloseButton>
-            </ModalHeader>
-            <ModalBody>
-              <RangeContainer>
-                <RangeLabel>Select Timestamp</RangeLabel>
-                <RangeInput
-                  type="range"
-                  min={0}
-                  max={Math.max(0, timestamps.length - 1)}
-                  value={selectedIndex}
-                  onChange={(e) => setSelectedIndex(Number(e.target.value))}
-                  disabled={timestamps.length === 0}
-                />
-                <TimestampDisplay>
-                  {timestamps.length > 0 &&
-                  timestamps[selectedIndex] !== undefined
-                    ? new Date(timestamps[selectedIndex]!).toISOString()
-                    : "No timestamps available"}
-                </TimestampDisplay>
-              </RangeContainer>
-
-              <CheckboxContainer>
-                <CheckboxInput
-                  type="checkbox"
-                  id="remove-unknown-properties"
-                  checked={removeUnknownProperties}
-                  onChange={(e) => setRemoveUnknownProperties(e.target.checked)}
-                />
-                <CheckboxLabel htmlFor="remove-unknown-properties">
-                  Remove unknown properties (properties that don't exist in the
-                  selected snapshot)
-                </CheckboxLabel>
-              </CheckboxContainer>
-
-              {timestamps.length > 0 &&
-                timestamps[selectedIndex] !== undefined && (
-                  <PreviewSection>
-                    <PreviewLabel>State at that time:</PreviewLabel>
-                    <PreviewPre>
-                      {JSON.stringify(coMapAtSelectedIndex, null, 2)}
-                    </PreviewPre>
-                  </PreviewSection>
-                )}
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                variant="secondary"
-                onClick={() => setIsRestoreModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
+      <Modal
+        isOpen={isRestoreModalOpen}
+        onClose={handleClose}
+        heading="Timeline"
+        confirmText="Restore"
+        cancelText="Cancel"
+        onConfirm={handleRestore}
+        onCancel={handleClose}
+        showButtons={timestamps.length > 1}
+      >
+        {timestamps.length > 1 && (
+          <>
+            <RangeContainer>
+              <RangeLabel>Select Timestamp</RangeLabel>
+              <RangeInput
+                type="range"
+                min={0}
+                max={Math.max(0, timestamps.length - 1)}
+                value={selectedIndex}
+                onChange={(e) => setSelectedIndex(Number(e.target.value))}
                 disabled={timestamps.length === 0}
-                onClick={handleRestore}
-              >
-                Restore
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </ModalOverlay>
-      )}
+              />
+              <TimestampDisplay>
+                {timestamps[selectedIndex] !== undefined
+                  ? new Date(timestamps[selectedIndex]!).toISOString()
+                  : "No timestamps available"}
+              </TimestampDisplay>
+            </RangeContainer>
+
+            <CheckboxContainer>
+              <CheckboxInput
+                type="checkbox"
+                id="remove-unknown-properties"
+                checked={removeUnknownProperties}
+                onChange={(e) => setRemoveUnknownProperties(e.target.checked)}
+              />
+              <CheckboxLabel htmlFor="remove-unknown-properties">
+                Remove unknown properties (properties that don't exist in the
+                selected snapshot)
+              </CheckboxLabel>
+            </CheckboxContainer>
+          </>
+        )}
+
+        {timestamps.length > 0 && timestamps[selectedIndex] !== undefined && (
+          <PreviewSection>
+            <PreviewLabel>State at that time:</PreviewLabel>
+            <PreviewPre>
+              {JSON.stringify(coMapAtSelectedIndex, null, 2)}
+            </PreviewPre>
+          </PreviewSection>
+        )}
+
+        {timestamps.length < 2 && (
+          <div style={{ color: "var(--j-text-color)" }}>
+            At least 2 timestamps are required to restore a snapshot.
+          </div>
+        )}
+      </Modal>
     </>
   );
 }
-
-const ModalOverlay = styled("div")`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const ModalContent = styled("div")`
-  background-color: var(--j-background);
-  border-radius: var(--j-radius-lg);
-  border: 1px solid var(--j-border-color);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  max-width: 800px;
-  width: 90%;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-`;
-
-const ModalHeader = styled("div")`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1.5rem 1.5rem 0 1.5rem;
-  gap: 1rem;
-`;
-
-const ModalHeading = styled("h3")`
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--j-text-color-strong);
-`;
-
-const CloseButton = styled("button")`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: var(--j-radius-sm);
-  color: var(--j-text-color);
-  font-size: 1.25rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2rem;
-  min-height: 2rem;
-
-  &:hover {
-    background-color: var(--j-foreground);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--j-border-focus);
-    outline-offset: 2px;
-  }
-`;
-
-const ModalBody = styled("div")`
-  padding: 1rem 1.5rem;
-  overflow-y: auto;
-  flex: 1;
-`;
 
 const PreviewSection = styled("div")`
   margin-top: 1.5rem;
@@ -238,13 +222,6 @@ const PreviewPre = styled("pre")`
   overflow-y: auto;
   color: var(--j-text-color);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-`;
-
-const ModalFooter = styled("div")`
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 0 1.5rem 1.5rem 1.5rem;
 `;
 
 const RangeContainer = styled("div")`
@@ -328,4 +305,8 @@ const CheckboxLabel = styled("label")`
   color: var(--j-text-color);
   cursor: pointer;
   line-height: 1.25rem;
+`;
+
+const EditorContainer = styled("div")`
+  margin-top: 1rem;
 `;

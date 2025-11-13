@@ -71,126 +71,8 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       expect(restoreButton).toBeDefined();
-    });
-  });
-
-  describe("Modal Interactions", () => {
-    it("should open restore modal when button is clicked", async () => {
-      const value = co
-        .map({
-          foo: z.string(),
-        })
-        .create({ foo: "bar" }, account);
-
-      const data = value.$jazz.raw.toJSON() as JsonObject;
-
-      render(
-        <CoMapView
-          coValue={value.$jazz.raw}
-          data={data}
-          node={account.$jazz.localNode}
-          onNavigate={() => {}}
-        />,
-      );
-
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
-      fireEvent.click(restoreButton);
-
-      expect(screen.getByText("Restore to Snapshot")).toBeDefined();
-      expect(screen.getByText("Select Timestamp")).toBeDefined();
-      expect(screen.getByText("State at that time:")).toBeDefined();
-    });
-
-    it("should close modal when clicking overlay", async () => {
-      const value = co
-        .map({
-          foo: z.string(),
-        })
-        .create({ foo: "bar" }, account);
-
-      const data = value.$jazz.raw.toJSON() as JsonObject;
-
-      render(
-        <CoMapView
-          coValue={value.$jazz.raw}
-          data={data}
-          node={account.$jazz.localNode}
-          onNavigate={() => {}}
-        />,
-      );
-
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
-      fireEvent.click(restoreButton);
-
-      expect(screen.getByText("Select Timestamp")).toBeDefined();
-
-      const overlay = screen.getByText("Restore to Snapshot").parentElement
-        ?.parentElement?.parentElement;
-      fireEvent.click(overlay!);
-
-      await waitFor(() => {
-        expect(screen.queryByText("Select Timestamp")).toBeNull();
-      });
-    });
-
-    it("should close modal when clicking close button", async () => {
-      const value = co
-        .map({
-          foo: z.string(),
-        })
-        .create({ foo: "bar" }, account);
-
-      const data = value.$jazz.raw.toJSON() as JsonObject;
-
-      render(
-        <CoMapView
-          coValue={value.$jazz.raw}
-          data={data}
-          node={account.$jazz.localNode}
-          onNavigate={() => {}}
-        />,
-      );
-
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
-      fireEvent.click(restoreButton);
-
-      const closeButton = screen.getByText("×");
-      fireEvent.click(closeButton);
-
-      await waitFor(() => {
-        expect(screen.queryByText("Select Timestamp")).toBeNull();
-      });
-    });
-
-    it("should close modal when clicking Cancel button", async () => {
-      const value = co
-        .map({
-          foo: z.string(),
-        })
-        .create({ foo: "bar" }, account);
-
-      const data = value.$jazz.raw.toJSON() as JsonObject;
-
-      render(
-        <CoMapView
-          coValue={value.$jazz.raw}
-          data={data}
-          node={account.$jazz.localNode}
-          onNavigate={() => {}}
-        />,
-      );
-
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
-      fireEvent.click(restoreButton);
-
-      const cancelButton = screen.getByText("Cancel");
-      fireEvent.click(cancelButton);
-
-      await waitFor(() => {
-        expect(screen.queryByText("Select Timestamp")).toBeNull();
-      });
     });
   });
 
@@ -218,7 +100,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       const slider = screen.getByRole("slider") as HTMLInputElement;
@@ -239,6 +121,8 @@ describe("CoMapView", async () => {
         })
         .create({ foo: "bar" }, account);
 
+      value.$jazz.set("foo", "baz");
+
       const data = value.$jazz.raw.toJSON() as JsonObject;
 
       render(
@@ -250,7 +134,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       const timestampDisplay = screen.getAllByText(/\d{4}-\d{2}-\d{2}T/)[0];
@@ -281,7 +165,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       const slider = screen.getByRole("slider") as HTMLInputElement;
@@ -303,34 +187,6 @@ describe("CoMapView", async () => {
   });
 
   describe("Remove Unknown Properties Checkbox", () => {
-    it("should render checkbox with correct label", async () => {
-      const value = co
-        .map({
-          foo: z.string(),
-        })
-        .create({ foo: "bar" }, account);
-
-      const data = value.$jazz.raw.toJSON() as JsonObject;
-
-      render(
-        <CoMapView
-          coValue={value.$jazz.raw}
-          data={data}
-          node={account.$jazz.localNode}
-          onNavigate={() => {}}
-        />,
-      );
-
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
-      fireEvent.click(restoreButton);
-
-      expect(
-        screen.getByText(
-          "Remove unknown properties (properties that don't exist in the selected snapshot)",
-        ),
-      ).toBeDefined();
-    });
-
     it("should toggle checkbox state", async () => {
       const value = co
         .map({
@@ -338,6 +194,8 @@ describe("CoMapView", async () => {
         })
         .create({ foo: "bar" }, account);
 
+      value.$jazz.set("foo", "baz");
+
       const data = value.$jazz.raw.toJSON() as JsonObject;
 
       render(
@@ -349,7 +207,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       const checkbox = screen.getByRole("checkbox") as HTMLInputElement;
@@ -387,7 +245,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       const slider = screen.getByRole("slider") as HTMLInputElement;
@@ -423,7 +281,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       expect(screen.getByText("Select Timestamp")).toBeDefined();
@@ -463,7 +321,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       const checkbox = screen.getByRole("checkbox") as HTMLInputElement;
@@ -504,7 +362,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      expect(screen.getByTitle("Restore to Snapshot")).toBeDefined();
+      expect(screen.getByTitle("Timeline")).toBeDefined();
     });
 
     it("should handle complex data types", async () => {
@@ -542,7 +400,7 @@ describe("CoMapView", async () => {
       expect(screen.getByText("bool")).toBeDefined();
     });
 
-    it("should handle restoring to same state (no changes)", async () => {
+    it("should not allow restoring to same state (no changes)", async () => {
       const value = co
         .map({
           pet: z.string(),
@@ -560,20 +418,10 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
-      const slider = screen.getByRole("slider") as HTMLInputElement;
-      fireEvent.change(slider, { target: { value: 0 } });
-
-      const restoreActionButton = screen.getByText("Restore");
-      fireEvent.click(restoreActionButton);
-
-      await waitFor(() => {
-        expect(screen.queryByText("Select Timestamp")).toBeNull();
-      });
-
-      expect(value.pet).toBe("dog");
+      expect(screen.queryByRole("slider")).toBeNull();
     });
 
     it("should handle multiple property changes at different times", async () => {
@@ -603,7 +451,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       const slider = screen.getByRole("slider") as HTMLInputElement;
@@ -655,7 +503,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       // Modal starts at most recent timestamp
@@ -705,7 +553,7 @@ describe("CoMapView", async () => {
         />,
       );
 
-      const restoreButton = screen.getByTitle("Restore to Snapshot");
+      const restoreButton = screen.getByTitle("Timeline");
       fireEvent.click(restoreButton);
 
       const slider = screen.getByRole("slider") as HTMLInputElement;
