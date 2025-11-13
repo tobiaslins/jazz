@@ -19,7 +19,6 @@ await me.$jazz.ensureLoaded({
 
 // #region Basic
 import { createImage } from "jazz-tools/media";
-// @ts-expect-error Don't want to install, I'm OK with any typing.
 import { launchImageLibrary } from "react-native-image-picker";
 
 async function handleImagePicker() {
