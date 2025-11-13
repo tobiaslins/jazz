@@ -263,7 +263,7 @@ You can use CoRecords as a way to create set-like collections, by keying the CoR
   ```
 </CodeGroup>
 
-You can choose a loading strategy for the CoRecord. If you need to be able to access all of the properties of each item in the CoRecord immediately, you can use `$each` to resolve the values. In general, it is enough to shallowly load a CoRecord to access its keys, and then load the values of those keys as needed (for example, by passing the keys as strings to a child component).
+You can choose a loading strategy for the CoRecord. Use $each when you need all item properties to be immediately available. In general, it is enough to shallowly load a CoRecord to access its keys, and then load the values of those keys as needed (for example, by passing the keys as strings to a child component).
 
 <CodeGroup>
   ```ts record.ts#DeeplyLoadingKeys
