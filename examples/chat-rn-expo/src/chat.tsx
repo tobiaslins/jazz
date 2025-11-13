@@ -116,7 +116,6 @@ export default function ChatScreen() {
       if (!result.didCancel && result.assets?.[0].uri) {
         const image = await createImage(result.assets[0].uri, {
           owner: loadedChat.$jazz.owner,
-          // Work out why I can't do this in Expo but in RN it works fine.
           placeholder: "blur",
           maxSize: 1024,
         });
