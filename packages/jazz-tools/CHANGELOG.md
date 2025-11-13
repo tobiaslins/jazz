@@ -1,5 +1,16 @@
 # jazz-tools
 
+## 0.19.2
+
+### Patch Changes
+
+- ef24afb: Support creating CoVectors using plain `number[]` or `Float32Array` objects inside CoValue containers
+- 5f2b34b: Inline editing and snapshot restore for CoMaps in the inspector
+- Updated dependencies [7e76313]
+  - cojson@0.19.2
+  - cojson-storage-indexeddb@0.19.2
+  - cojson-transport-ws@0.19.2
+
 ## 0.19.1
 
 ### Patch Changes
