@@ -1,5 +1,15 @@
 # jazz-react
 
+## 0.19.2
+
+### Patch Changes
+
+- Updated dependencies [ef24afb]
+- Updated dependencies [7e76313]
+- Updated dependencies [5f2b34b]
+  - jazz-tools@0.19.2
+  - cojson@0.19.2
+
 ## 0.19.1
 
 ### Patch Changes
