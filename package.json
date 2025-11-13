@@ -92,8 +92,5 @@
       "wasm-pack",
       "workerd"
     ]
-  },
-  "dependencies": {
-    "expo-image-manipulator": "^14.0.7"
   }
 }
